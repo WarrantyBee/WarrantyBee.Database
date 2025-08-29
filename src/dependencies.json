@@ -1,0 +1,85 @@
+{
+	"functions": {
+		"master": {
+			"ufn_DoesTableExist": {
+				"dependencies": {
+					"functions": []
+				}
+			},
+			"ufn_DoesColumnExist": {
+				"dependencies": {
+					"functions": []
+				}
+			}
+		}
+	},
+	"procedures": {
+		"master": {
+			"usp_AddCheck": {
+				"dependencies": {
+					"functions": ["ufn_DoesTableExist", "ufn_DoesColumnExist"],
+					"procs": []
+				}
+			},
+			"usp_AddColumn": {
+				"dependencies": {
+					"functions": ["ufn_DoesTableExist", "ufn_DoesColumnExist"],
+					"procs": [
+						"usp_CreatePrimaryKey",
+						"usp_AutoIncrement",
+						"usp_AddColumn"
+					]
+				}
+			},
+			"usp_AutoIncrement": {
+				"dependencies": {
+					"functions": ["ufn_DoesTableExist", "ufn_DoesColumnExist"],
+					"procs": []
+				}
+			},
+			"usp_CreateForeignKey": {
+				"dependencies": {
+					"functions": ["ufn_DoesTableExist", "ufn_DoesColumnExist"],
+					"procs": []
+				}
+			},
+			"usp_CreatePrimaryKey": {
+				"dependencies": {
+					"functions": ["ufn_DoesTableExist", "ufn_DoesColumnExist"],
+					"procs": []
+				}
+			},
+			"usp_CreateTable": {
+				"dependencies": {
+					"functions": ["ufn_DoesTableExist"],
+					"procs": []
+				}
+			},
+			"usp_CreateUniqueKey": {
+				"dependencies": {
+					"functions": ["ufn_DoesTableExist", "ufn_DoesColumnExist"],
+					"procs": []
+				}
+			},
+			"usp_DropColumn": {
+				"dependencies": {
+					"functions": ["ufn_DoesTableExist", "ufn_DoesColumnExist"],
+					"procs": []
+				}
+			},
+			"usp_DropConstraint": {
+				"dependencies": {
+					"functions": ["ufn_DoesTableExist"],
+					"procs": []
+				}
+			},
+			"usp_MarkRequired": {
+				"dependencies": {
+					"functions": ["ufn_DoesTableExist", "ufn_DoesColumnExist"],
+					"procs": []
+				}
+			}
+		}
+	},
+	"tables": {}
+}

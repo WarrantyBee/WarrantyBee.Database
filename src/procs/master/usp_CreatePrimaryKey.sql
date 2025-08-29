@@ -27,6 +27,7 @@ CREATE PROCEDURE usp_CreatePrimaryKey(
     IN in_constraint_name VARCHAR(64)
 )
 BEGIN
+    -- Handle any SQL exception and print a custom message
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
         SELECT CONCAT(
@@ -36,6 +37,7 @@ BEGIN
         ) AS message;
     END;
 
+    -- Check if table exists
     IF NOT ufn_DoesTableExist(in_table_name) THEN
         SELECT CONCAT(
             'Primary key ',
@@ -44,6 +46,7 @@ BEGIN
             in_table_name,
             ' does not exist.'
         ) AS message;
+    -- Check if column exists
     ELSEIF NOT ufn_DoesColumnExist(in_table_name, in_column_name) THEN
         SELECT CONCAT(
             'Primary key ',
@@ -53,6 +56,7 @@ BEGIN
             ' does not exist on the table ',
             in_table_name, ' .'
         ) AS message;
+    -- Check if primary key already exists
     ELSEIF EXISTS (
         SELECT 1
         FROM information_schema.table_constraints
@@ -66,19 +70,21 @@ BEGIN
             ' already exists.'
         )  AS message;
     ELSE
+        -- Try to create the primary key constraint
         BEGIN
             DECLARE EXIT HANDLER FOR SQLEXCEPTION
             BEGIN
                 SELECT CONCAT(
                     'Primary key ',
                     in_constraint_name,
-                    ' creation failed.'
+                    ' creation failed due to an exception.'
                 ) AS message;
             END;
 
+            -- Build and execute the ALTER TABLE statement
             SET @sql = CONCAT('ALTER TABLE ', in_table_name,
-                              ' ADD CONSTRAINT ', in_constraint_name,
-                              ' PRIMARY KEY (', in_column_name, ')');
+                              ' ADD CONSTRAINT `', in_constraint_name,
+                              '` PRIMARY KEY (', in_column_name, ')');
             PREPARE stmt FROM @sql;
             EXECUTE stmt;
             DEALLOCATE PREPARE stmt;

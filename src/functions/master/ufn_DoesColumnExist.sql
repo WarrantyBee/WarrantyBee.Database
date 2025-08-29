@@ -24,10 +24,14 @@ CREATE FUNCTION ufn_DoesColumnExist(
 RETURNS BOOLEAN
 DETERMINISTIC
 BEGIN
+    -- Variable to store existence result
     DECLARE v_exists BOOLEAN DEFAULT FALSE;
-    DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
-    SET v_exists = FALSE;
 
+    -- If any SQL exception occurs, set result to FALSE
+    DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
+        SET v_exists = FALSE;
+
+    -- Check for the column in information_schema.columns
     SELECT TRUE
     INTO v_exists
     FROM information_schema.columns
@@ -36,6 +40,7 @@ BEGIN
       AND column_name = in_column_name
     LIMIT 1;
 
+    -- Return TRUE if found, otherwise FALSE
     RETURN v_exists;
 END$$
 

@@ -20,10 +20,14 @@ CREATE FUNCTION ufn_DoesTableExist(in_table_name VARCHAR(64))
 RETURNS BOOLEAN
 DETERMINISTIC
 BEGIN
+    -- Variable to store existence result
     DECLARE v_exists BOOLEAN DEFAULT FALSE;
-    DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
-    SET v_exists = FALSE;
 
+    -- If any SQL exception occurs, set result to FALSE
+    DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
+        SET v_exists = FALSE;
+
+    -- Check for the table in information_schema.tables
     SELECT TRUE
     INTO v_exists
     FROM information_schema.tables
@@ -31,6 +35,7 @@ BEGIN
       AND table_name = in_table_name
     LIMIT 1;
 
+    -- Return TRUE if found, otherwise FALSE
     RETURN v_exists;
 END$$
 
