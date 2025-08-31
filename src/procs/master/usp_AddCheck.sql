@@ -1,38 +1,27 @@
-DELIMITER $$
-DROP PROCEDURE IF EXISTS usp_AddCheck$$
+DELIMITER $
+DROP PROCEDURE IF EXISTS usp_AddCheck$
 
 -- =============================================
 -- usp_AddCheck
--- Adds or updates a check constraint on a specified column in a table.
+-- Adds or updates a check constraint on a specified column or a custom check on multiple columns in a table.
 --
 -- Parameters:
---   in_table_name   - The name of the table to alter.
---   in_column_name  - The name of the column to apply the check constraint on.
---   in_check_expr   - The check expression (e.g., '`age` > 0').
+--   in_table_name      - The name of the table to alter.
+--   in_column_name     - (Optional) The name of the column to apply the check constraint on. If NULL, it's a table-level constraint.
+--   in_check_expr      - The check expression (e.g., '`age` > 0').
 --
 -- Usage:
---   -- Simple greater than check
+--   -- Simple greater than check on a column
 --   CALL usp_AddCheck('tblExample', 'age', '`age` > 0');
 --
---   -- Using IN operator
---   CALL usp_AddCheck('tblExample', 'status', "`status` IN ('active', 'pending')");
---
---   -- Using BETWEEN operator
---   CALL usp_AddCheck('tblExample', 'score', '`score` BETWEEN 1 AND 10');
---
---   -- Using LIKE operator
---   CALL usp_AddCheck('tblExample', 'email', "`email` LIKE '%@example.com'");
---
---   -- Using a function
---   CALL usp_AddCheck('tblExample', 'name', 'LENGTH(`name`) > 3');
+--   -- Custom check on multiple columns (constraint name will be auto-generated)
+--   CALL usp_AddCheck('tblExample', NULL, '`start_date` < `end_date`');
 --
 -- Notes:
---   - The constraint will be named chk_{table}.{column}.
---   - Checks if the table, column, and constraint already exist before adding or updating.
+--   - If column name is provided, the constraint will be named chk_{table}.{column}.
+--   - If column name is not provided, a random name will be generated.
+--   - Checks if the table, column (if applicable), and constraint already exist before adding or updating.
 --   - Handles exceptions and prints messages for each execution flow.
---   - Always uses backticks for database objects.
---   - The check expression (in_check_expr) can use any valid MySQL syntax,
---     including operators like IN, BETWEEN, LIKE, and functions.
 -- =============================================
 
 CREATE PROCEDURE usp_AddCheck(
@@ -48,16 +37,18 @@ BEGIN
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
         SELECT CONCAT(
-            'Check constraint creation or update failed for column `',
-            in_column_name,
-            '` in table `',
+            'Check constraint creation or update failed for table `',
             in_table_name,
             '` due to an exception.'
         ) AS message;
     END;
 
     -- Build constraint name
-    SET v_constraint_name = CONCAT('chk_', in_table_name, '.', in_column_name);
+    IF in_column_name IS NOT NULL THEN
+        SET v_constraint_name = CONCAT('chk_', in_table_name, '.', in_column_name);
+    ELSE
+        SET v_constraint_name = CONCAT('chk_', in_table_name, '_', REPLACE(UUID(), '-', ''));
+    END IF;
 
     -- Check if table exists
     IF NOT ufn_DoesTableExist(in_table_name) THEN
@@ -66,8 +57,8 @@ BEGIN
             in_table_name,
             '` does not exist.'
         ) AS message;
-    -- Check if column exists
-    ELSEIF NOT ufn_DoesColumnExist(in_table_name, in_column_name) THEN
+    -- Check if column exists, only if a column name is provided
+    ELSEIF in_column_name IS NOT NULL AND NOT ufn_DoesColumnExist(in_table_name, in_column_name) THEN
         SELECT CONCAT(
             'Column `',
             in_column_name,
@@ -92,16 +83,18 @@ BEGIN
             PREPARE stmt_drop FROM @sql_drop;
             EXECUTE stmt_drop;
             DEALLOCATE PREPARE stmt_drop;
+        END IF;
 
-            -- Add the new/updated constraint
-            SET @sql_add = CONCAT(
-                'ALTER TABLE `', in_table_name, '` ',
-                'ADD CONSTRAINT `', v_constraint_name, '` CHECK (', in_check_expr, ')'
-            );
-            PREPARE stmt_add FROM @sql_add;
-            EXECUTE stmt_add;
-            DEALLOCATE PREPARE stmt_add;
+        -- Add the new/updated constraint
+        SET @sql_add = CONCAT(
+            'ALTER TABLE `', in_table_name, '` ',
+            'ADD CONSTRAINT `', v_constraint_name, '` CHECK (', in_check_expr, ')'
+        );
+        PREPARE stmt_add FROM @sql_add;
+        EXECUTE stmt_add;
+        DEALLOCATE PREPARE stmt_add;
 
+        IF v_exists > 0 THEN
             SELECT CONCAT(
                 'Check constraint `',
                 v_constraint_name,
@@ -110,15 +103,6 @@ BEGIN
                 '`.'
             ) AS message;
         ELSE
-            -- Add the new constraint
-            SET @sql_add = CONCAT(
-                'ALTER TABLE `', in_table_name, '` ',
-                'ADD CONSTRAINT `', v_constraint_name, '` CHECK (', in_check_expr, ')'
-            );
-            PREPARE stmt_add FROM @sql_add;
-            EXECUTE stmt_add;
-            DEALLOCATE PREPARE stmt_add;
-
             SELECT CONCAT(
                 'Check constraint `',
                 v_constraint_name,
@@ -129,6 +113,6 @@ BEGIN
         END IF;
     END IF;
 END
-$$
+$
 
 DELIMITER ;

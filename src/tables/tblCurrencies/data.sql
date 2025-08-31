@@ -1,195 +1,162 @@
-TRUNCATE TABLE tblCurrencies;
-ALTER TABLE tblCurrencies AUTO_INCREMENT = 1;
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('AED','784','United Arab Emirates dirham','د.إ',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('AFN','971','Afghan afghani','؋',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('ALL','008','Albanian lek','L',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('AMD','051','Armenian dram','֏',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('ANG','532','Netherlands Antillean guilder','ƒ',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('AOA','973','Angolan kwanza','Kz',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('ARS','032','Argentine peso','$',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('AUD','036','Australian dollar','$',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('AWG','533','Aruban florin','ƒ',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('AZN','944','Azerbaijani manat','₼',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('BAM','977','Bosnia and Herzegovina convertible mark','KM',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('BBD','052','Barbados dollar','$',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('BDT','050','Bangladeshi taka','৳',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('BGN','975','Bulgarian lev','лв',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('BHD','048','Bahraini dinar','.د.ب',3,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('BIF','108','Burundian franc','Fr',0,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('BMD','060','Bermudian dollar','$',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('BND','096','Brunei dollar','$',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('BOB','068','Boliviano','Bs.',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('BRL','986','Brazilian real','R$',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('BSD','044','Bahamian dollar','$',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('BTN','064','Bhutanese ngultrum','Nu.',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('BWP','072','Botswana pula','P',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('BYN','933','Belarusian ruble','Br',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('BZD','084','Belize dollar','BZ$',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('CAD','124','Canadian dollar','$',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('CDF','976','Congolese franc','Fr',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('CHF','756','Swiss franc','Fr',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('CLP','152','Chilean peso','$',0,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('CNY','156','Chinese yuan','¥',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('COP','170','Colombian peso','$',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('CRC','188','Costa Rican colon','₡',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('CUP','192','Cuban peso','₱',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('CVE','132','Cape Verdean escudo','Esc',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('CZK','203','Czech koruna','Kč',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('DJF','262','Djiboutian franc','Fr',0,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('DKK','208','Danish krone','kr',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('DOP','214','Dominican peso','RD$',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('DZD','012','Algerian dinar','دج',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('EGP','818','Egyptian pound','£',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('ERN','232','Eritrean nakfa','Nfk',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('ETB','230','Ethiopian birr','Br',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('EUR','978','Euro','€',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('FJD','242','Fiji dollar','$',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('FKP','238','Falkland Islands pound','£',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('FOK','234','Faroese króna','kr',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('GBP','826','Pound sterling','£',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('GEL','981','Georgian lari','₾',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('GGP','826','Guernsey pound','£',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('GHS','936','Ghanaian cedi','₵',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('GIP','292','Gibraltar pound','£',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('GMD','270','Gambian dalasi','D',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('GNF','324','Guinean franc','Fr',0,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('GTQ','320','Guatemalan quetzal','Q',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('GYD','328','Guyanese dollar','$',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('HKD','344','Hong Kong dollar','$',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('HNL','340','Honduran lempira','L',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('HRK','191','Croatian kuna','kn',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('HTG','332','Haitian gourde','G',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('HUF','348','Hungarian forint','Ft',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('IDR','360','Indonesian rupiah','Rp',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('ILS','376','Israeli new shekel','₪',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('IMP','826','Isle of Man pound','£',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('INR','356','Indian rupee','₹',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('IQD','368','Iraqi dinar','ع.د',3,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('IRR','364','Iranian rial','﷼',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('ISK','352','Icelandic króna','kr',0,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('JEP','826','Jersey pound','£',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('JMD','388','Jamaican dollar','$',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('JOD','400','Jordanian dinar','د.ا',3,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('JPY','392','Japanese yen','¥',0,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('KES','404','Kenyan shilling','Sh',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('KGS','417','Kyrgyzstani som','с',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('KHR','116','Cambodian riel','៛',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('KID','036','Kiribati dollar','$',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('KMF','174','Comorian franc','Fr',0,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('KRW','410','South Korean won','₩',0,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('KWD','414','Kuwaiti dinar','د.ك',3,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('KYD','136','Cayman Islands dollar','$',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('KZT','398','Kazakhstani tenge','₸',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('LAK','418','Lao kip','₭',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('LBP','422','Lebanese pound','ل.ل',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('LKR','144','Sri Lankan rupee','Rs',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('LRD','430','Liberian dollar','$',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('LSL','426','Lesotho loti','L',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('LYD','434','Libyan dinar','ل.د',3,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('MAD','504','Moroccan dirham','د.م.',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('MDL','498','Moldovan leu','L',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('MGA','969','Malagasy ariary','Ar',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('MKD','807','Macedonian denar','ден',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('MMK','104','Burmese kyat','Ks',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('MNT','496','Mongolian tögrög','₮',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('MOP','446','Macanese pataca','P',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('MRU','929','Mauritanian ouguiya','UM',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('MUR','480','Mauritian rupee','Rs',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('MVR','462','Maldivian rufiyaa','Rf',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('MWK','454','Malawian kwacha','MK',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('MXN','484','Mexican peso','$',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('MYR','458','Malaysian ringgit','RM',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('MZN','943','Mozambican metical','MT',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('NAD','516','Namibian dollar','$',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('NGN','566','Nigerian naira','₦',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('NIO','558','Nicaraguan córdoba','C$',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('NOK','578','Norwegian krone','kr',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('NPR','524','Nepalese rupee','Rs',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('NZD','554','New Zealand dollar','$',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('OMR','512','Omani rial','ر.ع.',3,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('PAB','590','Panamanian balboa','B/.',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('PEN','604','Peruvian sol','S/.',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('PGK','598','Papua New Guinean kina','K',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('PHP','608','Philippine peso','₱',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('PKR','586','Pakistani rupee','Rs',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('PLN','985','Polish złoty','zł',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('PYG','600','Paraguayan guaraní','₲',0,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('QAR','634','Qatari riyal','ر.ق',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('RON','946','Romanian leu','lei',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('RSD','941','Serbian dinar','дин.',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('RUB','643','Russian ruble','₽',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('RWF','646','Rwandan franc','Fr',0,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('SAR','682','Saudi riyal','ر.س',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('SBD','090','Solomon Islands dollar','$',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('SCR','690','Seychelles rupee','₨',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('SDG','938','Sudanese pound','ج.س.',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('SEK','752','Swedish krona','kr',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('SGD','702','Singapore dollar','$',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('SHP','654','Saint Helena pound','£',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('SLE','925','Sierra Leonean leone','Le',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('SOS','706','Somali shilling','Sh',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('SRD','968','Surinamese dollar','$',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('SSP','728','South Sudanese pound','£',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('STN','930','São Tomé and Príncipe dobra','Db',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('SVC','222','Salvadoran colón','₡',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('SYP','760','Syrian pound','£',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('SZL','748','Swazi lilangeni','L',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('THB','764','Thai baht','฿',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('TJS','972','Tajikistani somoni','ЅМ',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('TMT','934','Turkmenistan manat','m',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('TND','788','Tunisian dinar','د.ت',3,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('TOP','776','Tongan paʻanga','T$',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('TRY','949','Turkish lira','₺',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('TTD','780','Trinidad and Tobago dollar','TT$',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('TVD','036','Tuvaluan dollar','$',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('TWD','901','New Taiwan dollar','NT$',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('TZS','834','Tanzanian shilling','Sh',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('UAH','980','Ukrainian hryvnia','₴',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('UGX','800','Ugandan shilling','Sh',0,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('USD','840','United States dollar','$',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('UYU','858','Uruguayan peso','$U',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('UZS','860','Uzbekistani som','сум',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('VES','928','Venezuelan bolívar soberano','Bs.S.',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('VND','704','Vietnamese đồng','₫',0,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('VUV','548','Vanuatu vatu','Vt',0,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('WST','882','Samoan tala','T',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('XAF','950','Central African CFA franc','Fr',0,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('XCD','951','East Caribbean dollar','$',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('XDR','960','Special drawing rights','SDR',0,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('XOF','952','West African CFA franc','Fr',0,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('XPF','953','CFP franc','Fr',0,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('YER','886','Yemeni rial','﷼',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('ZAR','710','South African rand','R',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('ZMW','967','Zambian kwacha','ZK',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('ZWL','932','Zimbabwean dollar','Z$',2,1);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('ADP','020','Andorran peseta','Pts',0,0);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('AFA','004','Afghan afghani (1927–2002)','؋',2,0);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('ALK','008','Albanian lek (1946–1965)','Lek',2,0);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('AOK','024','Angolan kwanza (1977–1990)','Kz',2,0);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('AON','024','Angolan new kwanza (1990–2000)','Kz',2,0);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('AOR','982','Angolan kwanza reajustado (1995–1999)','Kz',2,0);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('ARA','032','Argentine austral','₳',2,0);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('ARP','032','Argentine peso (1983–1985)','$',2,0);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('ATS','040','Austrian schilling','S',2,0);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('BEF','056','Belgian franc','Fr',0,0);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('BYR','974','Belarusian ruble (2000–2016)','Br',0,0);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('CYP','196','Cypriot pound','£',2,0);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('DEM','276','German mark','DM',2,0);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('EEK','233','Estonian kroon','kr',2,0);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('ESP','724','Spanish peseta','₧',0,0);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('FIM','246','Finnish markka','mk',2,0);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('FRF','250','French franc','₣',2,0);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('GRD','300','Greek drachma','₯',2,0);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('IEP','372','Irish pound','£',2,0);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('ITL','380','Italian lira','₤',0,0);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('LUF','442','Luxembourg franc','Fr',0,0);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('NLG','528','Dutch guilder','ƒ',2,0);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('PTE','620','Portuguese escudo','Esc',0,0);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('RUR','810','Russian ruble (1991–1998)','р.',2,0);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('SKK','703','Slovak koruna','Sk',2,0);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('SIT','705','Slovenian tolar','SIT',2,0);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('SUR','810','Soviet ruble','р.',2,0);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('TRL','792','Turkish lira (1922–2005)','₤',0,0);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('YUM','891','Yugoslav dinar','дин.',2,0);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('YUN','890','Yugoslav convertible dinar','дин.',2,0);
-INSERT INTO tblCurrencies (iso_code, numeric_code, name, symbol, minor_unit, is_active) VALUES ('ZMK','894','Zambian kwacha (1968–2012)','ZK',0,0);
+TRUNCATE TABLE `tblCurrencies`;
+ALTER TABLE `tblCurrencies` AUTO_INCREMENT = 1;
+INSERT INTO `tblCurrencies`
+(`iso_code`, `numeric_code`, `name`, `symbol`, `minor_unit`)
+VALUES
+('AED', '784', 'United Arab Emirates Dirham', 'د.إ.', 2),
+('AFN', '971', 'Afghan Afghani', 'Af', 2),
+('ALL', '008', 'Albanian Lek', 'L', 2),
+('AMD', '051', 'Armenian Dram', '֏', 2),
+('ANG', '532', 'Netherlands Antillean Guilder', 'ƒ', 2),
+('AOA', '973', 'Angolan Kwanza', 'Kz', 2),
+('ARS', '032', 'Argentine Peso', 'AR$', 2),
+('AUD', '036', 'Australian Dollar', 'AU$', 2),
+('AWG', '533', 'Aruban Florin', 'ƒ', 2),
+('AZN', '944', 'Azerbaijani Manat', 'ман', 2),
+('BAM', '977', 'Bosnia and Herzegovina Convertible Mark', 'KM', 2),
+('BBD', '052', 'Barbadian Dollar', 'BBD$', 2),
+('BDT', '050', 'Bangladeshi Taka', '৳', 2),
+('BGN', '975', 'Bulgarian Lev', 'лв.', 2),
+('BHD', '048', 'Bahraini Dinar', 'BD', 3),
+('BIF', '108', 'Burundian Franc', 'FBu', 0),
+('BMD', '060', 'Bermudian Dollar', '$', 2),
+('BND', '096', 'Brunei Dollar', 'B$', 2),
+('BOB', '068', 'Bolivian Boliviano', 'Bs.', 2),
+('BRL', '986', 'Brazilian Real', 'R$', 2),
+('BSD', '044', 'Bahamian Dollar', '$', 2),
+('BTN', '064', 'Bhutanese Ngultrum', 'Nu.', 2),
+('BWP', '072', 'Botswana Pula', 'P', 2),
+('BYN', '933', 'Belarusian Ruble', 'Br', 2),
+('BZD', '084', 'Belize Dollar', 'BZ$', 2),
+('CAD', '124', 'Canadian Dollar', 'CA$', 2),
+('CDF', '976', 'Congolese Franc', 'FC', 2),
+('CHF', '756', 'Swiss Franc', 'Fr.', 2),
+('CLP', '152', 'Chilean Peso', 'CL$', 0),
+('CNY', '156', 'Chinese Yuan', 'CN¥', 2),
+('COP', '170', 'Colombian Peso', 'CO$', 2),
+('CRC', '188', 'Costa Rican Colon', '₡', 2),
+('CUC', '931', 'Cuban convertible Peso', 'CUC$', 2),
+('CUP', '192', 'Cuban Peso', '$MN', 2),
+('CVE', '132', 'Cabo Verdean Escudo', 'CV$', 2),
+('CZK', '203', 'Czech Koruna', 'Kč', 2),
+('DJF', '262', 'Djiboutian Franc', 'Fdj', 0),
+('DKK', '208', 'Danish Krone', 'kr.', 2),
+('DOP', '214', 'Dominican Peso', 'RD$', 2),
+('DZD', '012', 'Algerian Dinar', 'DA', 2),
+('EGP', '818', 'Egyptian Pound', 'E£', 2),
+('ERN', '232', 'Eritrean Nakfa', 'Nkf', 2),
+('ETB', '230', 'Ethiopian Birr', 'Br', 2),
+('EUR', '978', 'Euro', '€', 2),
+('FJD', '242', 'Fijian Dollar', 'FJ$', 2),
+('FKP', '238', 'Falkland Islands Pound', 'FK£', 2),
+('GBP', '826', 'Pound Sterling', '£', 2),
+('GEL', '981', 'Georgian Lari', '₾', 2),
+('GHS', '936', 'Ghanaian Cedi', 'GH₵', 2),
+('GIP', '292', 'Gibraltar Pound', '£', 2),
+('GMD', '270', 'Gambian Dalasi', 'D', 2),
+('GNF', '324', 'Guinean Franc', 'FG', 0),
+('GTQ', '320', 'Guatemalan Quetzal', 'Q', 2),
+('GYD', '328', 'Guyanese Dollar', 'G$', 2),
+('HKD', '344', 'Hong Kong Dollar', 'HK$', 2),
+('HNL', '340', 'Honduran Lempira', 'L', 2),
+('HRK', '191', 'Croatian Kuna', 'kn', 2),
+('HTG', '332', 'Haitian Gourde', 'G', 2),
+('HUF', '348', 'Hungarian Forint', 'Ft', 2),
+('IDR', '360', 'Indonesian Rupiah', 'Rp', 2),
+('ILS', '376', 'Israeli new Shekel', '₪', 2),
+('INR', '356', 'Indian Rupee', 'Rs.', 2),
+('IQD', '368', 'Iraqi Dinar', 'د.ع.', 3),
+('IRR', '364', 'Iranian Rial', '﷼', 2),
+('ISK', '352', 'Icelandic Krona', 'kr', 0),
+('JMD', '388', 'Jamaican Dollar', 'J$', 2),
+('JOD', '400', 'Jordanian Dinar', 'JD', 3),
+('JPY', '392', 'Japanese Yen', '¥', 0),
+('KES', '404', 'Kenyan Shilling', 'KSh', 2),
+('KGS', '417', 'Kyrgyzstani Som', 'с', 2),
+('KHR', '116', 'Cambodian Riel', '៛', 2),
+('KMF', '174', 'Comorian Franc', 'CF', 0),
+('KPW', '408', 'North Korean Won', '₩', 2),
+('KRW', '410', 'South Korean Won', '₩', 0),
+('KWD', '414', 'Kuwaiti Dinar', 'KD', 3),
+('KYD', '136', 'Cayman Islands Dollar', 'CI$', 2),
+('KZT', '398', 'Kazakhstani Tenge', '₸', 2),
+('LAK', '418', 'Lao Kip', '₭N', 2),
+('LBP', '422', 'Lebanese Pound', 'LL.', 2),
+('LKR', '144', 'Sri Lankan Rupee', 'Rs.', 2),
+('LRD', '430', 'Liberian Dollar', 'L$', 2),
+('LSL', '426', 'Lesotho Loti', 'L', 2),
+('LYD', '434', 'Libyan Dinar', 'LD', 3),
+('MAD', '504', 'Moroccan Dirham', 'DH', 2),
+('MDL', '498', 'Moldovan Leu', 'L', 2),
+('MGA', '969', 'Malagasy Ariary', 'Ar', 2),
+('MKD', '807', 'Macedonian Denar', 'den', 2),
+('MMK', '104', 'Myanmar Kyat', 'Ks', 2),
+('MNT', '496', 'Mongolian Tögrög', '₮', 2),
+('MOP', '446', 'Macanese Pataca', 'MOP$', 2),
+('MRU', '929', 'Mauritanian Ouguiya', 'UM', 2),
+('MUR', '480', 'Mauritian Rupee', 'Rs.', 2),
+('MVR', '462', 'Maldivian Rufiyaa', 'MRf', 2),
+('MWK', '454', 'Malawian Kwacha', 'MK', 2),
+('MXN', '484', 'Mexican Peso', 'MX$', 2),
+('MYR', '458', 'Malaysian Ringgit', 'RM', 2),
+('MZN', '943', 'Mozambican Metical', 'MTn', 2),
+('NAD', '516', 'Namibian Dollar', 'N$', 2),
+('NGN', '566', 'Nigerian Naira', '₦', 2),
+('NIO', '558', 'Nicaraguan Córdoba', 'C$', 2),
+('NOK', '578', 'Norwegian Krone', 'kr', 2),
+('NPR', '524', 'Nepalese Rupee', 'Rs.', 2),
+('NZD', '554', 'New Zealand Dollar', 'NZ$', 2),
+('OMR', '512', 'Omani Rial', 'OR', 3),
+('PAB', '590', 'Panamanian Balboa', 'B/.', 2),
+('PEN', '604', 'Peruvian Sol', 'S/.', 2),
+('PGK', '598', 'Papua New Guinean Kina', 'K', 2),
+('PHP', '608', 'Philippine Peso', '₱', 2),
+('PKR', '586', 'Pakistani Rupee', 'Rs.', 2),
+('PLN', '985', 'Polish Zloty', 'zł', 2),
+('PYG', '600', 'Paraguayan Guaraní', '₲', 0),
+('QAR', '634', 'Qatari Riyal', 'QR', 2),
+('RON', '946', 'Romanian Leu', 'L', 2),
+('RSD', '941', 'Serbian Dinar', 'din', 2),
+('RUB', '643', 'Russian Ruble', '₽', 2),
+('RWF', '646', 'Rwandan Franc', 'FRw', 0),
+('SAR', '682', 'Saudi Riyal', 'SR', 2),
+('SBD', '090', 'Solomon Islands Dollar', 'SI$', 2),
+('SCR', '690', 'Seychellois Rupee', 'Rs.', 2),
+('SDG', '938', 'Sudanese Pound', '£SD', 2),
+('SEK', '752', 'Swedish Krona', 'kr', 2),
+('SGD', '702', 'Singapore Dollar', 'S$', 2),
+('SHP', '654', 'Saint Helena Pound', '£', 2),
+('SLL', '694', 'Sierra Leonean Leone', 'Le', 2),
+('SOS', '706', 'Somali Shilling', 'Sh.So.', 2),
+('SRD', '968', 'Surinamese Dollar', 'Sr$', 2),
+('SSP', '728', 'South Sudanese Pound', 'SS£', 2),
+('STN', '930', 'Sao Tome and Príncipe Dobra', 'Db', 2),
+('SVC', '222', 'Salvadoran Colón', '₡', 2),
+('SYP', '760', 'Syrian Pound', 'LS', 2),
+('SZL', '748', 'Swazi Lilangeni', 'L', 2),
+('THB', '764', 'Thai Baht', '฿', 2),
+('TJS', '972', 'Tajikistani Somoni', 'SM', 2),
+('TMT', '934', 'Turkmenistan Manat', 'm.', 2),
+('TND', '788', 'Tunisian Dinar', 'DT', 3),
+('TOP', '776', 'Tongan Paʻanga', 'T$', 2),
+('TRY', '949', 'Turkish Lira', 'TL', 2),
+('TTD', '780', 'Trinidad and Tobago Dollar', 'TT$', 2),
+('TWD', '901', 'New Taiwan Dollar', 'NT$', 2),
+('TZS', '834', 'Tanzanian Shilling', 'TSh', 2),
+('UAH', '980', 'Ukrainian Hryvnia', '₴', 2),
+('UGX', '800', 'Ugandan Shilling', 'USh', 0),
+('USD', '840', 'United States Dollar', '$', 2),
+('UYU', '858', 'Uruguayan Peso', '$U', 2),
+('UZS', '860', 'Uzbekistani Som', 'сум', 2),
+('VES', '928', 'Venezuelan Bolívar Soberano', 'Bs.F', 2),
+('VND', '704', 'Vietnamese Dong', '₫', 0),
+('VUV', '548', 'Vanuatu Vatu', 'VT', 0),
+('WST', '882', 'Samoan Tala', 'T', 2),
+('XAF', '950', 'Central African CFA Franc BEAC', 'Fr', 0),
+('XCD', '951', 'East Caribbean Dollar', '$', 2),
+('XOF', '952', 'West African CFA Franc BCEAO', '₣', 0),
+('XPF', '953', 'CFP Franc (Franc Pacifique)', '₣', 0),
+('YER', '886', 'Yemeni Rial', 'YR', 2),
+('ZAR', '710', 'South African Rand', 'R', 2),
+('ZMW', '967', 'Zambian Kwacha', 'ZK', 2),
+('ZWL', '932', 'Zimbabwean Dollar', 'Z$', 2);
