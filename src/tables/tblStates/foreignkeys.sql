@@ -1,19 +1,19 @@
 CALL usp_CreateForeignKey(
-    'tblRegions',
+    'tblStates',
     'country_id',
     'tblCountries',
     'id'
 );
 
 CALL usp_CreateForeignKey(
-    'tblRegions',
+    'tblStates',
     'timezone_id',
     'tblTimeZones',
     'id'
 );
 
 CALL usp_CreateForeignKey(
-    'tblRegions',
+    'tblStates',
     'currency_id',
     'tblCurrencies',
     'id'
