@@ -11,10 +11,3 @@ CALL usp_CreateForeignKey(
     'tblTimeZones',
     'id'
 );
-
-CALL usp_CreateForeignKey(
-    'tblStates',
-    'currency_id',
-    'tblCurrencies',
-    'id'
-);
