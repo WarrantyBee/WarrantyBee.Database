@@ -200,7 +200,10 @@ $tableOrder = @(
     "tblUsers",
     "tblCountries",
     "tblStates",
-    "tblUserProfiles"
+    "tblUserProfiles",
+    "tblCompanies",
+    "tblVendors",
+    "tblCompaniesVendors"
 )
 $scriptOrder = @(
     "columns.sql",

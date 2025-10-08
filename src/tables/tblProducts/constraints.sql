@@ -1,0 +1,1 @@
+CALL usp_CreateUniqueKey('tblProducts', 'sku_id');
