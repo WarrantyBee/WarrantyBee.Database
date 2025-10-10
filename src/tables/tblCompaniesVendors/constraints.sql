@@ -1,1 +1,0 @@
-CALL usp_CreatePrimaryKey('tblCompaniesVendors', 'company_id, vendor_id');
