@@ -2,14 +2,14 @@ DELIMITER $$
 
 CREATE PROCEDURE usp_CreateColumns_tblCurrencies()
 BEGIN
-    DECLARE @required BOOLEAN DEFAULT TRUE;
-    DECLARE @optional BOOLEAN DEFAULT FALSE;
+    DECLARE v_required BOOLEAN DEFAULT TRUE;
+    DECLARE v_optional BOOLEAN DEFAULT FALSE;
 
-    CALL usp_AddColumn('tblCurrencies', 'iso_code', 'CHAR(3)', NULL, @required);
-    CALL usp_AddColumn('tblCurrencies', 'numeric_code', 'CHAR(3)', NULL, @optional);
-    CALL usp_AddColumn('tblCurrencies', 'name', 'VARCHAR(100)', NULL, @required);
-    CALL usp_AddColumn('tblCurrencies', 'symbol', 'VARCHAR(10)', NULL, @required);
-    CALL usp_AddColumn('tblCurrencies', 'minor_unit', 'TINYINT UNSIGNED', '2', @required);
+    CALL usp_AddColumn('tblCurrencies', 'iso_code', 'CHAR(3)', NULL, v_required);
+    CALL usp_AddColumn('tblCurrencies', 'numeric_code', 'CHAR(3)', NULL, v_optional);
+    CALL usp_AddColumn('tblCurrencies', 'name', 'VARCHAR(100)', NULL, v_required);
+    CALL usp_AddColumn('tblCurrencies', 'symbol', 'VARCHAR(10)', NULL, v_required);
+    CALL usp_AddColumn('tblCurrencies', 'minor_unit', 'TINYINT UNSIGNED', '2', v_required);
 END$$
 
 DELIMITER ;

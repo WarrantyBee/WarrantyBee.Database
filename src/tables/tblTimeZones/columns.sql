@@ -2,14 +2,14 @@ DELIMITER $$
 
 CREATE PROCEDURE usp_CreateColumns_tblTimeZones()
 BEGIN
-    DECLARE @required BOOLEAN DEFAULT TRUE;
-    DECLARE @optional BOOLEAN DEFAULT FALSE;
+    DECLARE v_required BOOLEAN DEFAULT TRUE;
+    DECLARE v_optional BOOLEAN DEFAULT FALSE;
 
-    CALL usp_AddColumn('tblTimeZones', 'name', 'VARCHAR(100)', NULL, @required);
-    CALL usp_AddColumn('tblTimeZones', 'abbreviation', 'VARCHAR(10)', NULL, @optional);
-    CALL usp_AddColumn('tblTimeZones', 'utc_offset_minutes', 'SMALLINT', NULL, @required);
-    CALL usp_AddColumn('tblTimeZones', 'observes_dst', 'BOOLEAN', '0', @required);
-    CALL usp_AddColumn('tblTimeZones', 'current_offset_minutes', 'SMALLINT', NULL, @required);
+    CALL usp_AddColumn('tblTimeZones', 'name', 'VARCHAR(100)', NULL, v_required);
+    CALL usp_AddColumn('tblTimeZones', 'abbreviation', 'VARCHAR(10)', NULL, v_optional);
+    CALL usp_AddColumn('tblTimeZones', 'utc_offset_minutes', 'SMALLINT', NULL, v_required);
+    CALL usp_AddColumn('tblTimeZones', 'observes_dst', 'BOOLEAN', '0', v_required);
+    CALL usp_AddColumn('tblTimeZones', 'current_offset_minutes', 'SMALLINT', NULL, v_required);
 END$$
 
 DELIMITER ;
