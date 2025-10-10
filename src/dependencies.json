@@ -91,6 +91,44 @@
 					"procs": []
 				}
 			}
+		},
+		"business": {
+			"usp_GetCountries": {
+				"dependencies": {
+					"functions": [],
+					"procs": []
+				}
+			},
+			"usp_GetCurrencies": {
+				"dependencies": {
+					"functions": [],
+					"procs": []
+				}
+			},
+			"usp_GetStates": {
+				"dependencies": {
+					"functions": [],
+					"procs": []
+				}
+			},
+			"usp_GetTimeZones": {
+				"dependencies": {
+					"functions": [],
+					"procs": []
+				}
+			},
+			"usp_GetUser": {
+				"dependencies": {
+					"functions": [],
+					"procs": []
+				}
+			},
+			"usp_RegisterUser": {
+				"dependencies": {
+					"functions": [],
+					"procs": []
+				}
+			}
 		}
 	},
 	"tables": {

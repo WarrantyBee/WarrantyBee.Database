@@ -46,7 +46,7 @@ BEGIN
         -- Create table with only 'id' column (no constraints yet)
         SET @sql = CONCAT(
             'CREATE TABLE ', in_table_name, ' (',
-                'id BIGINT UNSIGNED NOT NULL,',
+                'id BIGINT UNSIGNED NOT NULL',
             ')'
         );
         PREPARE stmt FROM @sql;

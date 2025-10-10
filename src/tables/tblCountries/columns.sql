@@ -11,7 +11,7 @@ BEGIN
     CALL usp_AddColumn('tblCountries', 'name', 'VARCHAR(100)', NULL, v_required);
     CALL usp_AddColumn('tblCountries', 'official_name', 'VARCHAR(150)', NULL, v_optional);
     CALL usp_AddColumn('tblCountries', 'capital', 'VARCHAR(100)', NULL, v_optional);
-    CALL usp_AddColumn('tblCountries', 'phone_code', 'VARCHAR(10)', NULL, v_optional);
+    CALL usp_AddColumn('tblCountries', 'phone_code', 'VARCHAR(50)', NULL, v_optional);
     CALL usp_AddColumn('tblCountries', 'currency_id', 'BIGINT UNSIGNED', NULL, v_optional);
 END$$
 

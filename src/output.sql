@@ -1,3 +1,2173 @@
+-- Script: ufn_DoesColumnExist.sql
+
+DELIMITER $$
+DROP FUNCTION IF EXISTS ufn_DoesColumnExist$$
+
+-- =============================================
+-- ufn_DoesColumnExist
+-- Checks if a specific column exists in a given table within the current database.
+--
+-- Parameters:
+--   in_table_name   - The name of the table to check.
+--   in_column_name  - The name of the column to check for existence.
+--
+-- Returns:
+--   TRUE if the column exists in the specified table, otherwise FALSE.
+--
+-- Notes:
+--   - Returns FALSE if an error occurs during execution.
+--   - The function is deterministic and only checks in the current database.
+-- =============================================
+
+CREATE FUNCTION ufn_DoesColumnExist(
+    in_table_name VARCHAR(64),
+    in_column_name VARCHAR(64)
+)
+RETURNS BOOLEAN
+DETERMINISTIC
+BEGIN
+    -- Variable to store existence result
+    DECLARE v_exists BOOLEAN DEFAULT FALSE;
+
+    -- If any SQL exception occurs, set result to FALSE
+    DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
+        SET v_exists = FALSE;
+
+    -- Check for the column in information_schema.columns
+    SELECT TRUE
+    INTO v_exists
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = in_table_name
+      AND column_name = in_column_name
+    LIMIT 1;
+
+    -- Return TRUE if found, otherwise FALSE
+    RETURN v_exists;
+END$$
+
+DELIMITER ;
+
+
+-- Script: ufn_DoesTableExist.sql
+
+DELIMITER $$
+DROP FUNCTION IF EXISTS ufn_DoesTableExist$$
+
+-- =============================================
+-- ufn_DoesTableExist
+-- Checks if a specific table exists within the current database.
+--
+-- Parameters:
+--   in_table_name - The name of the table to check for existence.
+--
+-- Returns:
+--   TRUE if the table exists in the current database, otherwise FALSE.
+--
+-- Notes:
+--   - Returns FALSE if an error occurs during execution.
+--   - The function is deterministic and only checks in the current database.
+-- =============================================
+
+CREATE FUNCTION ufn_DoesTableExist(in_table_name VARCHAR(64))
+RETURNS BOOLEAN
+DETERMINISTIC
+BEGIN
+    -- Variable to store existence result
+    DECLARE v_exists BOOLEAN DEFAULT FALSE;
+
+    -- If any SQL exception occurs, set result to FALSE
+    DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
+        SET v_exists = FALSE;
+
+    -- Check for the table in information_schema.tables
+    SELECT TRUE
+    INTO v_exists
+    FROM information_schema.tables
+    WHERE table_schema = DATABASE()
+      AND table_name = in_table_name
+    LIMIT 1;
+
+    -- Return TRUE if found, otherwise FALSE
+    RETURN v_exists;
+END$$
+
+DELIMITER ;
+
+
+-- Script: ufn_DoColumnsExist.sql
+
+DELIMITER $$
+DROP FUNCTION IF EXISTS ufn_DoColumnsExist$$
+
+-- =============================================
+-- ufn_DoColumnsExist
+-- Checks if a comma-separated list of columns exists in a given table.
+--
+-- Parameters:
+--   in_table_name   - The name of the table to check.
+--   in_column_names - A comma-separated string of column names.
+--
+-- Returns:
+--   TRUE if all columns exist, otherwise FALSE.
+-- =============================================
+
+CREATE FUNCTION ufn_DoColumnsExist(
+    in_table_name VARCHAR(64),
+    in_column_names VARCHAR(255)
+)
+RETURNS BOOLEAN
+DETERMINISTIC
+BEGIN
+    DECLARE v_col_name VARCHAR(64);
+    DECLARE v_remaining_cols VARCHAR(255) DEFAULT in_column_names;
+    DECLARE v_comma_pos INT;
+
+    WHILE v_remaining_cols IS NOT NULL AND v_remaining_cols != '' DO
+        SET v_comma_pos = LOCATE(',', v_remaining_cols);
+        IF v_comma_pos > 0 THEN
+            SET v_col_name = TRIM(SUBSTRING(v_remaining_cols, 1, v_comma_pos - 1));
+            SET v_remaining_cols = TRIM(SUBSTRING(v_remaining_cols, v_comma_pos + 1));
+        ELSE
+            SET v_col_name = TRIM(v_remaining_cols);
+            SET v_remaining_cols = '';
+        END IF;
+
+        IF NOT ufn_DoesColumnExist(in_table_name, v_col_name) THEN
+            RETURN FALSE;
+        END IF;
+    END WHILE;
+
+    RETURN TRUE;
+END$$
+
+DELIMITER ;
+
+
+-- Script: usp_DropColumn.sql
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS usp_DropColumn$$
+
+-- =============================================
+-- usp_DropColumn
+-- Drops a column from a table if it exists.
+--
+-- Parameters:
+--   in_table_name   - The name of the table to alter.
+--   in_column_name  - The name of the column to drop.
+--
+-- Usage:
+--   CALL usp_DropColumn('tblExample', 'old_column');
+--
+-- Notes:
+--   - Checks if the table and column exist before attempting to drop.
+--   - Handles exceptions and prints messages for each execution flow.
+--   - Always uses backticks for database objects.
+-- =============================================
+
+CREATE PROCEDURE usp_DropColumn(
+    IN in_table_name VARCHAR(64),     -- Table name input
+    IN in_column_name VARCHAR(64)     -- Column name input
+)
+BEGIN
+    -- Exception handler: catches any SQL errors during execution
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        -- Return failure message if an exception occurs
+        SELECT CONCAT(
+            'Failed to drop column `',
+            in_column_name,
+            '` from table `',
+            in_table_name,
+            '` due to an exception.'
+        ) AS message;
+    END;
+
+    -- Check if table exists
+    IF NOT ufn_DoesTableExist(in_table_name) THEN
+        -- Inform user if table is missing
+        SELECT CONCAT(
+            'Table `',
+            in_table_name,
+            '` does not exist.'
+        ) AS message;
+
+    -- Check if column exists
+    ELSEIF NOT ufn_DoesColumnExist(in_table_name, in_column_name) THEN
+        -- Inform user if column is missing in the given table
+        SELECT CONCAT(
+            'Column `',
+            in_column_name,
+            '` does not exist in table `',
+            in_table_name,
+            '`.'
+        ) AS message;
+
+    ELSE
+        -- Build dynamic SQL to drop the column
+        SET @sql = CONCAT(
+            'ALTER TABLE `', in_table_name, '` DROP COLUMN `', in_column_name, '`'
+        );
+
+        -- Prepare and execute the dynamic SQL
+        PREPARE stmt FROM @sql;
+        EXECUTE stmt;
+        DEALLOCATE PREPARE stmt;
+
+        -- Success message after dropping the column
+        SELECT CONCAT(
+            'Column `',
+            in_column_name,
+            '` dropped successfully from table `',
+            in_table_name,
+            '`.'
+        ) AS message;
+    END IF;
+END
+$$
+
+DELIMITER ;
+
+
+-- Script: usp_CreatePrimaryKey.sql
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS usp_CreatePrimaryKey$$
+
+-- =============================================
+-- usp_CreatePrimaryKey
+-- Creates a PRIMARY KEY constraint on a specified table and column if one does not already exist.
+--
+-- Parameters:
+--   in_table_name       - The name of the table to alter.
+--   in_column_name      - The name of the column to set as the PRIMARY KEY.
+--   in_constraint_name  - The name to assign to the PRIMARY KEY constraint.
+--
+-- Usage:
+--   CALL usp_CreatePrimaryKey('tblUsers', 'id', 'pk_tblUsers.id');
+--
+-- Notes:
+--   - The procedure checks if a PRIMARY KEY already exists on the table before attempting to add one.
+--   - If no PRIMARY KEY exists, it uses dynamic SQL to add the specified PRIMARY KEY constraint.
+--   - The constraint will be created with the provided name on the specified column.
+--   - Checks for table and column existence before attempting to add the constraint.
+--   - Prints messages for every execution flow and handles exceptions.
+-- =============================================
+
+CREATE PROCEDURE usp_CreatePrimaryKey(
+    IN in_table_name VARCHAR(64),
+    IN in_column_name VARCHAR(64),
+    IN in_constraint_name VARCHAR(64)
+)
+BEGIN
+    -- Handle any SQL exception and print a custom message
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        SELECT CONCAT(
+            'Primary key ',
+            in_constraint_name,
+            ' creation failed due to an exception.'
+        ) AS message;
+    END;
+
+    -- Check if table exists
+    IF NOT ufn_DoesTableExist(in_table_name) THEN
+        SELECT CONCAT(
+            'Primary key ',
+            in_constraint_name,
+            ' creation failed due to table ',
+            in_table_name,
+            ' does not exist.'
+        ) AS message;
+    -- Check if column exists
+    ELSEIF NOT ufn_DoesColumnExist(in_table_name, in_column_name) THEN
+        SELECT CONCAT(
+            'Primary key ',
+            in_constraint_name,
+            ' creation failed due to column ',
+            in_column_name,
+            ' does not exist on the table ',
+            in_table_name, ' .'
+        ) AS message;
+    -- Check if primary key already exists
+    ELSEIF EXISTS (
+        SELECT 1
+        FROM information_schema.table_constraints
+        WHERE table_name = in_table_name
+          AND table_schema = DATABASE()
+          AND constraint_type = 'PRIMARY KEY'
+    ) THEN
+        SELECT CONCAT(
+            'Primary key ',
+            in_constraint_name,
+            ' already exists.'
+        )  AS message;
+    ELSE
+        -- Try to create the primary key constraint
+        BEGIN
+            DECLARE EXIT HANDLER FOR SQLEXCEPTION
+            BEGIN
+                SELECT CONCAT(
+                    'Primary key ',
+                    in_constraint_name,
+                    ' creation failed due to an exception.'
+                ) AS message;
+            END;
+
+            -- Build and execute the ALTER TABLE statement
+            SET @sql = CONCAT('ALTER TABLE ', in_table_name,
+                              ' ADD CONSTRAINT `', in_constraint_name,
+                              '` PRIMARY KEY (', in_column_name, ')');
+            PREPARE stmt FROM @sql;
+            EXECUTE stmt;
+            DEALLOCATE PREPARE stmt;
+
+            SELECT CONCAT(
+                'Primary key ',
+                in_constraint_name,
+                ' created successfully.'
+            ) AS message;
+        END;
+    END IF;
+END
+$$
+
+DELIMITER ;
+
+
+
+-- Script: usp_CreateForeignKey.sql
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS usp_CreateForeignKey$$
+
+-- =============================================
+-- usp_CreateForeignKey
+-- Creates a FOREIGN KEY constraint on a specified table and column if one does not already exist.
+--
+-- Parameters:
+--   in_table_name        - The name of the table to alter.
+--   in_column_name       - The column in the table to be set as the foreign key.
+--   in_ref_table_name    - The referenced table.
+--   in_ref_column_name   - The referenced column in the referenced table.
+--
+-- Usage:
+--   CALL usp_CreateForeignKey(
+--       'tblBooks',
+--       'category_id',
+--       'tblCategories',
+--       'id'
+--   );
+--
+-- Notes:
+--   - The constraint will be named fk_{ref_table}_{table}.{column}.
+--   - Checks if the table, columns, and referenced table/column exist before attempting to add the constraint.
+--   - Handles exceptions and prints messages for each execution flow.
+--   - Always uses backticks for database objects.
+-- =============================================
+
+CREATE PROCEDURE usp_CreateForeignKey(
+    IN in_table_name VARCHAR(64),
+    IN in_column_name VARCHAR(64),
+    IN in_ref_table_name VARCHAR(64),
+    IN in_ref_column_name VARCHAR(64)
+)
+BEGIN
+    DECLARE v_constraint_name VARCHAR(200);
+
+    -- Handle any SQL exception and print a custom message
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        SELECT CONCAT(
+            'Foreign key `',
+            v_constraint_name,
+            '` creation failed due to an exception.'
+        ) AS message;
+    END;
+
+    -- Build the constraint name using referenced and child table/column
+    SET v_constraint_name = CONCAT('fk_', in_ref_table_name, '_', in_table_name, '.', in_column_name);
+    
+    -- Check if table and columns exist
+    IF NOT ufn_DoesTableExist(in_table_name) THEN
+        SELECT CONCAT(
+            'Foreign key `',
+            v_constraint_name,
+            '` creation failed due to table `',
+            in_table_name,
+            '` does not exist.'
+        ) AS message;
+    ELSEIF NOT ufn_DoesColumnExist(in_table_name, in_column_name) THEN
+        SELECT CONCAT(
+            'Foreign key `',
+            v_constraint_name,
+            '` creation failed due to column `',
+            in_column_name,
+            '` does not exist on the table `',
+            in_table_name, '`.'
+        ) AS message;
+    ELSEIF NOT ufn_DoesTableExist(in_ref_table_name) THEN
+        SELECT CONCAT(
+            'Foreign key `',
+            v_constraint_name,
+            '` creation failed due to referenced table `',
+            in_ref_table_name,
+            '` does not exist.'
+        ) AS message;
+    ELSEIF NOT ufn_DoesColumnExist(in_ref_table_name, in_ref_column_name) THEN
+        SELECT CONCAT(
+            'Foreign key `',
+            v_constraint_name,
+            '` creation failed due to referenced column `',
+            in_ref_column_name,
+            '` does not exist on the table `',
+            in_ref_table_name, '`.'
+        ) AS message;
+    -- Check if the constraint already exists
+    ELSEIF EXISTS (
+        SELECT 1
+        FROM information_schema.table_constraints
+        WHERE table_schema = DATABASE()
+          AND table_name = in_table_name
+          AND constraint_type = 'FOREIGN KEY'
+          AND constraint_name = v_constraint_name
+    ) THEN
+        SELECT CONCAT(
+            'Foreign key `',
+            v_constraint_name,
+            '` already exists.'
+        ) AS message;
+    ELSE
+        -- Try to create the foreign key constraint
+        BEGIN
+            DECLARE EXIT HANDLER FOR SQLEXCEPTION
+            BEGIN
+                SELECT CONCAT(
+                    'Foreign key `',
+                    v_constraint_name,
+                    '` creation failed.'
+                ) AS message;
+            END;
+
+            -- Build and execute the ALTER TABLE statement
+            SET @sql = CONCAT(
+                'ALTER TABLE `', in_table_name,
+                '` ADD CONSTRAINT `', v_constraint_name,
+                '` FOREIGN KEY (`', in_column_name, '`)',
+                ' REFERENCES `', in_ref_table_name, '`(`', in_ref_column_name, '`)'
+            );
+            PREPARE stmt FROM @sql;
+            EXECUTE stmt;
+            DEALLOCATE PREPARE stmt;
+
+            SELECT CONCAT(
+                'Foreign key `',
+                v_constraint_name,
+                '` created successfully.'
+            ) AS message;
+        END;
+    END IF;
+END
+$$
+
+DELIMITER ;
+
+
+-- Script: usp_CreateUniqueKey.sql
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS usp_CreateUniqueKey$$
+
+-- =============================================
+-- usp_CreateUniqueKey
+-- Creates or replaces a UNIQUE constraint on one or more columns in a table.
+--
+-- Parameters:
+--   in_table_name    - The name of the table to alter.
+--   in_column_names  - Comma-separated column names to include in the unique key (e.g., 'col1,col2').
+--
+-- Usage:
+--   CALL usp_CreateUniqueKey('tblExample', 'email');
+--   CALL usp_CreateUniqueKey('tblExample', 'first_name,last_name');
+--
+-- Notes:
+--   - The constraint will be named uq_{table}_{col1-col2-...}.
+--   - Checks if the table and all columns exist before attempting to add the constraint.
+--   - If the constraint exists, it will be dropped and recreated.
+--   - Handles exceptions and prints messages for each execution flow.
+--   - Always uses backticks for database objects.
+-- =============================================
+
+CREATE PROCEDURE usp_CreateUniqueKey(
+    IN in_table_name VARCHAR(64),
+    IN in_column_names VARCHAR(255)
+)
+proc:BEGIN
+    -- Declare variables for constraint name, column parsing, and existence checks
+    DECLARE v_constraint_name VARCHAR(255);
+    DECLARE v_exists INT DEFAULT 0;
+    DECLARE v_col_name VARCHAR(64);
+    DECLARE v_col_list_for_constraint VARCHAR(255) DEFAULT '';
+    DECLARE v_col_list_for_sql VARCHAR(255) DEFAULT '';
+    DECLARE v_pos INT DEFAULT 1;
+    DECLARE v_next_pos INT;
+    DECLARE v_len INT;
+
+    -- Handle any SQL exception and print a custom message
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        SELECT CONCAT(
+            'Unique key creation failed for table `',
+            in_table_name,
+            '` due to an exception.'
+        ) AS message;
+    END;
+
+    -- Check if table exists
+    IF NOT ufn_DoesTableExist(in_table_name) THEN
+        SELECT CONCAT(
+            'Table `',
+            in_table_name,
+            '` does not exist.'
+        ) AS message;
+        LEAVE proc;
+    END IF;
+
+    -- Parse and validate all columns, build constraint and SQL column lists
+    SET v_len = CHAR_LENGTH(in_column_names);
+    SET v_pos = 1;
+    WHILE v_pos <= v_len DO
+        SET v_next_pos = LOCATE(',', in_column_names, v_pos);
+        IF v_next_pos = 0 THEN
+            SET v_col_name = TRIM(SUBSTRING(in_column_names, v_pos));
+            SET v_pos = v_len + 1;
+        ELSE
+            SET v_col_name = TRIM(SUBSTRING(in_column_names, v_pos, v_next_pos - v_pos));
+            SET v_pos = v_next_pos + 1;
+        END IF;
+
+        -- Check if each column exists
+        IF NOT ufn_DoesColumnExist(in_table_name, v_col_name) THEN
+            SELECT CONCAT(
+                'Column `',
+                v_col_name,
+                '` does not exist in table `',
+                in_table_name,
+                '`.'
+            ) AS message;
+            LEAVE proc;
+        END IF;
+
+        -- Build constraint name and SQL column list
+        SET v_col_list_for_constraint = CONCAT(
+            v_col_list_for_constraint,
+            IF(v_col_list_for_constraint = '', '', '-'),
+            v_col_name
+        );
+        SET v_col_list_for_sql = CONCAT(
+            v_col_list_for_sql,
+            IF(v_col_list_for_sql = '', '', ','),
+            '`', v_col_name, '`'
+        );
+    END WHILE;
+
+    -- Build the constraint name
+    SET v_constraint_name = CONCAT('uq_', in_table_name, '_', v_col_list_for_constraint);
+
+    -- Check if unique constraint already exists
+    SELECT COUNT(1) INTO v_exists
+    FROM information_schema.table_constraints
+    WHERE table_schema = DATABASE()
+      AND table_name = in_table_name
+      AND constraint_type = 'UNIQUE'
+      AND constraint_name = v_constraint_name;
+
+    IF v_exists > 0 THEN
+        -- Drop the existing unique constraint (index)
+        SET @sql_drop = CONCAT(
+            'ALTER TABLE `', in_table_name, '` DROP INDEX `', v_constraint_name, '`'
+        );
+        PREPARE stmt_drop FROM @sql_drop;
+        EXECUTE stmt_drop;
+        DEALLOCATE PREPARE stmt_drop;
+
+        -- Add the new unique constraint
+        SET @sql_add = CONCAT(
+            'ALTER TABLE `', in_table_name, '` ',
+            'ADD CONSTRAINT `', v_constraint_name, '` UNIQUE (', v_col_list_for_sql, ')'
+        );
+        PREPARE stmt_add FROM @sql_add;
+        EXECUTE stmt_add;
+        DEALLOCATE PREPARE stmt_add;
+
+        SELECT CONCAT(
+            'Unique key `',
+            v_constraint_name,
+            '` was replaced successfully on table `',
+            in_table_name,
+            '`.'
+        ) AS message;
+    ELSE
+        -- Add the new unique constraint
+        SET @sql_add = CONCAT(
+            'ALTER TABLE `', in_table_name, '` ',
+            'ADD CONSTRAINT `', v_constraint_name, '` UNIQUE (', v_col_list_for_sql, ')'
+        );
+        PREPARE stmt_add FROM @sql_add;
+        EXECUTE stmt_add;
+        DEALLOCATE PREPARE stmt_add;
+
+        SELECT CONCAT(
+            'Unique key `',
+            v_constraint_name,
+            '` created successfully on table `',
+            in_table_name,
+            '`.'
+        ) AS message;
+    END IF;
+END proc$$
+
+DELIMITER ;
+
+
+-- Script: usp_CreateIndex.sql
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS usp_CreateIndex$$
+
+-- =============================================
+-- usp_CreateIndex
+-- Creates an INDEX on a specified table and column(s) if one does not already exist.
+--
+-- Parameters:
+--   in_table_name     - The name of the table to alter.
+--   in_index_columns  - The column(s) in the table to be indexed (comma-separated if multiple).
+--
+-- Usage:
+--   CALL usp_CreateIndex(
+--       'tblBooks',
+--       'category_id, author_id'
+--   );
+--
+-- Notes:
+--   - Index name is auto-generated as: idx_{table}_{col1-col2-coln}.
+--   - Checks if the table and columns exist before attempting to add the index.
+--   - Checks if the index already exists before creation.
+--   - Handles exceptions and prints messages for each execution flow.
+--   - Always uses backticks for database objects.
+-- =============================================
+
+CREATE PROCEDURE usp_CreateIndex(
+    IN in_table_name VARCHAR(64),
+    IN in_index_columns VARCHAR(255)   -- supports multiple columns, comma-separated
+)
+BEGIN
+    DECLARE v_index_name VARCHAR(255);
+    DECLARE v_index_columns_clean VARCHAR(255);
+
+    -- Handle any SQL exception and print a custom message
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        SELECT CONCAT(
+            'Index `',
+            v_index_name,
+            '` creation failed due to an exception.'
+        ) AS message;
+    END;
+    
+    -- Clean column list: replace commas+spaces with hyphens for index name
+    SET v_index_columns_clean = REPLACE(REPLACE(in_index_columns, ', ', '-'), ',', '-');
+
+    -- Build the auto-generated index name
+    SET v_index_name = CONCAT('idx_', in_table_name, '_', v_index_columns_clean);
+
+    -- Check if table exists
+    IF NOT ufn_DoesTableExist(in_table_name) THEN
+        SELECT CONCAT(
+            'Index `',
+            v_index_name,
+            '` creation failed due to table `',
+            in_table_name,
+            '` does not exist.'
+        ) AS message;
+    -- Check if all columns exist
+    ELSEIF NOT ufn_DoColumnsExist(in_table_name, in_index_columns) THEN
+        SELECT CONCAT(
+            'Index `',
+            v_index_name,
+            '` creation failed due to one or more columns `',
+            in_index_columns,
+            '` not existing on the table `',
+            in_table_name, '`.'
+        ) AS message;
+    -- Check if index already exists
+    ELSEIF EXISTS (
+        SELECT 1
+        FROM information_schema.statistics
+        WHERE table_schema = DATABASE()
+          AND table_name = in_table_name
+          AND index_name = v_index_name
+    ) THEN
+        SELECT CONCAT(
+            'Index `',
+            v_index_name,
+            '` already exists on table `',
+            in_table_name, '`.'
+        ) AS message;
+    ELSE
+        -- Try to create the index
+        BEGIN
+            DECLARE EXIT HANDLER FOR SQLEXCEPTION
+            BEGIN
+                SELECT CONCAT(
+                    'Index `',
+                    v_index_name,
+                    '` creation failed.'
+                ) AS message;
+            END;
+
+            -- Build and execute the CREATE INDEX statement
+            SET @sql = CONCAT(
+                'CREATE INDEX `', v_index_name,
+                '` ON `', in_table_name, '` (', in_index_columns, ')'
+            );
+            PREPARE stmt FROM @sql;
+            EXECUTE stmt;
+            DEALLOCATE PREPARE stmt;
+
+            SELECT CONCAT(
+                'Index `',
+                v_index_name,
+                '` created successfully on table `',
+                in_table_name, '`.'
+            ) AS message;
+        END;
+    END IF;
+END
+$$
+
+DELIMITER ;
+
+
+-- Script: usp_MarkRequired.sql
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS usp_MarkRequired$$
+
+-- =============================================
+-- usp_MarkRequired
+-- Alters a column in a table to set or unset the NOT NULL (required) constraint.
+--
+-- Parameters:
+--   in_table_name   - The name of the table to alter.
+--   in_column_name  - The name of the column to modify.
+--   in_required     - TRUE to make the column required (NOT NULL), FALSE to allow NULLs.
+--
+-- Usage:
+--   CALL usp_MarkRequired('tblExample', 'colName', TRUE);
+--
+-- Notes:
+--   - Checks if the table and column exist before attempting to alter.
+--   - Handles exceptions and prints messages for each execution flow.
+--   - The column's data type is preserved.
+-- =============================================
+
+CREATE PROCEDURE usp_MarkRequired(
+    IN in_table_name VARCHAR(64),     -- Table name input
+    IN in_column_name VARCHAR(64),    -- Column name input
+    IN in_required BOOLEAN            -- TRUE = make NOT NULL, FALSE = allow NULL
+)
+BEGIN
+    DECLARE v_data_type VARCHAR(255); -- Stores column's existing data type
+
+    -- Exception handler: catches any SQL errors during execution
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        -- Return failure message if something goes wrong
+        SELECT CONCAT(
+            'Failed to update required flag for column ',
+            in_column_name,
+            ' in table ',
+            in_table_name,
+            '.'
+        ) AS message;
+    END;
+
+    -- Check if table exists
+    IF NOT ufn_DoesTableExist(in_table_name) THEN
+        -- Inform user if table does not exist
+        SELECT CONCAT(
+            'Table ',
+            in_table_name,
+            ' does not exist.'
+        ) AS message;
+
+    -- Check if column exists
+    ELSEIF NOT ufn_DoesColumnExist(in_table_name, in_column_name) THEN
+        -- Inform user if column missing
+        SELECT CONCAT(
+            'Column ',
+            in_column_name,
+            ' does not exist in table ',
+            in_table_name,
+            '.'
+        ) AS message;
+
+    ELSE
+        -- Retrieve column data type (so we can preserve it when altering)
+        SELECT COLUMN_TYPE
+        INTO v_data_type
+        FROM information_schema.columns
+        WHERE table_schema = DATABASE()
+          AND table_name = in_table_name
+          AND column_name = in_column_name;
+
+        -- Build dynamic SQL to modify column with NOT NULL or NULL
+        SET @sql = CONCAT(
+            'ALTER TABLE ', in_table_name,
+            ' MODIFY COLUMN ', in_column_name, ' ', v_data_type,
+            IF(in_required, ' NOT NULL', ' NULL')
+        );
+
+        -- Execute dynamic SQL
+        PREPARE stmt FROM @sql;
+        EXECUTE stmt;
+        DEALLOCATE PREPARE stmt;
+
+        -- Success message
+        SELECT CONCAT(
+            'Column ',
+            in_column_name,
+            IF(in_required, ' is now required (NOT NULL)', ' is now nullable (NULL)'),
+            ' in table ',
+            in_table_name,
+            '.'
+        ) AS message;
+    END IF;
+END
+$$
+
+DELIMITER ;
+
+
+-- Script: usp_AddColumn.sql
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS usp_AddColumn$$
+
+-- =============================================
+-- usp_AddColumn
+-- Adds a column to a specified table if it does not already exist.
+--
+-- Parameters:
+--   in_table_name    - The name of the table to alter.
+--   in_column_name   - The name of the column to add.
+--   in_data_type     - The data type of the new column (e.g., 'VARCHAR(255)', 'INT').
+--   in_default_value - The default value for the column (NULL for no default, pass as raw SQL).
+--   in_required      - Whether the column is required (NOT NULL). Default is FALSE.
+--
+-- Usage:
+--   CALL usp_AddColumn('tblExample', 'new_column', 'VARCHAR(255)', '''default_value''', TRUE);
+--   CALL usp_AddColumn('tblExample', 'created_at', 'TIMESTAMP', 'CURRENT_TIMESTAMP', FALSE);
+--   CALL usp_AddColumn('tblExample', 'age', 'INT', '0', TRUE);
+--
+-- Notes:
+--   - Checks if the table and column exist before attempting to add the column.
+--   - If a default value is provided, it is added as DEFAULT (constraint name is not supported in MySQL).
+--   - The default value is cast and quoted appropriately based on the data type.
+--   - Prints messages for every execution flow and handles exceptions.
+-- =============================================
+
+CREATE PROCEDURE usp_AddColumn(
+    IN in_table_name VARCHAR(64),
+    IN in_column_name VARCHAR(64),
+    IN in_data_type VARCHAR(64),
+    IN in_default_value VARCHAR(255),
+    IN in_required BOOLEAN
+)
+BEGIN
+    -- Declare variables for type handling and dynamic SQL
+    DECLARE v_data_type VARCHAR(64);
+    DECLARE v_sql VARCHAR(2000);
+    DECLARE v_type_prefix VARCHAR(32);
+
+    -- Handle any SQL exception and print a custom message
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        SELECT CONCAT(
+            'Column ',
+            in_column_name,
+            ' addition failed due to an exception.'
+        ) AS message;
+    END;
+
+    -- Always use uppercase for data type for robust comparison
+    SET v_data_type = UPPER(in_data_type);
+    SET v_type_prefix = SUBSTRING_INDEX(v_data_type, '(', 1);
+
+    -- Check if table exists
+    IF NOT ufn_DoesTableExist(in_table_name) THEN
+        SELECT CONCAT(
+            'Column ',
+            in_column_name,
+            ' addition failed because table ',
+            in_table_name,
+            ' does not exist.'
+        ) AS message;
+    -- Check if column already exists
+    ELSEIF ufn_DoesColumnExist(in_table_name, in_column_name) THEN
+        SELECT CONCAT(
+            'Column ',
+            in_column_name,
+            ' already exists in table ',
+            in_table_name,
+            '.'
+        ) AS message;
+    ELSE
+        -- Start building the ALTER TABLE statement
+        SET @sql = CONCAT(
+            'ALTER TABLE ', in_table_name,
+            ' ADD COLUMN ', in_column_name, ' ', v_data_type
+        );
+
+        -- Add NOT NULL if required
+        IF in_required THEN
+            SET @sql = CONCAT(@sql, ' NOT NULL');
+        END IF;
+
+        -- Handle default value based on data type
+        IF in_default_value IS NOT NULL AND in_default_value != '' THEN
+            -- String types: quote if not already quoted
+            IF v_type_prefix IN ('CHAR', 'VARCHAR', 'TEXT', 'TINYTEXT', 'MEDIUMTEXT', 'LONGTEXT', 'ENUM', 'SET') THEN
+                IF LEFT(in_default_value, 1) = '''' AND RIGHT(in_default_value, 1) = '''' THEN
+                    SET @sql = CONCAT(@sql, ' DEFAULT ', in_default_value);
+                ELSE
+                    SET @sql = CONCAT(@sql, ' DEFAULT ''', REPLACE(in_default_value, '''', ''''''), '''');
+                END IF;
+            -- Date/time types: allow functions or quote as needed
+            ELSEIF v_type_prefix IN ('DATE', 'DATETIME', 'TIMESTAMP', 'TIME', 'YEAR') THEN
+                IF in_default_value REGEXP '^[A-Za-z_][A-Za-z0-9_]*\\(.*\\)$' OR
+                   in_default_value IN ('CURRENT_TIMESTAMP', 'UTC_TIMESTAMP', 'NOW()') THEN
+                    SET @sql = CONCAT(@sql, ' DEFAULT ', in_default_value);
+                ELSEIF LEFT(in_default_value, 1) = '''' AND RIGHT(in_default_value, 1) = '''' THEN
+                    SET @sql = CONCAT(@sql, ' DEFAULT ', in_default_value);
+                ELSE
+                    SET @sql = CONCAT(@sql, ' DEFAULT ''', REPLACE(in_default_value, '''', ''''''), '''');
+                END IF;
+            -- Numeric and boolean types: do not quote
+            ELSEIF v_type_prefix IN ('INT', 'INTEGER', 'BIGINT', 'SMALLINT', 'TINYINT', 'MEDIUMINT', 'FLOAT', 'DOUBLE', 'DECIMAL', 'NUMERIC', 'BIT', 'BOOL', 'BOOLEAN') THEN
+                SET @sql = CONCAT(@sql, ' DEFAULT ', in_default_value);
+            -- Fallback: treat as string
+            ELSE
+                IF LEFT(in_default_value, 1) = '''' AND RIGHT(in_default_value, 1) = '''' THEN
+                    SET @sql = CONCAT(@sql, ' DEFAULT ', in_default_value);
+                ELSE
+                    SET @sql = CONCAT(@sql, ' DEFAULT ''', REPLACE(in_default_value, '''', ''''''), '''');
+                END IF;
+            END IF;
+        END IF;
+
+        -- Execute the dynamic SQL to add the column
+        PREPARE stmt FROM @sql;
+        EXECUTE stmt;
+        DEALLOCATE PREPARE stmt;
+
+        SELECT CONCAT(
+            'Column ',
+            in_column_name,
+            ' added successfully to table ',
+            in_table_name,
+            '.'
+        ) AS message;
+    END IF;
+END
+$$
+
+DELIMITER ;
+
+
+-- Script: usp_AddCheck.sql
+
+DELIMITER $
+DROP PROCEDURE IF EXISTS usp_AddCheck$
+
+-- =============================================
+-- usp_AddCheck
+-- Adds or updates a check constraint on a specified column or a custom check on multiple columns in a table.
+--
+-- Parameters:
+--   in_table_name      - The name of the table to alter.
+--   in_column_name     - (Optional) The name of the column to apply the check constraint on. If NULL, it's a table-level constraint.
+--   in_check_expr      - The check expression (e.g., '`age` > 0').
+--
+-- Usage:
+--   -- Simple greater than check on a column
+--   CALL usp_AddCheck('tblExample', 'age', '`age` > 0');
+--
+--   -- Custom check on multiple columns (constraint name will be auto-generated)
+--   CALL usp_AddCheck('tblExample', NULL, '`start_date` < `end_date`');
+--
+-- Notes:
+--   - If column name is provided, the constraint will be named chk_{table}.{column}.
+--   - If column name is not provided, a random name will be generated.
+--   - Checks if the table, column (if applicable), and constraint already exist before adding or updating.
+--   - Handles exceptions and prints messages for each execution flow.
+-- =============================================
+
+CREATE PROCEDURE usp_AddCheck(
+    IN in_table_name VARCHAR(64),
+    IN in_column_name VARCHAR(64),
+    IN in_check_expr VARCHAR(512)
+)
+BEGIN
+    DECLARE v_constraint_name VARCHAR(130);
+    DECLARE v_exists INT DEFAULT 0;
+
+    -- Handle any SQL exception and print a custom message
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        SELECT CONCAT(
+            'Check constraint creation or update failed for table `',
+            in_table_name,
+            '` due to an exception.'
+        ) AS message;
+    END;
+
+    -- Build constraint name
+    IF in_column_name IS NOT NULL THEN
+        SET v_constraint_name = CONCAT('chk_', in_table_name, '.', in_column_name);
+    ELSE
+        SET v_constraint_name = CONCAT('chk_', in_table_name, '_', REPLACE(UUID(), '-', ''));
+    END IF;
+
+    -- Check if table exists
+    IF NOT ufn_DoesTableExist(in_table_name) THEN
+        SELECT CONCAT(
+            'Table `',
+            in_table_name,
+            '` does not exist.'
+        ) AS message;
+    -- Check if column exists, only if a column name is provided
+    ELSEIF in_column_name IS NOT NULL AND NOT ufn_DoesColumnExist(in_table_name, in_column_name) THEN
+        SELECT CONCAT(
+            'Column `',
+            in_column_name,
+            '` does not exist in table `',
+            in_table_name,
+            '`.'
+        ) AS message;
+    ELSE
+        -- Check if the constraint already exists
+        SELECT COUNT(1) INTO v_exists
+        FROM information_schema.table_constraints
+        WHERE table_schema = DATABASE()
+          AND table_name = in_table_name
+          AND constraint_type = 'CHECK'
+          AND constraint_name = v_constraint_name;
+
+        IF v_exists > 0 THEN
+            -- Drop the existing constraint before adding the new one
+            SET @sql_drop = CONCAT(
+                'ALTER TABLE `', in_table_name, '` DROP CONSTRAINT `', v_constraint_name, '`'
+            );
+            PREPARE stmt_drop FROM @sql_drop;
+            EXECUTE stmt_drop;
+            DEALLOCATE PREPARE stmt_drop;
+        END IF;
+
+        -- Add the new/updated constraint
+        SET @sql_add = CONCAT(
+            'ALTER TABLE `', in_table_name, '` ',
+            'ADD CONSTRAINT `', v_constraint_name, '` CHECK (', in_check_expr, ')'
+        );
+        PREPARE stmt_add FROM @sql_add;
+        EXECUTE stmt_add;
+        DEALLOCATE PREPARE stmt_add;
+
+        IF v_exists > 0 THEN
+            SELECT CONCAT(
+                'Check constraint `',
+                v_constraint_name,
+                '` updated successfully on table `',
+                in_table_name,
+                '`.'
+            ) AS message;
+        ELSE
+            SELECT CONCAT(
+                'Check constraint `',
+                v_constraint_name,
+                '` added successfully to table `',
+                in_table_name,
+                '`.'
+            ) AS message;
+        END IF;
+    END IF;
+END
+$
+
+DELIMITER ;
+
+
+-- Script: usp_AutoIncrement.sql
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS usp_AutoIncrement$$
+
+-- =============================================
+-- usp_AutoIncrement
+-- Alters a column in a table to make it AUTO_INCREMENT if it is not already.
+--
+-- Parameters:
+--   in_table_name   - The name of the table to alter.
+--   in_column_name  - The name of the column to modify.
+--
+-- Usage:
+--   CALL usp_AutoIncrement('tblExample', 'id');
+--
+-- Notes:
+--   - Checks if the table and column exist before attempting to alter.
+--   - Only works for integer columns that are not already AUTO_INCREMENT.
+--   - Handles exceptions and prints messages for each execution flow.
+-- =============================================
+
+CREATE PROCEDURE usp_AutoIncrement(
+    IN in_table_name VARCHAR(64),
+    IN in_column_name VARCHAR(64)
+)
+BEGIN
+    -- Variables to hold column type and extra info (like AUTO_INCREMENT)
+    DECLARE v_data_type VARCHAR(64);
+    DECLARE v_extra VARCHAR(64);
+
+    -- Handle any SQL exception and print a custom message
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        SELECT CONCAT(
+            'Failed to set AUTO_INCREMENT for column ',
+            in_column_name,
+            ' in table ',
+            in_table_name,
+            '.'
+        ) AS message;
+    END;
+
+    -- Check if table exists
+    IF NOT ufn_DoesTableExist(in_table_name) THEN
+        SELECT CONCAT(
+            'Table ',
+            in_table_name,
+            ' does not exist.'
+        ) AS message;
+    -- Check if column exists
+    ELSEIF NOT ufn_DoesColumnExist(in_table_name, in_column_name) THEN
+        SELECT CONCAT(
+            'Column ',
+            in_column_name,
+            ' does not exist in table ',
+            in_table_name,
+            '.'
+        ) AS message;
+    ELSE
+        -- Get column type and extra info
+        SELECT COLUMN_TYPE, EXTRA
+        INTO v_data_type, v_extra
+        FROM information_schema.columns
+        WHERE table_schema = DATABASE()
+          AND table_name = in_table_name
+          AND column_name = in_column_name;
+
+        -- If already AUTO_INCREMENT, inform the user
+        IF v_extra LIKE '%auto_increment%' THEN
+            SELECT CONCAT(
+                'Column ',
+                in_column_name,
+                ' is already AUTO_INCREMENT in table ',
+                in_table_name,
+                '.'
+            ) AS message;
+        -- Only integer types can be set to AUTO_INCREMENT
+        ELSEIF v_data_type NOT REGEXP '^(int|bigint|smallint|mediumint|tinyint)' THEN
+            SELECT CONCAT(
+                'Column ',
+                in_column_name,
+                ' is not an integer type and cannot be set to AUTO_INCREMENT.'
+            ) AS message;
+        ELSE
+            -- Alter the column to set AUTO_INCREMENT
+            SET @sql = CONCAT(
+                'ALTER TABLE ', in_table_name,
+                ' MODIFY COLUMN ', in_column_name, ' ', v_data_type, ' NOT NULL AUTO_INCREMENT'
+            );
+            PREPARE stmt FROM @sql;
+            EXECUTE stmt;
+            DEALLOCATE PREPARE stmt;
+
+            SELECT CONCAT(
+                'Column ',
+                in_column_name,
+                ' is now AUTO_INCREMENT in table ',
+                in_table_name,
+                '.'
+            ) AS message;
+        END IF;
+    END IF;
+END
+$$
+
+DELIMITER ;
+
+
+-- Script: usp_DropConstraint.sql
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS usp_DropConstraint$$
+
+-- =============================================
+-- usp_DropConstraint
+-- Drops a constraint (PRIMARY KEY, UNIQUE, FOREIGN KEY, or CHECK) from a table if it exists.
+--
+-- Parameters:
+--   in_table_name      - The name of the table to alter.
+--   in_constraint_name - The name of the constraint to drop.
+--
+-- Usage:
+--   CALL usp_DropConstraint('tblExample', 'UQ_tblExample_email');
+--
+-- Notes:
+--   - Checks if the table and constraint exist before attempting to drop.
+--   - Handles exceptions and prints messages for each execution flow.
+--   - Always uses backticks for database objects.
+-- =============================================
+
+CREATE PROCEDURE usp_DropConstraint(
+    IN in_table_name VARCHAR(64),        -- Table name input
+    IN in_constraint_name VARCHAR(128)   -- Constraint name input
+)
+BEGIN
+    DECLARE v_constraint_type VARCHAR(32);  -- Stores type of constraint
+    DECLARE v_exists INT DEFAULT 0;         -- Flag (unused, but reserved)
+
+    -- Exception handler: catches any SQL errors during execution
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        -- Return failure message if exception occurs
+        SELECT CONCAT(
+            'Failed to drop constraint `',
+            in_constraint_name,
+            '` from table `',
+            in_table_name,
+            '` due to an exception.'
+        ) AS message;
+    END;
+
+    -- Check if table exists
+    IF NOT ufn_DoesTableExist(in_table_name) THEN
+        -- Inform user if table does not exist
+        SELECT CONCAT(
+            'Table `',
+            in_table_name,
+            '` does not exist.'
+        ) AS message;
+    ELSE
+        -- Check if constraint exists in INFORMATION_SCHEMA and get its type
+        SELECT constraint_type
+        INTO v_constraint_type
+        FROM information_schema.table_constraints
+        WHERE table_schema = DATABASE()          -- Current database
+          AND table_name = in_table_name
+          AND constraint_name = in_constraint_name
+        LIMIT 1;
+
+        -- If no constraint found, return message
+        IF v_constraint_type IS NULL THEN
+            SELECT CONCAT(
+                'Constraint `',
+                in_constraint_name,
+                '` does not exist on table `',
+                in_table_name,
+                '`.'
+            ) AS message;
+        ELSE
+            -- Build SQL based on constraint type
+            IF v_constraint_type = 'PRIMARY KEY' THEN
+                -- Drop primary key
+                SET @sql = CONCAT('ALTER TABLE `', in_table_name, '` DROP PRIMARY KEY');
+
+            ELSEIF v_constraint_type = 'UNIQUE' OR v_constraint_type = 'FOREIGN KEY' THEN
+                -- Drop index (applies to UNIQUE & FK indexes)
+                SET @sql = CONCAT('ALTER TABLE `', in_table_name, '` DROP INDEX `', in_constraint_name, '`');
+
+                -- For FOREIGN KEY: must also explicitly drop FK constraint
+                IF v_constraint_type = 'FOREIGN KEY' THEN
+                    SET @sql_fk = CONCAT('ALTER TABLE `', in_table_name, '` DROP FOREIGN KEY `', in_constraint_name, '`');
+                    PREPARE stmt_fk FROM @sql_fk;
+                    EXECUTE stmt_fk;
+                    DEALLOCATE PREPARE stmt_fk;
+                END IF;
+
+            ELSEIF v_constraint_type = 'CHECK' THEN
+                -- Drop check constraint
+                SET @sql = CONCAT('ALTER TABLE `', in_table_name, '` DROP CHECK `', in_constraint_name, '`');
+
+            ELSE
+                -- Fallback: try dropping as index
+                SET @sql = CONCAT('ALTER TABLE `', in_table_name, '` DROP INDEX `', in_constraint_name, '`');
+            END IF;
+
+            -- Execute drop (skip if FK handled separately above)
+            IF v_constraint_type != 'FOREIGN KEY' THEN
+                PREPARE stmt FROM @sql;
+                EXECUTE stmt;
+                DEALLOCATE PREPARE stmt;
+            END IF;
+
+            -- Success message
+            SELECT CONCAT(
+                'Constraint `',
+                in_constraint_name,
+                '` of type ',
+                v_constraint_type,
+                ' dropped successfully from table `',
+                in_table_name,
+                '`.'
+            ) AS message;
+        END IF;
+    END IF;
+END
+$$
+
+DELIMITER ;
+
+
+-- Script: usp_CreateTable.sql
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS usp_CreateTable$$
+
+-- =============================================
+-- usp_CreateTable
+-- Creates a table with columns 'id', 'created_by', 'updated_by', 'created_at', 'updated_at', and 'void'
+-- if it does not already exist, and adds a primary key constraint using usp_CreatePrimaryKey.
+--
+-- Parameters:
+--   in_table_name - The name of the table to create.
+--
+-- Usage:
+--   CALL usp_CreateTable('tblExample');
+--
+-- Notes:
+--   - The procedure checks if the table already exists using ufn_DoesTableExist before creating it.
+--   - The created table will have columns: id INT AUTO_INCREMENT, created_by INT NOT NULL, updated_by INT,
+--     created_at TIMESTAMP NOT NULL DEFAULT UTC_TIMESTAMP, updated_at TIMESTAMP, void BOOLEAN DEFAULT FALSE.
+--   - After creation, it calls usp_CreatePrimaryKey to add the primary key constraint named pk_{table}.id.
+--   - Other columns are added using usp_AddColumn.
+--   - Prints messages for every execution flow and handles exceptions.
+-- =============================================
+
+CREATE PROCEDURE usp_CreateTable(
+    IN in_table_name VARCHAR(64)
+)
+BEGIN
+    -- Handle any SQL exception and print a custom message
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        SELECT CONCAT(
+            'Table ',
+            in_table_name,
+            ' creation failed due to an exception.'
+        ) AS message;
+    END;
+
+    -- Check if table already exists
+    IF ufn_DoesTableExist(in_table_name) THEN
+        SELECT CONCAT(
+            'Table ',
+            in_table_name,
+            ' already exists.'
+        ) AS message;
+    ELSE
+        -- Create table with only 'id' column (no constraints yet)
+        SET @sql = CONCAT(
+            'CREATE TABLE ', in_table_name, ' (',
+                'id BIGINT UNSIGNED NOT NULL',
+            ')'
+        );
+        PREPARE stmt FROM @sql;
+        EXECUTE stmt;
+        DEALLOCATE PREPARE stmt;
+
+        -- Add primary key constraint on 'id'
+        CALL usp_CreatePrimaryKey(in_table_name, 'id', CONCAT('pk_', in_table_name, '.id'));
+
+        -- Make 'id' column AUTO_INCREMENT
+        CALL usp_AutoIncrement(in_table_name, 'id');
+
+        -- Add standard columns using usp_AddColumn
+        CALL usp_AddColumn(in_table_name, 'internal_id', 'BINARY(16)', 'UUID_TO_BIN(UUID())', TRUE);
+        CALL usp_AddColumn(in_table_name, 'created_by', 'BIGINT UNSIGNED', '0', TRUE);
+        CALL usp_AddColumn(in_table_name, 'updated_by', 'BIGINT UNSIGNED', NULL, FALSE);
+        CALL usp_AddColumn(in_table_name, 'created_at', 'TIMESTAMP', 'UTC_TIMESTAMP', TRUE);
+        CALL usp_AddColumn(in_table_name, 'updated_at', 'TIMESTAMP', NULL, FALSE);
+        CALL usp_AddColumn(in_table_name, 'void', 'BOOLEAN', '0', FALSE);
+
+        -- Add unique key constraint on 'internal_id'
+        CALL usp_CreateUniqueKey(in_table_name, 'internal_id');
+
+        -- Success message
+        SELECT CONCAT(
+            'Table ',
+            in_table_name,
+            ' created successfully.'
+        ) AS message;
+    END IF;
+END
+$$
+
+DELIMITER ;
+
+
+-- Script: objects.sql
+
+CALL usp_CreateTable('tblTimeZones');
+CALL usp_CreateTable('tblCurrencies');
+CALL usp_CreateTable('tblCountries');
+CALL usp_CreateTable('tblStates');
+CALL usp_CreateTable('tblUsers');
+CALL usp_CreateTable('tblUserProfiles');
+
+
+-- Script: columns.sql
+
+DELIMITER $$
+
+CREATE PROCEDURE usp_CreateColumns_tblCurrencies()
+BEGIN
+    DECLARE v_required BOOLEAN DEFAULT TRUE;
+    DECLARE v_optional BOOLEAN DEFAULT FALSE;
+
+    CALL usp_AddColumn('tblCurrencies', 'iso_code', 'CHAR(3)', NULL, v_required);
+    CALL usp_AddColumn('tblCurrencies', 'numeric_code', 'CHAR(3)', NULL, v_optional);
+    CALL usp_AddColumn('tblCurrencies', 'name', 'VARCHAR(100)', NULL, v_required);
+    CALL usp_AddColumn('tblCurrencies', 'symbol', 'VARCHAR(10)', NULL, v_required);
+    CALL usp_AddColumn('tblCurrencies', 'minor_unit', 'TINYINT UNSIGNED', '2', v_required);
+END$$
+
+DELIMITER ;
+
+CALL usp_CreateColumns_tblCurrencies();
+DROP PROCEDURE usp_CreateColumns_tblCurrencies;
+
+
+-- Script: constraints.sql
+
+CALL usp_CreateUniqueKey('tblCurrencies', 'iso_code');
+CALL usp_CreateUniqueKey('tblCurrencies', 'numeric_code');
+CALL usp_CreateUniqueKey('tblCurrencies', 'name');
+CALL usp_AddCheck('tblCurrencies', 'iso_code', 'CHAR_LENGTH(`iso_code`) = 3');
+CALL usp_AddCheck('tblCurrencies', 'numeric_code', '`numeric_code` IS NULL OR `numeric_code` REGEXP ''^[0-9]{3}$''');
+
+
+-- Script: data.sql
+
+TRUNCATE TABLE `tblCurrencies`;
+
+ALTER TABLE `tblCurrencies` AUTO_INCREMENT = 1;
+
+INSERT INTO `tblCurrencies`
+(
+    `iso_code`,
+    `numeric_code`,
+    `name`,
+    `symbol`,
+    `minor_unit`
+)
+VALUES
+('AED', NULL, 'United Arab Emirates Dirham', 'د.إ', 2),
+('AFN', NULL, 'Afghan Afghani', '؋', 2),
+('ALL', NULL, 'Albanian Lek', 'Lek', 2),
+('AMD', NULL, 'Armenian Dram', '֏', 2),
+('AOA', NULL, 'Angolan Kwanza', 'Kz', 2),
+('ARS', NULL, 'Argentine Peso', '$', 2),
+('AUD', NULL, 'Australian Dollar', '$', 2),
+('AWG', NULL, 'Aruban Florin', 'ƒ', 2),
+('AZN', NULL, 'Azerbaijani Manat', '₼', 2),
+('BAM', NULL, 'Bosnia and Herzegovina Convertible Mark', 'KM', 2),
+('BBD', NULL, 'Barbados Dollar', '$', 2),
+('BDT', NULL, 'Bangladeshi Taka', '৳', 2),
+('BGN', NULL, 'Bulgarian Lev', 'лв', 2),
+('BHD', NULL, 'Bahraini Dinar', 'د.ب', 3),
+('BIF', NULL, 'Burundian Franc', 'FBu', 0),
+('BMD', NULL, 'Bermudian Dollar', '$', 2),
+('BND', NULL, 'Brunei Dollar', 'B$', 2),
+('BOB', NULL, 'Bolivian Boliviano', 'Bs.', 2),
+('BRL', NULL, 'Brazilian Real', 'R$', 2),
+('BSD', NULL, 'Bahamian Dollar', 'B$', 2),
+('BTN', NULL, 'Bhutanese Ngultrum', 'Nu.', 2),
+('BWP', NULL, 'Botswana Pula', 'P', 2),
+('BYN', NULL, 'Belarusian Ruble', 'Br', 2),
+('BZD', NULL, 'Belize Dollar', 'BZ$', 2),
+('CAD', NULL, 'Canadian Dollar', 'C$', 2),
+('CDF', NULL, 'Congolese Franc', 'FC', 2),
+('CHF', NULL, 'Swiss Franc', 'CHF', 2),
+('CLP', NULL, 'Chilean Peso', '$', 0),
+('CNY', NULL, 'Chinese Yuan', '¥', 2),
+('COP', NULL, 'Colombian Peso', '$', 2),
+('CRC', NULL, 'Costa Rican Colón', '₡', 2),
+('CUC', NULL, 'Cuban Convertible Peso', 'CUC$', 2),
+('CUP', NULL, 'Cuban Peso', '₱', 2),
+('CVE', NULL, 'Cape Verdean Escudo', '$', 2),
+('CZK', NULL, 'Czech Koruna', 'Kč', 2),
+('DJF', NULL, 'Djiboutian Franc', 'Fdj', 0),
+('DKK', NULL, 'Danish Krone', 'kr', 2),
+('DOP', NULL, 'Dominican Peso', 'RD$', 2),
+('DZD', NULL, 'Algerian Dinar', 'د.ج', 2),
+('EGP', NULL, 'Egyptian Pound', 'E£', 2),
+('ERN', NULL, 'Eritrean Nakfa', 'Nfk', 2),
+('ETB', NULL, 'Ethiopian Birr', 'Br', 2),
+('EUR', NULL, 'Euro', '€', 2),
+('FJD', NULL, 'Fiji Dollar', '$', 2),
+('FKP', NULL, 'Falkland Islands Pound', '£', 2),
+('GBP', NULL, 'Pound Sterling', '£', 2),
+('GEL', NULL, 'Georgian Lari', '₾', 2),
+('GHS', NULL, 'Ghanaian Cedi', '₵', 2),
+('GIP', NULL, 'Gibraltar Pound', '£', 2),
+('GMD', NULL, 'Gambian Dalasi', 'D', 2),
+('GNF', NULL, 'Guinean Franc', 'FG', 0),
+('GTQ', NULL, 'Guatemalan Quetzal', 'Q', 2),
+('GYD', NULL, 'Guyanese Dollar', '$', 2),
+('HKD', NULL, 'Hong Kong Dollar', 'HK$', 2),
+('HNL', NULL, 'Honduran Lempira', 'L', 2),
+('HRK', NULL, 'Croatian Kuna', 'kn', 2),
+('HTG', NULL, 'Haitian Gourde', 'G', 2),
+('HUF', NULL, 'Hungarian Forint', 'Ft', 2),
+('IDR', NULL, 'Indonesian Rupiah', 'Rp', 2),
+('ILS', NULL, 'Israeli New Shekel', '₪', 2),
+('INR', NULL, 'Indian Rupee', '₹', 2),
+('IQD', NULL, 'Iraqi Dinar', 'ع.د', 3),
+('IRR', NULL, 'Iranian Rial', '﷼', 2),
+('ISK', NULL, 'Icelandic Króna', 'kr', 0),
+('JMD', NULL, 'Jamaican Dollar', 'J$', 2),
+('JOD', NULL, 'Jordanian Dinar', 'د.ا', 3),
+('JPY', NULL, 'Japanese Yen', '¥', 0),
+('KES', NULL, 'Kenyan Shilling', 'KSh', 2),
+('KGS', NULL, 'Kyrgyzstani Som', 'с', 2),
+('KHR', NULL, 'Cambodian Riel', '៛', 2),
+('KMF', NULL, 'Comorian Franc', 'CF', 0),
+('KPW', NULL, 'North Korean Won', '₩', 2),
+('KRW', NULL, 'South Korean Won', '₩', 0),
+('KWD', NULL, 'Kuwaiti Dinar', 'د.ك', 3),
+('KYD', NULL, 'Cayman Islands Dollar', '$', 2),
+('KZT', NULL, 'Kazakhstani Tenge', '〒', 2),
+('LAK', NULL, 'Lao Kip', '₭', 2),
+('LBP', NULL, 'Lebanese Pound', 'ل.ل', 2),
+('LKR', NULL, 'Sri Lankan Rupee', '₨', 2),
+('LRD', NULL, 'Liberian Dollar', 'L$', 2),
+('LSL', NULL, 'Lesotho Loti', 'L', 2),
+('LYD', NULL, 'Libyan Dinar', 'ل.د', 3),
+('MAD', NULL, 'Moroccan Dirham', 'د.م.', 2),
+('MDL', NULL, 'Moldovan Leu', 'L', 2),
+('MGA', NULL, 'Malagasy Ariary', 'Ar', 2),
+('MKD', NULL, 'Macedonian Denar', 'ден', 2),
+('MMK', NULL, 'Burmese Kyat', 'Ks', 2),
+('MNT', NULL, 'Mongolian Tögrög', '₮', 2),
+('MOP', NULL, 'Macanese Pataca', 'P', 2),
+('MRU', NULL, 'Mauritanian Ouguiya', 'UM', 2),
+('MUR', NULL, 'Mauritian Rupee', '₨', 2),
+('MVR', NULL, 'Maldivian Rufiyaa', 'MVR', 2),
+('MWK', NULL, 'Malawian Kwacha', 'MK', 2),
+('MXN', NULL, 'Mexican Peso', '$', 2),
+('MYR', NULL, 'Malaysian Ringgit', 'RM', 2),
+('MZN', NULL, 'Mozambican Metical', 'MT', 2),
+('NAD', NULL, 'Namibian Dollar', 'N$', 2),
+('NGN', NULL, 'Nigerian Naira', '₦', 2),
+('NIO', NULL, 'Nicaraguan Córdoba', 'C$', 2),
+('NOK', NULL, 'Norwegian Krone', 'kr', 2),
+('NPR', NULL, 'Nepalese Rupee', '₨', 2),
+('NZD', NULL, 'New Zealand Dollar', 'NZ$', 2),
+('OMR', NULL, 'Omani Rial', 'ر.ع.', 3),
+('PAB', NULL, 'Panamanian Balboa', 'B/.', 2),
+('PEN', NULL, 'Peruvian Sol', 'S/.', 2),
+('PGK', NULL, 'Papua New Guinean Kina', 'K', 2),
+('PHP', NULL, 'Philippine Peso', '₱', 2),
+('PKR', NULL, 'Pakistani Rupee', '₨', 2),
+('PLN', NULL, 'Polish Złoty', 'zł', 2),
+('PYG', NULL, 'Paraguayan Guaraní', '₲', 0),
+('QAR', NULL, 'Qatari Riyal', 'ر.ق', 2),
+('RON', NULL, 'Romanian Leu', 'L', 2),
+('RSD', NULL, 'Serbian Dinar', 'дин', 2),
+('RUB', NULL, 'Russian Ruble', '₽', 2),
+('RWF', NULL, 'Rwandan Franc', 'Fr', 0),
+('SAR', NULL, 'Saudi Riyal', 'ر.س', 2),
+('SBD', NULL, 'Solomon Islands Dollar', '$', 2),
+('SCR', NULL, 'Seychellois Rupee', '₨', 2),
+('SDG', NULL, 'Sudanese Pound', 'ج.س.', 2),
+('SEK', NULL, 'Swedish Krona', 'kr', 2),
+('SGD', NULL, 'Singapore Dollar', 'S$', 2),
+('SHP', NULL, 'Saint Helena Pound', '£', 2),
+('SLE', NULL, 'Sierra Leonean Leone', 'Le', 2),
+('SOS', NULL, 'Somali Shilling', 'Sh.So.', 2),
+('SRD', NULL, 'Surinamese Dollar', '$', 2),
+('SSP', NULL, 'South Sudanese Pound', '£', 2),
+('STN', NULL, 'São Tomé and Príncipe Dobra', 'Db', 2),
+('SVC', NULL, 'Salvadoran Colón', '₡', 2),
+('SYP', NULL, 'Syrian Pound', '£', 2),
+('SZL', NULL, 'Swazi Lilangeni', 'L', 2),
+('THB', NULL, 'Thai Baht', '฿', 2),
+('TJS', NULL, 'Tajikistani Somoni', 'ЅМ', 2),
+('TMT', NULL, 'Turkmenistan Manat', 'm', 2),
+('TND', NULL, 'Tunisian Dinar', 'د.ت', 3),
+('TOP', NULL, 'Tongan Paʻanga', 'T$', 2),
+('TRY', NULL, 'Turkish Lira', '₺', 2),
+('TTD', NULL, 'Trinidad and Tobago Dollar', 'TT$', 2),
+('TWD', NULL, 'New Taiwan Dollar', 'NT$', 2),
+('TZS', NULL, 'Tanzanian Shilling', 'TSh', 2),
+('UAH', NULL, 'Ukrainian Hryvnia', '₴', 2),
+('UGX', NULL, 'Ugandan Shilling', 'Sh', 0),
+('USD', NULL, 'United States Dollar', '$', 2),
+('UYU', NULL, 'Uruguayan Peso', '$', 2),
+('UZS', NULL, 'Uzbekistani Soʻm', 'лв', 2),
+('VED', NULL, 'Venezuelan Bolívar', 'Bs.S', 2),
+('VND', NULL, 'Vietnamese Đồng', '₫', 0),
+('VUV', NULL, 'Vanuatu Vatu', 'VT', 0),
+('WST', NULL, 'Samoan Tala', 'T$', 2),
+('XAF', NULL, 'Central African CFA Franc', 'FCFA', 0),
+('XCD', NULL, 'East Caribbean Dollar', 'EC$', 2),
+('XOF', NULL, 'West African CFA Franc', 'CFA', 0),
+('XPF', NULL, 'CFP Franc', '₣', 0),
+('YER', NULL, 'Yemeni Rial', '﷼', 2),
+('ZAR', NULL, 'South African Rand', 'R', 2),
+('ZMW', NULL, 'Zambian Kwacha', 'ZK', 2),
+('ZWL', NULL, 'Zimbabwean Dollar', 'ZWL$', 2);
+
+
+-- Script: columns.sql
+
+DELIMITER $$
+
+CREATE PROCEDURE usp_CreateColumns_tblTimeZones()
+BEGIN
+    DECLARE v_required BOOLEAN DEFAULT TRUE;
+    DECLARE v_optional BOOLEAN DEFAULT FALSE;
+
+    CALL usp_AddColumn('tblTimeZones', 'name', 'VARCHAR(100)', NULL, v_required);
+    CALL usp_AddColumn('tblTimeZones', 'abbreviation', 'VARCHAR(10)', NULL, v_optional);
+    CALL usp_AddColumn('tblTimeZones', 'utc_offset_minutes', 'SMALLINT', NULL, v_required);
+    CALL usp_AddColumn('tblTimeZones', 'observes_dst', 'BOOLEAN', '0', v_required);
+    CALL usp_AddColumn('tblTimeZones', 'current_offset_minutes', 'SMALLINT', NULL, v_required);
+END$$
+
+DELIMITER ;
+
+CALL usp_CreateColumns_tblTimeZones();
+DROP PROCEDURE usp_CreateColumns_tblTimeZones;
+
+
+-- Script: constraints.sql
+
+CALL usp_CreateUniqueKey('tblTimeZones', 'name');
+CALL usp_AddCheck('tblTimeZones', 'utc_offset_minutes', '`utc_offset_minutes` BETWEEN -720 AND 840');
+CALL usp_AddCheck('tblTimeZones', 'current_offset_minutes', '`current_offset_minutes` BETWEEN -720 AND 840');
+
+
+-- Script: data.sql
+
+TRUNCATE TABLE `tblTimeZones`;
+
+ALTER TABLE `tblTimeZones` AUTO_INCREMENT = 1;
+
+INSERT INTO `tblTimeZones`
+(
+    `name`,
+    `abbreviation`,
+    `utc_offset_minutes`,
+    `observes_dst`,
+    `current_offset_minutes`
+)
+VALUES
+('Africa/Abidjan', 'GMT', 0, 0, 0),
+('Africa/Accra', 'GMT', 0, 0, 0),
+('Africa/Algiers', 'CET', 60, 0, 60),
+('Africa/Bissau', 'GMT', 0, 0, 0),
+('Africa/Cairo', 'EET', 120, 0, 120),
+('Africa/Casablanca', '+01', 60, 0, 60),
+('Africa/Ceuta', 'CEST', 60, 1, 120),
+('Africa/El_Aaiun', '+01', 60, 0, 60),
+('Africa/Johannesburg', 'SAST', 120, 0, 120),
+('Africa/Juba', 'EAT', 180, 0, 180),
+('Africa/Khartoum', 'EAT', 180, 0, 180),
+('Africa/Lagos', 'WAT', 60, 0, 60),
+('Africa/Maputo', 'CAT', 120, 0, 120),
+('Africa/Monrovia', 'GMT', 0, 0, 0),
+('Africa/Nairobi', 'EAT', 180, 0, 180),
+('Africa/Ndjamena', 'WAT', 60, 0, 60),
+('Africa/Sao_Tome', 'GMT', 0, 0, 0),
+('Africa/Tripoli', 'EET', 120, 0, 120),
+('Africa/Tunis', 'CET', 60, 0, 60),
+('Africa/Windhoek', 'CAT', 120, 1, 120),
+('America/Adak', 'HDT', -600, 1, -540),
+('America/Anchorage', 'AKDT', -540, 1, -480),
+('America/Araguaina', 'BRT', -180, 1, -180),
+('America/Argentina/Buenos_Aires', 'ART', -180, 0, -180),
+('America/Asuncion', '-03', -240, 1, -180),
+('America/Atikokan', 'EST', -300, 0, -300),
+('America/Bogota', 'COT', -300, 0, -300),
+('America/Caracas', 'VET', -240, 0, -240),
+('America/Chicago', 'CDT', -360, 1, -300),
+('America/Costa_Rica', 'CST', -360, 0, -360),
+('America/Denver', 'MDT', -420, 1, -360),
+('America/Edmonton', 'MDT', -420, 1, -360),
+('America/Halifax', 'ADT', -240, 1, -180),
+('America/Hermosillo', 'MST', -420, 0, -420),
+('America/Lima', 'PET', -300, 0, -300),
+('America/Los_Angeles', 'PDT', -480, 1, -420),
+('America/Mexico_City', 'CDT', -360, 1, -300),
+('America/Montevideo', 'UYT', -180, 0, -180),
+('America/New_York', 'EDT', -300, 1, -240),
+('America/Noronha', 'FNT', -120, 0, -120),
+('America/Phoenix', 'MST', -420, 0, -420),
+('America/Port-au-Prince', 'EST', -300, 1, -240),
+('America/Port_of_Spain', 'AST', -240, 0, -240),
+('America/Santiago', 'CLST', -240, 1, -180),
+('America/Sao_Paulo', 'BRT', -180, 1, -180),
+('America/St_Johns', 'NDT', -210, 1, -150),
+('America/Tijuana', 'PDT', -480, 1, -420),
+('Antarctica/Casey', 'CST', 660, 0, 660),
+('Antarctica/Davis', 'DAVT', 420, 0, 420),
+('Antarctica/DumontDUrville', 'DDUT', 600, 0, 600),
+('Antarctica/Mawson', 'MAWT', 300, 0, 300),
+('Antarctica/McMurdo', 'NZDT', 720, 1, 780),
+('Antarctica/Rothera', 'ROTT', -180, 0, -180),
+('Antarctica/Syowa', 'SYOT', 180, 0, 180),
+('Antarctica/Troll', 'CEST', 120, 1, 120),
+('Antarctica/Vostok', 'VOST', 360, 0, 360),
+('Asia/Almaty', 'ALMT', 360, 0, 360),
+('Asia/Amman', 'EET', 120, 1, 180),
+('Asia/Anadyr', '+12', 720, 1, 720),
+('Asia/Ashgabat', 'TMT', 300, 0, 300),
+('Asia/Baghdad', 'AST', 180, 1, 180),
+('Asia/Bangkok', 'ICT', 420, 0, 420),
+('Asia/Bishkek', 'KGT', 360, 0, 360),
+('Asia/Brunei', 'BNT', 480, 0, 480),
+('Asia/Colombo', 'IST', 330, 0, 330),
+('Asia/Dubai', 'GST', 240, 0, 240),
+('Asia/Dushanbe', 'TJT', 300, 0, 300),
+('Asia/Ho_Chi_Minh', 'ICT', 420, 0, 420),
+('Asia/Hong_Kong', 'HKT', 480, 0, 480),
+('Asia/Jakarta', 'WIB', 420, 0, 420),
+('Asia/Jerusalem', 'IDT', 120, 1, 180),
+('Asia/Kabul', 'AFT', 270, 0, 270),
+('Asia/Karachi', 'PKT', 300, 0, 300),
+('Asia/Kathmandu', 'NPT', 345, 0, 345),
+('Asia/Kolkata', 'IST', 330, 0, 330),
+('Asia/Kuala_Lumpur', 'MYT', 480, 0, 480),
+('Asia/Manila', 'PST', 480, 0, 480),
+('Asia/Nicosia', 'EEST', 120, 1, 180),
+('Asia/Qatar', 'AST', 180, 0, 180),
+('Asia/Riyadh', 'AST', 180, 0, 180),
+('Asia/Seoul', 'KST', 540, 0, 540),
+('Asia/Shanghai', 'CST', 480, 0, 480),
+('Asia/Singapore', 'SGT', 480, 0, 480),
+('Asia/Tehran', 'IRDT', 210, 1, 270),
+('Asia/Tokyo', 'JST', 540, 0, 540),
+('Atlantic/Azores', 'AZOST', -60, 1, 0),
+('Atlantic/Bermuda', 'ADT', -240, 1, -180),
+('Atlantic/Canary', 'WEST', 0, 1, 60),
+('Atlantic/Cape_Verde', 'CVT', -60, 0, -60),
+('Atlantic/Faroe', 'WEST', 0, 1, 60),
+('Atlantic/Madeira', 'WEST', 0, 1, 60),
+('Atlantic/Reykjavik', 'GMT', 0, 0, 0),
+('Atlantic/South_Georgia', 'GST', -120, 0, -120),
+('Australia/Brisbane', 'AEST', 600, 0, 600),
+('Australia/Darwin', 'ACST', 570, 0, 570),
+('Australia/Hobart', 'AEDT', 600, 1, 660),
+('Australia/Melbourne', 'AEDT', 600, 1, 660),
+('Australia/Perth', 'AWST', 480, 0, 480),
+('Australia/Sydney', 'AEDT', 600, 1, 660),
+('Europe/Amsterdam', 'CEST', 60, 1, 120),
+('Europe/Athens', 'EEST', 120, 1, 180),
+('Europe/Berlin', 'CEST', 60, 1, 120),
+('Europe/Brussels', 'CEST', 60, 1, 120),
+('Europe/Bucharest', 'EEST', 120, 1, 180),
+('Europe/Budapest', 'CEST', 60, 1, 120),
+('Europe/Copenhagen', 'CEST', 60, 1, 120),
+('Europe/Dublin', 'IST', 0, 1, 60),
+('Europe/Helsinki', 'EEST', 120, 1, 180),
+('Europe/Istanbul', 'TRT', 180, 0, 180),
+('Europe/Lisbon', 'WEST', 0, 1, 60),
+('Europe/London', 'BST', 0, 1, 60),
+('Europe/Madrid', 'CEST', 60, 1, 120),
+('Europe/Moscow', 'MSK', 180, 0, 180),
+('Europe/Paris', 'CEST', 60, 1, 120),
+('Europe/Prague', 'CEST', 60, 1, 120),
+('Europe/Rome', 'CEST', 60, 1, 120),
+('Europe/Sofia', 'EEST', 120, 1, 180),
+('Europe/Stockholm', 'CEST', 60, 1, 120),
+('Europe/Tirane', 'CEST', 60, 1, 120),
+('Europe/Warsaw', 'CEST', 60, 1, 120),
+('Pacific/Apia', 'WST', 780, 1, 780),
+('Pacific/Auckland', 'NZST', 720, 1, 780),
+('Pacific/Chatham', 'CHAST', 765, 1, 825),
+('Pacific/Fakaofo', 'TKT', 780, 0, 780),
+('Pacific/Fiji', 'FJT', 720, 1, 720),
+('Pacific/Honolulu', 'HST', -600, 0, -600),
+('Pacific/Kiritimati', 'LINT', 840, 0, 840),
+('Pacific/Pago_Pago', 'SST', -660, 0, -660),
+('Pacific/Port_Moresby', 'PGT', 600, 0, 600),
+('Pacific/Tahiti', 'TAHT', -600, 0, -600),
+('UTC', 'UTC', 0, 0, 0);
+
+
+-- Script: columns.sql
+
+DELIMITER $$
+
+CREATE PROCEDURE usp_CreateColumns_tblUsers()
+BEGIN
+    DECLARE v_required BOOLEAN DEFAULT TRUE;
+    DECLARE v_optional BOOLEAN DEFAULT FALSE;
+
+    CALL usp_AddColumn('tblUsers', 'firstname', 'VARCHAR(128)', NULL, v_required);
+    CALL usp_AddColumn('tblUsers', 'lastname', 'VARCHAR(128)', NULL, v_required);
+    CALL usp_AddColumn('tblUsers', 'email', 'VARCHAR(255)', NULL, v_required);
+    CALL usp_AddColumn('tblUsers', 'password', 'VARCHAR(255)', NULL, v_required);
+END$$
+
+DELIMITER ;
+
+CALL usp_CreateColumns_tblUsers();
+DROP PROCEDURE usp_CreateColumns_tblUsers;
+
+
+-- Script: constraints.sql
+
+CALL usp_CreateUniqueKey('tblUsers', 'email');
+CALL usp_AddCheck('tblUsers', 'email', "email REGEXP '^[a-zA-Z0-9][a-zA-Z0-9._-]*@[a-zA-Z0-9][a-zA-Z0-9._-]*\\\\.[a-zA-Z]{2,4}$'");
+CALL usp_AddCheck('tblUsers', 'firstname', "TRIM(firstname) <> ''");
+CALL usp_AddCheck('tblUsers', 'lastname', "TRIM(lastname) <> ''");
+CALL usp_AddCheck('tblUsers', 'password', "password REGEXP '^[a-f0-9]{64}$'");
+
+
+-- Script: indexes.sql
+
+CALL usp_CreateIndex('tblUsers', 'email');
+
+
+-- Script: columns.sql
+
+DELIMITER $$
+
+CREATE PROCEDURE usp_CreateColumns_tblCountries()
+BEGIN
+    DECLARE v_required BOOLEAN DEFAULT TRUE;
+    DECLARE v_optional BOOLEAN DEFAULT FALSE;
+
+    CALL usp_AddColumn('tblCountries', 'iso2_code', 'CHAR(2)', NULL, v_required);
+    CALL usp_AddColumn('tblCountries', 'iso3_code', 'CHAR(3)', NULL, v_required);
+    CALL usp_AddColumn('tblCountries', 'numeric_code', 'CHAR(3)', NULL, v_required);
+    CALL usp_AddColumn('tblCountries', 'name', 'VARCHAR(100)', NULL, v_required);
+    CALL usp_AddColumn('tblCountries', 'official_name', 'VARCHAR(150)', NULL, v_optional);
+    CALL usp_AddColumn('tblCountries', 'capital', 'VARCHAR(100)', NULL, v_optional);
+    CALL usp_AddColumn('tblCountries', 'phone_code', 'VARCHAR(50)', NULL, v_optional);
+    CALL usp_AddColumn('tblCountries', 'currency_id', 'BIGINT UNSIGNED', NULL, v_optional);
+END$$
+
+DELIMITER ;
+
+CALL usp_CreateColumns_tblCountries();
+DROP PROCEDURE usp_CreateColumns_tblCountries;
+
+
+-- Script: constraints.sql
+
+CALL usp_CreateUniqueKey('tblCountries', 'iso2_code');
+CALL usp_CreateUniqueKey('tblCountries', 'iso3_code');
+CALL usp_CreateUniqueKey('tblCountries', 'numeric_code');
+CALL usp_CreateUniqueKey('tblCountries', 'name');
+
+CALL usp_AddCheck('tblCountries', 'iso2_code', '`iso2_code` REGEXP ''^[A-Z]{2}$''');
+CALL usp_AddCheck('tblCountries', 'iso3_code', '`iso3_code` REGEXP ''^[A-Z]{3}$''');
+CALL usp_AddCheck('tblCountries', 'numeric_code', '`numeric_code` REGEXP ''^[0-9]{3}$''');
+CALL usp_AddCheck('tblCountries', 'name', 'CHAR_LENGTH(`name`) > 0');
+CALL usp_AddCheck('tblCountries', 'official_name', '`official_name` IS NULL OR CHAR_LENGTH(`official_name`) > 0');
+CALL usp_AddCheck('tblCountries', 'capital', '`capital` IS NULL OR CHAR_LENGTH(`capital`) > 0');
+
+
+-- Script: foreignkeys.sql
+
+CALL usp_CreateForeignKey(
+    'tblCountries',
+    'currency_id',
+    'tblCurrencies',
+    'id'
+);
+
+
+-- Script: data.sql
+
+TRUNCATE TABLE `tblCountries`;
+
+ALTER TABLE `tblCountries` AUTO_INCREMENT = 1;
+
+INSERT INTO `tblCountries`
+(
+    `id`,
+    `iso2_code`,
+    `iso3_code`, 
+    `numeric_code`,
+    `name`,
+    `official_name`,
+    `capital`,
+    `phone_code`,
+    `currency_id`
+)
+VALUES
+(1, 'AF', 'AFG', '004', 'Afghanistan', 'Islamic Republic of Afghanistan', 'Kabul', '+93', 2),
+(2, 'AL', 'ALB', '008', 'Albania', 'Republic of Albania', 'Tirana', '+355', 3),
+(3, 'DZ', 'DZA', '012', 'Algeria', 'People''s Democratic Republic of Algeria', 'Algiers', '+213', 39),
+(4, 'AD', 'AND', '020', 'Andorra', 'Principality of Andorra', 'Andorra la Vella', '+376', 43),
+(5, 'AO', 'AGO', '024', 'Angola', 'Republic of Angola', 'Luanda', '+244', 5),
+(6, 'AG', 'ATG', '028', 'Antigua and Barbuda', 'Antigua and Barbuda', 'Saint John''s', '+1-268', 150),
+(7, 'AR', 'ARG', '032', 'Argentina', 'Argentine Republic', 'Buenos Aires', '+54', 6),
+(8, 'AM', 'ARM', '051', 'Armenia', 'Republic of Armenia', 'Yerevan', '+374', 4),
+(9, 'AU', 'AUS', '036', 'Australia', 'Commonwealth of Australia', 'Canberra', '+61', 7),
+(10, 'AT', 'AUT', '040', 'Austria', 'Republic of Austria', 'Vienna', '+43', 43),
+(11, 'AZ', 'AZE', '031', 'Azerbaijan', 'Republic of Azerbaijan', 'Baku', '+994', 9),
+(12, 'BS', 'BHS', '044', 'Bahamas', 'Commonwealth of the Bahamas', 'Nassau', '+1-242', 20),
+(13, 'BH', 'BHR', '048', 'Bahrain', 'Kingdom of Bahrain', 'Manama', '+973', 14),
+(14, 'BD', 'BGD', '050', 'Bangladesh', 'People''s Republic of Bangladesh', 'Dhaka', '+880', 12),
+(15, 'BB', 'BRB', '052', 'Barbados', 'Barbados', 'Bridgetown', '+1-246', 11),
+(16, 'BY', 'BLR', '112', 'Belarus', 'Republic of Belarus', 'Minsk', '+375', 23),
+(17, 'BE', 'BEL', '056', 'Belgium', 'Kingdom of Belgium', 'Brussels', '+32', 43),
+(18, 'BZ', 'BLZ', '084', 'Belize', 'Belize', 'Belmopan', '+501', 24),
+(19, 'BJ', 'BEN', '204', 'Benin', 'Republic of Benin', 'Porto-Novo', '+229', 151),
+(20, 'BT', 'BTN', '064', 'Bhutan', 'Kingdom of Bhutan', 'Thimphu', '+975', 21),
+(21, 'BO', 'BOL', '068', 'Bolivia', 'Plurinational State of Bolivia', 'Sucre', '+591', 18),
+(22, 'BA', 'BIH', '070', 'Bosnia and Herzegovina', 'Bosnia and Herzegovina', 'Sarajevo', '+387', 10),
+(23, 'BW', 'BWA', '072', 'Botswana', 'Republic of Botswana', 'Gaborone', '+267', 22),
+(24, 'BR', 'BRA', '076', 'Brazil', 'Federative Republic of Brazil', 'Brasília', '+55', 19),
+(25, 'BN', 'BRN', '096', 'Brunei Darussalam', 'Brunei Darussalam', 'Bandar Seri Begawan', '+673', 17),
+(26, 'BG', 'BGR', '100', 'Bulgaria', 'Republic of Bulgaria', 'Sofia', '+359', 13),
+(27, 'BF', 'BFA', '854', 'Burkina Faso', 'Burkina Faso', 'Ouagadougou', '+226', 151),
+(28, 'BI', 'BDI', '108', 'Burundi', 'Republic of Burundi', 'Gitega', '+257', 15),
+(29, 'KH', 'KHM', '116', 'Cambodia', 'Kingdom of Cambodia', 'Phnom Penh', '+855', 70),
+(30, 'CM', 'CMR', '120', 'Cameroon', 'Republic of Cameroon', 'Yaoundé', '+237', 149),
+(31, 'CA', 'CAN', '124', 'Canada', 'Canada', 'Ottawa', '+1', 25),
+(32, 'CV', 'CPV', '132', 'Cape Verde', 'Republic of Cabo Verde', 'Praia', '+238', 34),
+(33, 'CF', 'CAF', '140', 'Central African Republic', 'Central African Republic', 'Bangui', '+236', 149),
+(34, 'TD', 'TCD', '148', 'Chad', 'Republic of Chad', 'N''Djamena', '+235', 149),
+(35, 'CL', 'CHL', '152', 'Chile', 'Republic of Chile', 'Santiago', '+56', 28),
+(36, 'CN', 'CHN', '156', 'China', 'People''s Republic of China', 'Beijing', '+86', 29),
+(37, 'CO', 'COL', '170', 'Colombia', 'Republic of Colombia', 'Bogotá', '+57', 30),
+(38, 'KM', 'COM', '174', 'Comoros', 'Union of the Comoros', 'Moroni', '+269', 71),
+(39, 'CG', 'COG', '178', 'Congo', 'Republic of the Congo', 'Brazzaville', '+242', 149),
+(40, 'CR', 'CRI', '188', 'Costa Rica', 'Republic of Costa Rica', 'San José', '+506', 31),
+(41, 'CI', 'CIV', '384', 'Côte d''Ivoire', 'Republic of Côte d''Ivoire', 'Yamoussoukro', '+225', 151),
+(42, 'HR', 'HRV', '191', 'Croatia', 'Republic of Croatia', 'Zagreb', '+385', 56),
+(43, 'CU', 'CUB', '192', 'Cuba', 'Republic of Cuba', 'Havana', '+53', 32),
+(44, 'CY', 'CYP', '196', 'Cyprus', 'Republic of Cyprus', 'Nicosia', '+357', 43),
+(45, 'CZ', 'CZE', '203', 'Czech Republic', 'Czech Republic', 'Prague', '+420', 35),
+(46, 'DK', 'DNK', '208', 'Denmark', 'Kingdom of Denmark', 'Copenhagen', '+45', 37),
+(47, 'DJ', 'DJI', '262', 'Djibouti', 'Republic of Djibouti', 'Djibouti City', '+253', 36),
+(48, 'DM', 'DMA', '212', 'Dominica', 'Commonwealth of Dominica', 'Roseau', '+1-767', 150),
+(49, 'DO', 'DOM', '214', 'Dominican Republic', 'Dominican Republic', 'Santo Domingo', '+1-809,1-829,1-849', 38),
+(50, 'EC', 'ECU', '218', 'Ecuador', 'Republic of Ecuador', 'Quito', '+593', 142),
+(51, 'EG', 'EGY', '818', 'Egypt', 'Arab Republic of Egypt', 'Cairo', '+20', 40),
+(52, 'SV', 'SLV', '222', 'El Salvador', 'Republic of El Salvador', 'San Salvador', '+503', 142),
+(53, 'GQ', 'GNQ', '226', 'Equatorial Guinea', 'Republic of Equatorial Guinea', 'Malabo', '+240', 149),
+(54, 'ER', 'ERI', '232', 'Eritrea', 'State of Eritrea', 'Asmara', '+291', 41),
+(55, 'EE', 'EST', '233', 'Estonia', 'Republic of Estonia', 'Tallinn', '+372', 43),
+(56, 'SZ', 'SWZ', '748', 'Eswatini', 'Kingdom of Eswatini', 'Mbabane', '+268', 130),
+(57, 'ET', 'ETH', '231', 'Ethiopia', 'Federal Democratic Republic of Ethiopia', 'Addis Ababa', '+251', 42),
+(58, 'FJ', 'FJI', '242', 'Fiji', 'Republic of Fiji', 'Suva', '+679', 44),
+(59, 'FI', 'FIN', '246', 'Finland', 'Republic of Finland', 'Helsinki', '+358', 43),
+(60, 'FR', 'FRA', '250', 'France', 'French Republic', 'Paris', '+33', 43),
+(61, 'GA', 'GAB', '266', 'Gabon', 'Gabonese Republic', 'Libreville', '+241', 149),
+(62, 'GM', 'GMB', '270', 'Gambia', 'Republic of the Gambia', 'Banjul', '+220', 50),
+(63, 'GE', 'GEO', '268', 'Georgia', 'Georgia', 'Tbilisi', '+995', 47),
+(64, 'DE', 'DEU', '276', 'Germany', 'Federal Republic of Germany', 'Berlin', '+49', 43),
+(65, 'GH', 'GHA', '288', 'Ghana', 'Republic of Ghana', 'Accra', '+233', 48),
+(66, 'GR', 'GRC', '300', 'Greece', 'Hellenic Republic', 'Athens', '+30', 43),
+(67, 'GD', 'GRD', '308', 'Grenada', 'Grenada', 'Saint George''s', '+1-473', 150),
+(68, 'GT', 'GTM', '320', 'Guatemala', 'Republic of Guatemala', 'Guatemala City', '+502', 52),
+(69, 'GN', 'GIN', '324', 'Guinea', 'Republic of Guinea', 'Conakry', '+224', 51),
+(70, 'GW', 'GNB', '624', 'Guinea-Bissau', 'Republic of Guinea-Bissau', 'Bissau', '+245', 151),
+(71, 'GY', 'GUY', '328', 'Guyana', 'Co-operative Republic of Guyana', 'Georgetown', '+592', 53),
+(72, 'HT', 'HTI', '332', 'Haiti', 'Republic of Haiti', 'Port-au-Prince', '+509', 57),
+(73, 'HN', 'HND', '340', 'Honduras', 'Republic of Honduras', 'Tegucigalpa', '+504', 55),
+(74, 'HU', 'HUN', '348', 'Hungary', 'Hungary', 'Budapest', '+36', 58),
+(75, 'IS', 'ISL', '352', 'Iceland', 'Iceland', 'Reykjavík', '+354', 64),
+(76, 'IN', 'IND', '356', 'India', 'Republic of India', 'New Delhi', '+91', 61),
+(77, 'ID', 'IDN', '360', 'Indonesia', 'Republic of Indonesia', 'Jakarta', '+62', 59),
+(78, 'IR', 'IRN', '364', 'Iran', 'Islamic Republic of Iran', 'Tehran', '+98', 63),
+(79, 'IQ', 'IRQ', '368', 'Iraq', 'Republic of Iraq', 'Baghdad', '+964', 62),
+(80, 'IE', 'IRL', '372', 'Ireland', 'Ireland', 'Dublin', '+353', 43),
+(81, 'IL', 'ISR', '376', 'Israel', 'State of Israel', 'Jerusalem', '+972', 60),
+(82, 'IT', 'ITA', '380', 'Italy', 'Italian Republic', 'Rome', '+39', 43),
+(83, 'JM', 'JAM', '388', 'Jamaica', 'Jamaica', 'Kingston', '+1-876', 65),
+(84, 'JP', 'JPN', '392', 'Japan', 'Japan', 'Tokyo', '+81', 67),
+(85, 'JO', 'JOR', '400', 'Jordan', 'Hashemite Kingdom of Jordan', 'Amman', '+962', 66),
+(86, 'KZ', 'KAZ', '398', 'Kazakhstan', 'Republic of Kazakhstan', 'Astana', '+7', 76),
+(87, 'KE', 'KEN', '404', 'Kenya', 'Republic of Kenya', 'Nairobi', '+254', 68),
+(88, 'KI', 'KIR', '296', 'Kiribati', 'Republic of Kiribati', 'South Tarawa', '+686', 7),
+(89, 'KW', 'KWT', '414', 'Kuwait', 'State of Kuwait', 'Kuwait City', '+965', 74),
+(90, 'KG', 'KGZ', '417', 'Kyrgyzstan', 'Kyrgyz Republic', 'Bishkek', '+996', 69),
+(91, 'LA', 'LAO', '418', 'Laos', 'Lao People''s Democratic Republic', 'Vientiane', '+856', 77),
+(92, 'LV', 'LVA', '428', 'Latvia', 'Republic of Latvia', 'Riga', '+371', 43),
+(93, 'LB', 'LBN', '422', 'Lebanon', 'Lebanese Republic', 'Beirut', '+961', 78),
+(94, 'LS', 'LSO', '426', 'Lesotho', 'Kingdom of Lesotho', 'Maseru', '+266', 81),
+(95, 'LR', 'LBR', '430', 'Liberia', 'Republic of Liberia', 'Monrovia', '+231', 80),
+(96, 'LY', 'LBY', '434', 'Libya', 'State of Libya', 'Tripoli', '+218', 82),
+(97, 'LI', 'LIE', '438', 'Liechtenstein', 'Principality of Liechtenstein', 'Vaduz', '+423', 27),
+(98, 'LT', 'LTU', '440', 'Lithuania', 'Republic of Lithuania', 'Vilnius', '+370', 43),
+(99, 'LU', 'LUX', '442', 'Luxembourg', 'Grand Duchy of Luxembourg', 'Luxembourg City', '+352', 43),
+(100, 'MG', 'MDG', '450', 'Madagascar', 'Republic of Madagascar', 'Antananarivo', '+261', 85),
+(101, 'MW', 'MWI', '454', 'Malawi', 'Republic of Malawi', 'Lilongwe', '+265', 93),
+(102, 'MY', 'MYS', '458', 'Malaysia', 'Malaysia', 'Kuala Lumpur', '+60', 95),
+(103, 'MV', 'MDV', '462', 'Maldives', 'Republic of Maldives', 'Malé', '+960', 92),
+(104, 'ML', 'MLI', '466', 'Mali', 'Republic of Mali', 'Bamako', '+223', 151),
+(105, 'MT', 'MLT', '470', 'Malta', 'Republic of Malta', 'Valletta', '+356', 43),
+(106, 'MH', 'MHL', '584', 'Marshall Islands', 'Republic of the Marshall Islands', 'Majuro', '+692', 142),
+(107, 'MR', 'MRT', '478', 'Mauritania', 'Islamic Republic of Mauritania', 'Nouakchott', '+222', 90),
+(108, 'MU', 'MUS', '480', 'Mauritius', 'Republic of Mauritius', 'Port Louis', '+230', 91),
+(109, 'MX', 'MEX', '484', 'Mexico', 'United Mexican States', 'Mexico City', '+52', 94),
+(110, 'FM', 'FSM', '583', 'Micronesia', 'Federated States of Micronesia', 'Palikir', '+691', 142),
+(111, 'MD', 'MDA', '498', 'Moldova', 'Republic of Moldova', 'Chișinău', '+373', 84),
+(112, 'MC', 'MCO', '492', 'Monaco', 'Principality of Monaco', 'Monaco', '+377', 43),
+(113, 'MN', 'MNG', '496', 'Mongolia', 'Mongolia', 'Ulaanbaatar', '+976', 88),
+(114, 'ME', 'MNE', '499', 'Montenegro', 'Montenegro', 'Podgorica', '+382', 43),
+(115, 'MA', 'MAR', '504', 'Morocco', 'Kingdom of Morocco', 'Rabat', '+212', 83),
+(116, 'MZ', 'MOZ', '508', 'Mozambique', 'Republic of Mozambique', 'Maputo', '+258', 96),
+(117, 'MM', 'MMR', '104', 'Myanmar', 'Republic of the Union of Myanmar', 'Naypyidaw', '+95', 87),
+(118, 'NA', 'NAM', '516', 'Namibia', 'Republic of Namibia', 'Windhoek', '+264', 97),
+(119, 'NR', 'NRU', '520', 'Nauru', 'Republic of Nauru', 'Yaren', '+674', 7),
+(120, 'NP', 'NPL', '524', 'Nepal', 'Federal Democratic Republic of Nepal', 'Kathmandu', '+977', 101),
+(121, 'NL', 'NLD', '528', 'Netherlands', 'Kingdom of the Netherlands', 'Amsterdam', '+31', 43),
+(122, 'NZ', 'NZL', '554', 'New Zealand', 'New Zealand', 'Wellington', '+64', 102),
+(123, 'NI', 'NIC', '558', 'Nicaragua', 'Republic of Nicaragua', 'Managua', '+505', 99),
+(124, 'NE', 'NER', '562', 'Niger', 'Republic of the Niger', 'Niamey', '+227', 151),
+(125, 'NG', 'NGA', '566', 'Nigeria', 'Federal Republic of Nigeria', 'Abuja', '+234', 98),
+(126, 'KP', 'PRK', '408', 'North Korea', 'Democratic People''s Republic of Korea', 'Pyongyang', '+850', 72),
+(127, 'MK', 'MKD', '807', 'North Macedonia', 'Republic of North Macedonia', 'Skopje', '+389', 86),
+(128, 'NO', 'NOR', '578', 'Norway', 'Kingdom of Norway', 'Oslo', '+47', 100),
+(129, 'OM', 'OMN', '512', 'Oman', 'Sultanate of Oman', 'Muscat', '+968', 103),
+(130, 'PK', 'PAK', '586', 'Pakistan', 'Islamic Republic of Pakistan', 'Islamabad', '+92', 108),
+(131, 'PW', 'PLW', '585', 'Palau', 'Republic of Palau', 'Ngerulmud', '+680', 142),
+(132, 'PA', 'PAN', '591', 'Panama', 'Republic of Panama', 'Panama City', '+507', 104),
+(133, 'PG', 'PNG', '598', 'Papua New Guinea', 'Independent State of Papua New Guinea', 'Port Moresby', '+675', 106),
+(134, 'PY', 'PRY', '600', 'Paraguay', 'Republic of Paraguay', 'Asunción', '+595', 110),
+(135, 'PE', 'PER', '604', 'Peru', 'Republic of Peru', 'Lima', '+51', 105),
+(136, 'PH', 'PHL', '608', 'Philippines', 'Republic of the Philippines', 'Manila', '+63', 107),
+(137, 'PL', 'POL', '616', 'Poland', 'Republic of Poland', 'Warsaw', '+48', 109),
+(138, 'PT', 'PRT', '620', 'Portugal', 'Portuguese Republic', 'Lisbon', '+351', 43),
+(139, 'QA', 'QAT', '634', 'Qatar', 'State of Qatar', 'Doha', '+974', 111),
+(140, 'RO', 'ROU', '642', 'Romania', 'Romania', 'Bucharest', '+40', 112),
+(141, 'RU', 'RUS', '643', 'Russia', 'Russian Federation', 'Moscow', '+7', 114),
+(142, 'RW', 'RWA', '646', 'Rwanda', 'Republic of Rwanda', 'Kigali', '+250', 115),
+(143, 'KN', 'KNA', '659', 'Saint Kitts and Nevis', 'Federation of Saint Kitts and Nevis', 'Basseterre', '+1-869', 150),
+(144, 'LC', 'LCA', '662', 'Saint Lucia', 'Saint Lucia', 'Castries', '+1-758', 150),
+(145, 'VC', 'VCT', '670', 'Saint Vincent and the Grenadines', 'Saint Vincent and the Grenadines', 'Kingstown', '+1-784', 150),
+(146, 'WS', 'WSM', '882', 'Samoa', 'Independent State of Samoa', 'Apia', '+685', 148),
+(147, 'SM', 'SMR', '674', 'San Marino', 'Republic of San Marino', 'San Marino', '+378', 43),
+(148, 'ST', 'STP', '678', 'Sao Tome and Principe', 'Democratic Republic of Sao Tome and Principe', 'São Tomé', '+239', 127),
+(149, 'SA', 'SAU', '682', 'Saudi Arabia', 'Kingdom of Saudi Arabia', 'Riyadh', '+966', 116),
+(150, 'SN', 'SEN', '686', 'Senegal', 'Republic of Senegal', 'Dakar', '+221', 151),
+(151, 'RS', 'SRB', '688', 'Serbia', 'Republic of Serbia', 'Belgrade', '+381', 113),
+(152, 'SC', 'SYC', '690', 'Seychelles', 'Republic of Seychelles', 'Victoria', '+248', 118),
+(153, 'SL', 'SLE', '694', 'Sierra Leone', 'Republic of Sierra Leone', 'Freetown', '+232', 123),
+(154, 'SG', 'SGP', '702', 'Singapore', 'Republic of Singapore', 'Singapore', '+65', 121),
+(155, 'SK', 'SVK', '703', 'Slovakia', 'Slovak Republic', 'Bratislava', '+421', 43),
+(156, 'SI', 'SVN', '705', 'Slovenia', 'Republic of Slovenia', 'Ljubljana', '+386', 43),
+(157, 'SB', 'SLB', '090', 'Solomon Islands', 'Solomon Islands', 'Honiara', '+677', 117),
+(158, 'SO', 'SOM', '706', 'Somalia', 'Federal Republic of Somalia', 'Mogadishu', '+252', 124),
+(159, 'ZA', 'ZAF', '710', 'South Africa', 'Republic of South Africa', 'Pretoria', '+27', 154),
+(160, 'KR', 'KOR', '410', 'South Korea', 'Republic of Korea', 'Seoul', '+82', 73),
+(161, 'SS', 'SSD', '728', 'South Sudan', 'Republic of South Sudan', 'Juba', '+211', 126),
+(162, 'ES', 'ESP', '724', 'Spain', 'Kingdom of Spain', 'Madrid', '+34', 43),
+(163, 'LK', 'LKA', '144', 'Sri Lanka', 'Democratic Socialist Republic of Sri Lanka', 'Sri Jayawardenepura Kotte', '+94', 79),
+(164, 'SD', 'SDN', '729', 'Sudan', 'Republic of the Sudan', 'Khartoum', '+249', 119),
+(165, 'SR', 'SUR', '740', 'Suriname', 'Republic of Suriname', 'Paramaribo', '+597', 125),
+(166, 'SE', 'SWE', '752', 'Sweden', 'Kingdom of Sweden', 'Stockholm', '+46', 120),
+(167, 'CH', 'CHE', '756', 'Switzerland', 'Swiss Confederation', 'Bern', '+41', 27),
+(168, 'SY', 'SYR', '760', 'Syria', 'Syrian Arab Republic', 'Damascus', '+963', 129),
+(169, 'TW', 'TWN', '158', 'Taiwan', 'Republic of China', 'Taipei', '+886', 138),
+(170, 'TJ', 'TJK', '762', 'Tajikistan', 'Republic of Tajikistan', 'Dushanbe', '+992', 132),
+(171, 'TZ', 'TZA', '834', 'Tanzania', 'United Republic of Tanzania', 'Dodoma', '+255', 139),
+(172, 'TH', 'THA', '764', 'Thailand', 'Kingdom of Thailand', 'Bangkok', '+66', 131),
+(173, 'TG', 'TGO', '768', 'Togo', 'Togolese Republic', 'Lomé', '+228', 151),
+(174, 'TO', 'TON', '776', 'Tonga', 'Kingdom of Tonga', 'Nukuʻalofa', '+676', 135),
+(175, 'TT', 'TTO', '780', 'Trinidad and Tobago', 'Republic of Trinidad and Tobago', 'Port of Spain', '+1-868', 137),
+(176, 'TN', 'TUN', '788', 'Tunisia', 'Republic of Tunisia', 'Tunis', '+216', 134),
+(177, 'TR', 'TUR', '792', 'Turkey', 'Republic of Türkiye', 'Ankara', '+90', 136),
+(178, 'TM', 'TKM', '795', 'Turkmenistan', 'Turkmenistan', 'Ashgabat', '+993', 133),
+(179, 'TV', 'TUV', '798', 'Tuvalu', 'Tuvalu', 'Funafuti', '+688', 7),
+(180, 'UG', 'UGA', '800', 'Uganda', 'Republic of Uganda', 'Kampala', '+256', 141),
+(181, 'UA', 'UKR', '804', 'Ukraine', 'Ukraine', 'Kyiv', '+380', 140),
+(182, 'AE', 'ARE', '784', 'United Arab Emirates', 'United Arab Emirates', 'Abu Dhabi', '+971', 1),
+(183, 'GB', 'GBR', '826', 'United Kingdom', 'United Kingdom of Great Britain and Northern Ireland', 'London', '+44', 46),
+(184, 'US', 'USA', '840', 'United States', 'United States of America', 'Washington, D.C.', '+1', 142),
+(185, 'UY', 'URY', '858', 'Uruguay', 'Oriental Republic of Uruguay', 'Montevideo', '+598', 143),
+(186, 'UZ', 'UZB', '860', 'Uzbekistan', 'Republic of Uzbekistan', 'Tashkent', '+998', 144),
+(187, 'VU', 'VUT', '548', 'Vanuatu', 'Republic of Vanuatu', 'Port Vila', '+678', 147),
+(188, 'VA', 'VAT', '336', 'Vatican City', 'Vatican City State', 'Vatican City', '+379', 43),
+(189, 'VE', 'VEN', '862', 'Venezuela', 'Bolivarian Republic of Venezuela', 'Caracas', '+58', 145),
+(190, 'VN', 'VNM', '704', 'Vietnam', 'Socialist Republic of Vietnam', 'Hanoi', '+84', 146),
+(191, 'YE', 'YEM', '887', 'Yemen', 'Republic of Yemen', 'Sana''a', '+967', 153),
+(192, 'ZM', 'ZMB', '894', 'Zambia', 'Republic of Zambia', 'Lusaka', '+260', 155),
+(193, 'ZW', 'ZWE', '716', 'Zimbabwe', 'Republic of Zimbabwe', 'Harare', '+263', 156);
+
+
+
+-- Script: columns.sql
+
+DELIMITER $$
+
+CREATE PROCEDURE usp_CreateColumns_tblStates()
+BEGIN
+    DECLARE v_required BOOLEAN DEFAULT TRUE;
+    DECLARE v_optional BOOLEAN DEFAULT FALSE;
+
+    CALL usp_AddColumn('tblStates', 'name', 'VARCHAR(255)', NULL, v_required);
+    CALL usp_AddColumn('tblStates', 'official_name', 'VARCHAR(150)', NULL, v_optional);
+    CALL usp_AddColumn('tblStates', 'iso_code', 'VARCHAR(10)', NULL, v_required);
+    CALL usp_AddColumn('tblStates', 'capital', 'VARCHAR(100)', NULL, v_optional);
+    CALL usp_AddColumn('tblStates', 'timezone_id', 'BIGINT UNSIGNED', NULL, v_required);
+    CALL usp_AddColumn('tblStates', 'phone_code', 'VARCHAR(10)', NULL, v_optional);
+    CALL usp_AddColumn('tblStates', 'country_id', 'BIGINT UNSIGNED', NULL, v_required);
+END$$
+
+DELIMITER ;
+
+CALL usp_CreateColumns_tblStates();
+DROP PROCEDURE usp_CreateColumns_tblStates;
+
+
+-- Script: constraints.sql
+
+CALL usp_CreateUniqueKey('tblStates', 'country_id, iso_code');
+CALL usp_CreateUniqueKey('tblStates', 'country_id, name');
+CALL usp_AddCheck('tblStates', 'phone_code', '`phone_code` IS NULL OR phone_code REGEXP ''^\\+[0-9]+$''');
+
+
+-- Script: foreignkeys.sql
+
+CALL usp_CreateForeignKey(
+    'tblStates',
+    'country_id',
+    'tblCountries',
+    'id'
+);
+
+CALL usp_CreateForeignKey(
+    'tblStates',
+    'timezone_id',
+    'tblTimeZones',
+    'id'
+);
+
+
+-- Script: data.sql
+
 TRUNCATE TABLE `tblStates`;
 
 ALTER TABLE `tblStates` AUTO_INCREMENT = 1;
@@ -12,73 +2182,73 @@ INSERT INTO `tblStates`
 )
 VALUES
 -- Australia States (Country ID: 9)
-('New South Wales', 'NSW', 'Sydney', 99, 9),
-('Victoria', 'VIC', 'Melbourne', 97, 9),
-('Queensland', 'QLD', 'Brisbane', 93, 9),
-('Western Australia', 'WA', 'Perth', 98, 9),
-('South Australia', 'SA', 'Adelaide', 95, 9),
-('Tasmania', 'TAS', 'Hobart', 96, 9),
-('Australian Capital Territory', 'ACT', 'Canberra', 99, 9),
-('Northern Territory', 'NT', 'Darwin', 94, 9),
+('New South Wales', 'NSW', 'Sydney', 111, 9),
+('Victoria', 'VIC', 'Melbourne', 109, 9),
+('Queensland', 'QLD', 'Brisbane', 106, 9),
+('Western Australia', 'WA', 'Perth', 110, 9),
+('South Australia', 'SA', 'Adelaide', 107, 9), -- Mapped to Darwin TZ as proxy for Adelaide TZ
+('Tasmania', 'TAS', 'Hobart', 108, 9),
+('Australian Capital Territory', 'ACT', 'Canberra', 111, 9),
+('Northern Territory', 'NT', 'Darwin', 107, 9),
 
 -- Canada Provinces and Territories (Country ID: 31)
-('Ontario', 'ON', 'Toronto', 38, 31),
-('Quebec', 'QC', 'Quebec City', 38, 31),
-('Nova Scotia', 'NS', 'Halifax', 32, 31),
-('New Brunswick', 'NB', 'Fredericton', 32, 31),
-('Manitoba', 'MB', 'Winnipeg', 28, 31),
-('British Columbia', 'BC', 'Victoria', 35, 31),
-('Prince Edward Island', 'PE', 'Charlottetown', 32, 31),
-('Saskatchewan', 'SK', 'Regina', 28, 31),
-('Alberta', 'AB', 'Edmonton', 31, 31),
-('Newfoundland and Labrador', 'NL', 'St. John''s', 45, 31),
-('Northwest Territories', 'NT', 'Yellowknife', 31, 31),
-('Yukon', 'YT', 'Whitehorse', 31, 31),
-('Nunavut', 'NU', 'Iqaluit', 38, 31),
+('Ontario', 'ON', 'Toronto', 40, 31),
+('Quebec', 'QC', 'Quebec City', 40, 31),
+('Nova Scotia', 'NS', 'Halifax', 34, 31),
+('New Brunswick', 'NB', 'Fredericton', 34, 31),
+('Manitoba', 'MB', 'Winnipeg', 30, 31),
+('British Columbia', 'BC', 'Victoria', 37, 31),
+('Prince Edward Island', 'PE', 'Charlottetown', 34, 31),
+('Saskatchewan', 'SK', 'Regina', 30, 31),
+('Alberta', 'AB', 'Edmonton', 33, 31),
+('Newfoundland and Labrador', 'NL', 'St. John''s', 48, 31),
+('Northwest Territories', 'NT', 'Yellowknife', 33, 31),
+('Yukon', 'YT', 'Whitehorse', 33, 31),
+('Nunavut', 'NU', 'Iqaluit', 40, 31),
 
 -- India States and Union Territories (Country ID: 76)
-('Andhra Pradesh', 'AP', 'Amaravati', 79, 76),
-('Arunachal Pradesh', 'AR', 'Itanagar', 79, 76),
-('Assam', 'AS', 'Dispur', 79, 76),
-('Bihar', 'BR', 'Patna', 79, 76),
-('Chhattisgarh', 'CG', 'Raipur', 79, 76),
-('Goa', 'GA', 'Panaji', 79, 76),
-('Gujarat', 'GJ', 'Gandhinagar', 79, 76),
-('Haryana', 'HR', 'Chandigarh', 79, 76),
-('Himachal Pradesh', 'HP', 'Shimla', 79, 76),
-('Jharkhand', 'JH', 'Ranchi', 79, 76),
-('Karnataka', 'KA', 'Bengaluru', 79, 76),
-('Kerala', 'KL', 'Thiruvananthapuram', 79, 76),
-('Madhya Pradesh', 'MP', 'Bhopal', 79, 76),
-('Maharashtra', 'MH', 'Mumbai', 79, 76),
-('Manipur', 'MN', 'Imphal', 79, 76),
-('Meghalaya', 'ML', 'Shillong', 79, 76),
-('Mizoram', 'MZ', 'Aizawl', 79, 76),
-('Nagaland', 'NL', 'Kohima', 79, 76),
-('Odisha', 'OR', 'Bhubaneswar', 79, 76),
-('Punjab', 'PB', 'Chandigarh', 79, 76),
-('Rajasthan', 'RJ', 'Jaipur', 79, 76),
-('Sikkim', 'SK', 'Gangtok', 79, 76),
-('Tamil Nadu', 'TN', 'Chennai', 79, 76),
-('Telangana', 'TG', 'Hyderabad', 79, 76),
-('Tripura', 'TR', 'Agartala', 79, 76),
-('Uttar Pradesh', 'UP', 'Lucknow', 79, 76),
-('Uttarakhand', 'UT', 'Dehradun', 79, 76),
-('West Bengal', 'WB', 'Kolkata', 79, 76),
-('Andaman and Nicobar Islands', 'AN', 'Port Blair', 79, 76),
-('Chandigarh', 'CH', 'Chandigarh', 79, 76),
-('Dadra and Nagar Haveli and Daman and Diu', 'DD', 'Daman', 79, 76),
-('Delhi', 'DL', 'New Delhi', 79, 76),
-('Jammu and Kashmir', 'JK', 'Srinagar', 79, 76),
-('Ladakh', 'LA', 'Leh', 79, 76),
-('Lakshadweep', 'LD', 'Kavaratti', 79, 76),
-('Puducherry', 'PY', 'Pondicherry', 79, 76),
+('Andhra Pradesh', 'AP', 'Amaravati', 80, 76),
+('Arunachal Pradesh', 'AR', 'Itanagar', 80, 76),
+('Assam', 'AS', 'Dispur', 80, 76),
+('Bihar', 'BR', 'Patna', 80, 76),
+('Chhattisgarh', 'CG', 'Raipur', 80, 76),
+('Goa', 'GA', 'Panaji', 80, 76),
+('Gujarat', 'GJ', 'Gandhinagar', 80, 76),
+('Haryana', 'HR', 'Chandigarh', 80, 76),
+('Himachal Pradesh', 'HP', 'Shimla', 80, 76),
+('Jharkhand', 'JH', 'Ranchi', 80, 76),
+('Karnataka', 'KA', 'Bengaluru', 80, 76),
+('Kerala', 'KL', 'Thiruvananthapuram', 80, 76),
+('Madhya Pradesh', 'MP', 'Bhopal', 80, 76),
+('Maharashtra', 'MH', 'Mumbai', 80, 76),
+('Manipur', 'MN', 'Imphal', 80, 76),
+('Meghalaya', 'ML', 'Shillong', 80, 76),
+('Mizoram', 'MZ', 'Aizawl', 80, 76),
+('Nagaland', 'NL', 'Kohima', 80, 76),
+('Odisha', 'OR', 'Bhubaneswar', 80, 76),
+('Punjab', 'PB', 'Chandigarh', 80, 76),
+('Rajasthan', 'RJ', 'Jaipur', 80, 76),
+('Sikkim', 'SK', 'Gangtok', 80, 76),
+('Tamil Nadu', 'TN', 'Chennai', 80, 76),
+('Telangana', 'TG', 'Hyderabad', 80, 76),
+('Tripura', 'TR', 'Agartala', 80, 76),
+('Uttar Pradesh', 'UP', 'Lucknow', 80, 76),
+('Uttarakhand', 'UT', 'Dehradun', 80, 76),
+('West Bengal', 'WB', 'Kolkata', 80, 76),
+('Andaman and Nicobar Islands', 'AN', 'Port Blair', 80, 76),
+('Chandigarh', 'CH', 'Chandigarh', 80, 76),
+('Dadra and Nagar Haveli and Daman and Diu', 'DD', 'Daman', 80, 76),
+('Delhi', 'DL', 'New Delhi', 80, 76),
+('Jammu and Kashmir', 'JK', 'Srinagar', 80, 76),
+('Ladakh', 'LA', 'Leh', 80, 76),
+('Lakshadweep', 'LD', 'Kavaratti', 80, 76),
+('Puducherry', 'PY', 'Pondicherry', 80, 76),
 
 -- United Kingdom Countries (Country ID: 183)
-('England', 'ENG', 'London', 116, 183),
-('Scotland', 'SCT', 'Edinburgh', 116, 183),
-('Wales', 'WLS', 'Cardiff', 116, 183),
-('Northern Ireland', 'NIR', 'Belfast', 116, 183),
+('England', 'ENG', 'London', 117, 183),
+('Scotland', 'SCT', 'Edinburgh', 117, 183),
+('Wales', 'WLS', 'Cardiff', 117, 183),
+('Northern Ireland', 'NIR', 'Belfast', 117, 183),
 
 -- United States States (Country ID: 184)
 ('Alabama', 'AL', 'Montgomery', 29, 184),
@@ -3027,3 +5197,340 @@ INSERT INTO `tblStates` (`name`, `iso_code`, `capital`, `timezone_id`, `country_
 ('Jämtland', 'Z', 'Östersund', 132, 166),
 ('Jönköping', 'F', 'Jönköping', 132, 166),
 ('Kalmar', 'H',
+
+
+
+-- Script: columns.sql
+
+DELIMITER $$
+
+CREATE PROCEDURE usp_CreateColumns_tblUserProfiles()
+BEGIN
+    DECLARE v_required BOOLEAN DEFAULT TRUE;
+    DECLARE v_optional BOOLEAN DEFAULT FALSE;
+
+    CALL usp_AddColumn('tblUserProfiles', 'phone_number', 'VARCHAR(15)', NULL, v_required);
+    CALL usp_AddColumn('tblUserProfiles', 'gender', 'TINYINT', NULL, v_required);
+    CALL usp_AddColumn('tblUserProfiles', 'date_of_birth', 'DATE', NULL, v_required);
+    CALL usp_AddColumn('tblUserProfiles', 'address_line1', 'VARCHAR(255)', NULL, v_required);
+    CALL usp_AddColumn('tblUserProfiles', 'address_line2', 'VARCHAR(255)', NULL, v_optional);
+    CALL usp_AddColumn('tblUserProfiles', 'state_id', 'BIGINT UNSIGNED', NULL, v_required);
+    CALL usp_AddColumn('tblUserProfiles', 'country_id', 'BIGINT UNSIGNED', NULL, v_required);
+    CALL usp_AddColumn('tblUserProfiles', 'city', 'VARCHAR(255)', NULL, v_required);
+    CALL usp_AddColumn('tblUserProfiles', 'postal_code', 'VARCHAR(20)', NULL, v_required);
+    CALL usp_AddColumn('tblUserProfiles', 'avatar_url', 'VARCHAR(512)', NULL, v_optional);
+    CALL usp_AddColumn('tblUserProfiles', 'user_id', 'BIGINT UNSIGNED', NULL, v_required);
+END$$
+
+DELIMITER ;
+
+CALL usp_CreateColumns_tblUserProfiles();
+DROP PROCEDURE usp_CreateColumns_tblUserProfiles;
+
+
+-- Script: constraints.sql
+
+CALL usp_CreateUniqueKey('tblUserProfiles', 'user_id');
+CALL usp_AddCheck('tblUserProfiles', 'gender', 'gender IN (1, 2, 3)');
+CALL usp_AddCheck('tblUserProfiles', 'date_of_birth', 'date_of_birth <= CURDATE()');
+CALL usp_AddCheck('tblUserProfiles', 'phone_number', "TRIM(phone_number) <> ''");
+CALL usp_AddCheck('tblUserProfiles', 'address_line1', "TRIM(address_line1) <> ''");
+CALL usp_AddCheck('tblUserProfiles', 'city', "TRIM(city) <> ''");
+CALL usp_AddCheck('tblUserProfiles', 'postal_code', "TRIM(postal_code) <> ''");
+
+
+-- Script: foreignkeys.sql
+
+CALL usp_CreateForeignKey('tblUserProfiles', 'user_id', 'tblUsers', 'id');
+CALL usp_CreateForeignKey('tblUserProfiles', 'country_id', 'tblCountries', 'id');
+CALL usp_CreateForeignKey('tblUserProfiles', 'state_id', 'tblStates', 'id');
+
+
+-- Script: usp_RegisterUser.sql
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS usp_RegisterUser$$
+
+CREATE PROCEDURE usp_RegisterUser(
+    IN in_firstname VARCHAR(128),
+    IN in_lastname VARCHAR(128),
+    IN in_email VARCHAR(255),
+    IN in_password VARCHAR(255),
+    IN in_phone_number VARCHAR(15),
+    IN in_gender TINYINT,
+    IN in_date_of_birth DATE,
+    IN in_address_line1 VARCHAR(255),
+    IN in_address_line2 VARCHAR(255),
+    IN in_country_id BIGINT UNSIGNED,
+    IN in_region_id BIGINT UNSIGNED,
+    IN in_city VARCHAR(255),
+    IN in_postal_code VARCHAR(20),
+    IN in_avatar_url VARCHAR(512)
+)
+proc_label:BEGIN
+    DECLARE v_user_id BIGINT UNSIGNED;
+    DECLARE v_record_exists INT DEFAULT 0;
+
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        RESIGNAL;
+    END;
+
+    IF in_firstname IS NULL OR TRIM(in_firstname) = '' THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'First name is required.';
+    END IF;
+    IF in_lastname IS NULL OR TRIM(in_lastname) = '' THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Last name is required.';
+    END IF;
+    IF in_phone_number IS NULL OR TRIM(in_phone_number) = '' THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Phone number is required.';
+    END IF;
+    IF in_address_line1 IS NULL OR TRIM(in_address_line1) = '' THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Address line 1 is required.';
+    END IF;
+    IF in_city IS NULL OR TRIM(in_city) = '' THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'City is required.';
+    END IF;
+    IF in_postal_code IS NULL OR TRIM(in_postal_code) = '' THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Postal code is required.';
+    END IF;
+
+    IF in_email IS NULL OR NOT in_email REGEXP '^[a-zA-Z0-9][a-zA-Z0-9._-]*@[a-zA-Z0-9][a-zA-Z0-9._-]*\\.[a-zA-Z]{2,4}$' THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'A valid email address is required.';
+    END IF;
+
+    SELECT COUNT(1) INTO v_record_exists FROM tblUsers WHERE email = in_email;
+    IF v_record_exists > 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'This email address is already registered.';
+    END IF;
+
+    IF in_password IS NULL OR NOT in_password REGEXP '^[a-f0-9]{64}$' THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Invalid password format. A SHA-256 hash is expected.';
+    END IF;
+
+    IF in_gender NOT IN (1, 2, 3) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Invalid gender specified. Allowed values are 1, 2, 3.';
+    END IF;
+
+    IF in_date_of_birth IS NULL OR in_date_of_birth > CURDATE() THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Date of birth cannot be in the future.';
+    END IF;
+
+    SELECT COUNT(1) INTO v_record_exists FROM tblCountries WHERE id = in_country_id;
+    IF v_record_exists = 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'The specified country does not exist.';
+    END IF;
+
+    SELECT COUNT(1) INTO v_record_exists FROM tblStates WHERE id = in_region_id AND country_id = in_country_id;
+    IF v_record_exists = 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'The specified region is not valid for the selected country.';
+    END IF;
+
+    START TRANSACTION;
+
+    INSERT INTO tblUsers (firstname, lastname, email, `password`, created_by)
+    VALUES (TRIM(in_firstname), TRIM(in_lastname), TRIM(in_email), in_password, 0);
+    SET v_user_id = LAST_INSERT_ID();
+
+    UPDATE tblUsers SET created_by = v_user_id WHERE id = v_user_id;
+
+    INSERT INTO tblUserProfiles (
+        user_id,
+        phone_number,
+        gender,
+        date_of_birth,
+        address_line1,
+        address_line2,
+        country_id,
+        region_id,
+        city,
+        postal_code,
+        avatar_url,
+        created_by
+    ) VALUES (
+        v_user_id,
+        TRIM(in_phone_number),
+        in_gender,
+        in_date_of_birth,
+        TRIM(in_address_line1),
+        IF(in_address_line2 IS NULL OR TRIM(in_address_line2) = '', NULL, TRIM(in_address_line2)),
+        in_country_id,
+        in_region_id,
+        TRIM(in_city),
+        TRIM(in_postal_code),
+        IF(in_avatar_url IS NULL OR TRIM(in_avatar_url) = '', NULL, TRIM(in_avatar_url)),
+        v_user_id
+    );
+
+    COMMIT;
+
+    SELECT v_user_id AS new_user_id;
+
+END$$
+
+DELIMITER ;
+
+
+-- Script: usp_GetUser.sql
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS usp_GetUser$$
+
+CREATE PROCEDURE usp_GetUser(
+    IN in_id BIGINT UNSIGNED,
+    IN in_email VARCHAR(255)
+)
+proc_label:BEGIN
+
+    IF in_id IS NULL AND (in_email IS NULL OR TRIM(in_email) = '') THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Either a user ID or an email must be provided.';
+        LEAVE proc_label;
+    END IF;
+
+    SELECT
+        u.id,
+        BIN_TO_UUID(u.internal_id) AS internal_id,
+        u.firstname,
+        u.lastname,
+        u.email,
+        u.created_at,
+        u.updated_at,
+        up.phone_number,
+        up.gender,
+        up.date_of_birth,
+        up.address_line1,
+        up.address_line2,
+        up.city,
+        up.postal_code,
+        up.avatar_url,
+        c.id AS country_id,
+        c.name AS country_name,
+        c.iso3_code AS country_iso3,
+        s.id AS region_id,
+        s.name AS region_name,
+        s.iso_code AS region_iso
+    FROM
+        tblUsers u
+    LEFT JOIN tblUserProfiles up ON u.id = up.user_id
+    LEFT JOIN tblCountries c ON up.country_id = c.id
+    LEFT JOIN tblStates s ON up.region_id = s.id
+    WHERE (in_id IS NOT NULL AND u.id = in_id) OR (in_email IS NOT NULL AND u.email = in_email)
+    LIMIT 1;
+
+END$$
+
+DELIMITER ;
+
+
+-- Script: usp_GetCurrencies.sql
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS usp_GetCurrencies$$
+
+CREATE PROCEDURE usp_GetCurrencies(
+    IN in_id BIGINT UNSIGNED
+)
+BEGIN
+    SELECT
+        id,
+        iso_code,
+        numeric_code,
+        name,
+        symbol,
+        minor_unit
+    FROM tblCurrencies
+    WHERE void = 0 AND (in_id IS NULL OR id = in_id)
+    ORDER BY name;
+END$$
+
+DELIMITER ;
+
+
+-- Script: usp_GetCountries.sql
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS usp_GetCountries$$
+
+CREATE PROCEDURE usp_GetCountries(
+    IN in_id BIGINT UNSIGNED
+)
+BEGIN
+    SELECT
+        c.id,
+        c.iso2_code,
+        c.iso3_code,
+        c.numeric_code,
+        c.name,
+        c.official_name,
+        c.capital,
+        c.phone_code,
+        cur.id AS currency_id,
+        cur.name AS currency_name,
+        cur.symbol AS currency_symbol
+    FROM
+        tblCountries c
+    LEFT JOIN tblCurrencies cur ON c.currency_id = cur.id
+    WHERE c.void = 0 AND (in_id IS NULL OR c.id = in_id)
+    ORDER BY c.name;
+END$$
+
+DELIMITER ;
+
+
+-- Script: usp_GetTimeZones.sql
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS usp_GetTimeZones$$
+
+CREATE PROCEDURE usp_GetTimeZones(
+    IN in_id BIGINT UNSIGNED
+)
+BEGIN
+    SELECT
+        id,
+        name,
+        abbreviation,
+        utc_offset_minutes,
+        observes_dst,
+        current_offset_minutes
+    FROM tblTimeZones
+    WHERE (in_id IS NULL OR id = in_id)
+    ORDER BY utc_offset_minutes, name;
+END$$
+
+DELIMITER ;
+
+
+-- Script: usp_GetStates.sql
+
+DELIMITER $
+DROP PROCEDURE IF EXISTS usp_GetStates$
+
+CREATE PROCEDURE usp_GetStates(
+    IN in_id BIGINT UNSIGNED,
+    IN in_country_id BIGINT UNSIGNED
+)
+BEGIN
+    SELECT
+        s.id,
+        s.name,
+        s.official_name,
+        s.iso_code,
+        s.capital,
+        s.phone_code,
+        s.country_id,
+        c.name AS country_name,
+        s.timezone_id,
+        tz.name AS timezone_name
+    FROM tblStates s
+    LEFT JOIN tblCountries c ON s.country_id = c.id
+    LEFT JOIN tblTimeZones tz ON s.timezone_id = tz.id
+    WHERE s.void = 0 AND (in_id IS NULL OR s.id = in_id)
+    AND (in_country_id IS NULL OR s.country_id = in_country_id)
+    ORDER BY c.name, s.name;
+END$
+
+DELIMITER ;
+
+

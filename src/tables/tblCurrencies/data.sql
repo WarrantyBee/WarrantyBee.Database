@@ -165,4 +165,5 @@ VALUES
 ('XPF', NULL, 'CFP Franc', '₣', 0),
 ('YER', NULL, 'Yemeni Rial', '﷼', 2),
 ('ZAR', NULL, 'South African Rand', 'R', 2),
-('ZMW', NULL, 'Zambian Kwacha', 'ZK', 2);
+('ZMW', NULL, 'Zambian Kwacha', 'ZK', 2),
+('ZWL', NULL, 'Zimbabwean Dollar', 'ZWL$', 2);

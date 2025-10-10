@@ -106,6 +106,7 @@ VALUES
 ('Atlantic/South_Georgia', 'GST', -120, 0, -120),
 ('Australia/Brisbane', 'AEST', 600, 0, 600),
 ('Australia/Darwin', 'ACST', 570, 0, 570),
+('Australia/Adelaide', 'ACST', 570, 1, 630),
 ('Australia/Hobart', 'AEDT', 600, 1, 660),
 ('Australia/Melbourne', 'AEDT', 600, 1, 660),
 ('Australia/Perth', 'AWST', 480, 0, 480),

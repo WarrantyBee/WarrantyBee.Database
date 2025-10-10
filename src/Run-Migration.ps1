@@ -1,233 +1,173 @@
-<#
-.SYNOPSIS
-    Runs the WarrantyBee database migrations in the correct order.
-.DESCRIPTION
-    This script orchestrates the execution of SQL scripts to set up the WarrantyBee database.
-    It reads dependencies from `dependencies.json` to run master scripts in the correct order,
-    then creates and populates the application tables.
+# Get the directory of the current script
+$scriptPath = $PSScriptRoot
+$srcPath = $scriptPath
+$outputFile = Join-Path -Path $srcPath -ChildPath "output.sql"
 
-    The script requires the MySQL .NET Connector (MySql.Data.dll) to be available.
-    You can install it via PowerShell:
-    Install-Package MySql.Data -ProviderName NuGet
-
-.PARAMETER Server
-    The hostname or IP address of the MySQL server.
-.PARAMETER Port
-    The port number for the MySQL server.
-.PARAMETER Database
-    The name of the database to migrate. The script will attempt to create it if it doesn't exist.
-.PARAMETER User
-    The username for connecting to the MySQL server.
-.PARAMETER Password
-    The password for the specified user.
-.EXAMPLE
-    .\Run-Migration.ps1 -Server "localhost" -Database "warrantybee" -User "root" -Password "your_password"
-#>
-param(
-    [string]$Server = "localhost",
-    [uint32]$Port = 3306,
-    [string]$Database = "warrantybee_dev",
-    [string]$User = "root",
-    [string]$Password = "StrongP@ssw0rd!"
-)
-
-$PSScriptRoot = $PSScriptRoot | Split-Path
-$SourceFolder =  Join-Path $PSScriptRoot
-
-function Test-MySqlConnector {
-    try {
-        # Load the MySQL connector DLL directly from the local 'lib' folder.
-        # This bypasses the need for Install-Package.
-        $assemblyPath = Join-Path $PSScriptRoot "lib\MySqlConnector.dll"
-        
-        if (-not (Test-Path $assemblyPath)) {
-            throw "MySql.Data.dll not found at '$assemblyPath'. Please follow the manual download instructions."
-        }
-
-        Add-Type -Path $assemblyPath
-        Write-Host "MySQL Connector/NET loaded successfully." -ForegroundColor Green
-        return $true
-    }
-    catch {
-        Write-Error "Failed to load MySQL Connector/NET from '$assemblyPath'. Error: $($_.Exception.Message)"
-        return $false
-    }
+# Clear the output file if it exists
+if (Test-Path $outputFile) {
+    Clear-Content $outputFile
 }
 
-function Invoke-MySqlQuery {
-    param(
-        [Parameter(Mandatory)]
-        [string]$ConnectionString,
-        [string]$Sql,
-        [string]$File
+# Function to add script content to the output file
+function Add-ScriptContent {
+    param (
+        [string]$filePath
+    )
+    Write-Host "Merging: $filePath"
+    $fileName = Split-Path -Path $filePath -Leaf
+    $header = "-- Script: $fileName"
+    Add-Content -Path $outputFile -Value "$header`r`n"
+    $content = Get-Content -Path $filePath -Raw
+    Add-Content -Path $outputFile -Value "$content`r`n`r`n"
+}
+
+# Read and parse dependencies.json
+$dependenciesPath = Join-Path -Path $srcPath -ChildPath "dependencies.json"
+$dependencies = Get-Content -Path $dependenciesPath | ConvertFrom-Json
+
+# Topological Sort Function
+function Get-TopologicalSort {
+    param (
+        [System.Collections.IDictionary]$itemsWithDependencies
     )
 
-    $connection = New-Object MySqlConnector.MySqlConnection
-    $connection.ConnectionString = $ConnectionString
+    $sorted = [System.Collections.Generic.List[string]]::new()
+    $inDegree = @{}
+    $graph = @{}
 
-    try {
-        $connection.Open()
-        $command = $connection.CreateCommand()
-        $scriptContent = ""
-        if ($File) {
-            Write-Verbose "Executing file: $File"
-            $scriptContent = Get-Content $File -Raw
-        }
-        else {
-            Write-Verbose "Executing SQL: $($Sql.Substring(0, [System.Math]::Min($Sql.Length, 80)))..."
-            $scriptContent = $Sql
-        }
+    # Initialize graph and in-degree
+    $itemNames = $itemsWithDependencies.Keys
+    foreach ($item in $itemNames) {
+        $inDegree[$item] = 0
+        $graph[$item] = [System.Collections.Generic.List[string]]::new()
+    }
 
-        $scriptLines = $scriptContent -split '\r?\n'
-        $currentDelimiter = ';'
-        $commandBuilder = [System.Text.StringBuilder]::new()
-
-        foreach ($line in $scriptLines) {
-            if ($line.Trim() -match '^DELIMITER\s+(.+)$') {
-                if ($commandBuilder.Length -gt 0) {
-                    $command.CommandText = $commandBuilder.ToString()
-                    $null = $command.ExecuteNonQuery()
-                    $null = $commandBuilder.Clear()
-                }
-                $currentDelimiter = $matches[1].Trim()
-            }
-            elseif ($line.Trim() -eq $currentDelimiter) {
-                if ($commandBuilder.Length -gt 0) {
-                    $command.CommandText = $commandBuilder.ToString()
-                    $null = $command.ExecuteNonQuery()
-                    $null = $commandBuilder.Clear()
+    foreach ($item in $itemNames) {
+        $itemDependencies = $itemsWithDependencies[$item]
+        if ($itemDependencies -is [array]) {
+            foreach ($dependency in $itemDependencies) {
+                if ($itemNames -contains $dependency) {
+                    $graph[$dependency].Add($item)
+                    if ($inDegree.ContainsKey($item)) {
+                        $inDegree[$item]++
+                    }
                 }
             }
-            else {
-                $null = $commandBuilder.AppendLine($line)
+        }
+    }
+
+    $queue = [System.Collections.Generic.Queue[string]]::new()
+    foreach ($item in $inDegree.Keys) {
+        if ($inDegree[$item] -eq 0) {
+            $queue.Enqueue($item)
+        }
+    }
+
+    while ($queue.Count -gt 0) {
+        $currentItem = $queue.Dequeue()
+        $sorted.Add($currentItem)
+
+        if ($graph.ContainsKey($currentItem)) {
+            foreach ($neighbor in $graph[$currentItem]) {
+                $inDegree[$neighbor]--
+                if ($inDegree[$neighbor] -eq 0) {
+                    $queue.Enqueue($neighbor)
+                }
             }
         }
+    }
 
-        if ($commandBuilder.Length -gt 0) {
-            $command.CommandText = $commandBuilder.ToString()
-            $null = $command.ExecuteNonQuery()
+    if ($sorted.Count -ne $itemsWithDependencies.Count) {
+        $unsortedItems = $itemsWithDependencies.Keys | Where-Object { -not ($sorted -contains $_) }
+        throw "Cyclic dependency detected or missing dependency. Unsorted items: $($unsortedItems -join ', ')"
+    }
+
+    return $sorted
+}
+
+
+# --- Processing Order ---
+
+# 1. Functions
+Write-Host "Processing functions..."
+$allFunctions = @{}
+$dependencies.functions.PSObject.Properties | ForEach-Object {
+    $folder = $_.Name
+    $_.Value.PSObject.Properties | ForEach-Object {
+        $functionName = $_.Name
+        $deps = $_.Value.dependencies.functions
+        $allFunctions[$functionName] = $deps
+    }
+}
+$sortedFunctions = Get-TopologicalSort -itemsWithDependencies $allFunctions
+foreach ($functionName in $sortedFunctions) {
+    $filePath = Join-Path -Path $srcPath -ChildPath "functions\master\$functionName.sql"
+    if (Test-Path $filePath) {
+        Add-ScriptContent -filePath $filePath
+    }
+}
+
+# 2. Master Procedures
+Write-Host "`nProcessing master procedures..."
+$masterProcedures = @{}
+if ($dependencies.procedures.master) {
+    $dependencies.procedures.master.PSObject.Properties | ForEach-Object {
+        $procName = $_.Name
+        $deps = $_.Value.dependencies.procs
+        $masterProcedures[$procName] = $deps
+    }
+    $sortedMasterProcedures = Get-TopologicalSort -itemsWithDependencies $masterProcedures
+    foreach ($procName in $sortedMasterProcedures) {
+        $filePath = Join-Path -Path $srcPath -ChildPath "procs\master\$procName.sql"
+        if (Test-Path $filePath) {
+            Add-ScriptContent -filePath $filePath
         }
     }
-    finally {
-        if ($connection.State -eq 'Open') {
-            $connection.Close()
-        }
-    }
 }
 
-if (-not (Test-MySqlConnector)) {
-    exit 1
+# 3. Tables
+Write-Host "`nProcessing tables..."
+$mergedTableDependencies = @{}
+$dependencies.tables.PSObject.Properties | ForEach-Object {
+    $mergedTableDependencies[$_.Name] = $_.Value
+}
+$sortedTables = Get-TopologicalSort -itemsWithDependencies $mergedTableDependencies
+
+$tableFileOrder = @("columns.sql", "constraints.sql", "indexes.sql", "foreignkeys.sql", "data.sql")
+
+$objectsFile = Join-Path -Path $srcPath -ChildPath "tables\objects.sql"
+if (Test-Path $objectsFile) {
+    Add-ScriptContent -filePath $objectsFile
 }
 
-# --- Main Migration Logic ---
-
-Write-Host "Starting database migration for '$Database' on '$Server'."
-
-$baseConnString = "Server=$Server;Port=$Port;User=$User;Password=$Password;"
-$dbConnString = $baseConnString + "Database=$Database;"
-
-# 1. Create Database if it doesn't exist
-Write-Host "Ensuring database '$Database' exists..."
-Invoke-MySqlQuery -ConnectionString $baseConnString -Sql "CREATE DATABASE IF NOT EXISTS `$Database`;"
-
-# 2. Functions
-Write-Host "Applying functions..."
-$funcDir = Join-Path $SourceFolder "functions"
-$funcFiles = Get-ChildItem -Path $funcDir -Filter "*.sql" -Recurse
-foreach ($file in $funcFiles) {
-    Write-Host "  - $($file.Name)"
-    Invoke-MySqlQuery -ConnectionString $dbConnString -File $file.FullName
-}
-
-# 3. Master Stored Procedures (Topologically Sorted)
-Write-Host "Applying master stored procedures..."
-$dependencies = Get-Content (Join-Path $SourceFolder "dependencies.json") | ConvertFrom-Json
-$procDeps = $dependencies.procedures.master.PSObject.Properties | ForEach-Object { @{ Name = $_.Name; DependsOn = $_.Value.dependencies.procs } }
-$resolved = @()
-$unresolved = [System.Collections.Generic.List[object]]::new($procDeps)
-
-$iterationCount = 0
-while ($unresolved.Count -gt 0) {
-    $resolvedThisPass = @()
-    foreach ($proc in $unresolved) {
-        $depsMet = $true
-        foreach ($dep in $proc.DependsOn) {
-            if ($dep -notin $resolved) {
-                $depsMet = $false
-                break
+foreach ($tableName in $sortedTables) {
+    $tablePath = Join-Path -Path $srcPath -ChildPath "tables\$tableName"
+    if (Test-Path $tablePath) {
+        foreach ($fileName in $tableFileOrder) {
+            $filePath = Join-Path -Path $tablePath -ChildPath $fileName
+            if (Test-Path $filePath) {
+                Add-ScriptContent -filePath $filePath
             }
         }
-
-        if ($depsMet) {
-            $resolvedThisPass += $proc
-        }
-    }
-
-    if ($resolvedThisPass.Count -eq 0) {
-        Write-Error "Circular dependency detected in master procedures. Halting."
-        exit 1
-    }
-
-    foreach ($procToResolve in $resolvedThisPass) {
-        $filePath = Join-Path $SourceFolder "procs\master\$($procToResolve.Name).sql"
-        Write-Host "  - $($procToResolve.Name)"
-        Invoke-MySqlQuery -ConnectionString $dbConnString -File $filePath
-        $resolved += $procToResolve.Name
-        $unresolved.Remove($procToResolve)
-    }
-    $iterationCount++
-    if ($iterationCount -gt $procDeps.Count) { # Safety break
-        Write-Error "Could not resolve all master procedure dependencies. Halting."
-        exit 1
     }
 }
 
-# 4. Business Logic Stored Procedures
-Write-Host "Applying business logic stored procedures..."
-$procFiles = Get-ChildItem (Join-Path $SourceFolder "procs") -Filter "*.sql" -Recurse | Where-Object {
-    $_.Directory.Name -ne 'master'
-}
-foreach ($file in $procFiles) {
-    Write-Host "  - $($file.Name)"
-    Invoke-MySqlQuery -ConnectionString $dbConnString -File $file.FullName
-}
-
-# 5. Tables (Structure and Data)
-Write-Host "Applying table structures and data..."
-$tableOrder = @(
-    "tblCurrencies",
-    "tblTimeZones",
-    "tblUsers",
-    "tblCountries",
-    "tblStates",
-    "tblUserProfiles",
-    "tblCompanies",
-    "tblVendors",
-    "tblCompaniesVendors"
-)
-$scriptOrder = @(
-    "columns.sql",
-    "constraints.sql",
-    "indexes.sql",
-    "foreignkeys.sql",
-    "data.sql"
-)
-
-foreach ($tableName in $tableOrder) {
-    Write-Host "  Processing table: $tableName"
-    
-    # Create the table using the master procedure
-    Write-Host "    - Creating table shell..."
-    Invoke-MySqlQuery -ConnectionString $dbConnString -Sql "CALL usp_CreateTable('$tableName');"
-
-    $tablePath = Join-Path $SourceFolder "tables\$tableName"
-    foreach ($scriptName in $scriptOrder) {
-        $scriptFile = Join-Path $tablePath $scriptName
-        if (Test-Path $scriptFile) {
-            Write-Host "    - Applying $($scriptName)..."
-            Invoke-MySqlQuery -ConnectionString $dbConnString -File $scriptFile
+# 4. Business Procedures
+Write-Host "`nProcessing business procedures..."
+$businessProcedures = @{}
+if ($dependencies.procedures.business) {
+    $dependencies.procedures.business.PSObject.Properties | ForEach-Object {
+        $procName = $_.Name
+        $deps = $_.Value.dependencies.procs
+        $businessProcedures[$procName] = $deps
+    }
+    $sortedBusinessProcedures = Get-TopologicalSort -itemsWithDependencies $businessProcedures
+    foreach ($procName in $sortedBusinessProcedures) {
+        $filePath = Join-Path -Path $srcPath -ChildPath "procs\$procName.sql"
+        if (Test-Path $filePath) {
+            Add-ScriptContent -filePath $filePath
         }
     }
 }
 
-Write-Host -ForegroundColor Green "Migration completed successfully."
+Write-Host "`nMigration script 'output.sql' generated successfully."

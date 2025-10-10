@@ -35,9 +35,6 @@ CREATE PROCEDURE usp_CreateForeignKey(
 BEGIN
     DECLARE v_constraint_name VARCHAR(200);
 
-    -- Build the constraint name using referenced and child table/column
-    SET v_constraint_name = CONCAT('fk_', in_ref_table_name, '_', in_table_name, '.', in_column_name);
-
     -- Handle any SQL exception and print a custom message
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
@@ -48,6 +45,9 @@ BEGIN
         ) AS message;
     END;
 
+    -- Build the constraint name using referenced and child table/column
+    SET v_constraint_name = CONCAT('fk_', in_ref_table_name, '_', in_table_name, '.', in_column_name);
+    
     -- Check if table and columns exist
     IF NOT ufn_DoesTableExist(in_table_name) THEN
         SELECT CONCAT(
