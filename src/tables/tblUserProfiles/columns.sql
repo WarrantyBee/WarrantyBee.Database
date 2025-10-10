@@ -10,7 +10,7 @@ BEGIN
     CALL usp_AddColumn('tblUserProfiles', 'date_of_birth', 'DATE', NULL, v_required);
     CALL usp_AddColumn('tblUserProfiles', 'address_line1', 'VARCHAR(255)', NULL, v_required);
     CALL usp_AddColumn('tblUserProfiles', 'address_line2', 'VARCHAR(255)', NULL, v_optional);
-    CALL usp_AddColumn('tblUserProfiles', 'region_id', 'BIGINT UNSIGNED', NULL, v_required);
+    CALL usp_AddColumn('tblUserProfiles', 'state_id', 'BIGINT UNSIGNED', NULL, v_required);
     CALL usp_AddColumn('tblUserProfiles', 'country_id', 'BIGINT UNSIGNED', NULL, v_required);
     CALL usp_AddColumn('tblUserProfiles', 'city', 'VARCHAR(255)', NULL, v_required);
     CALL usp_AddColumn('tblUserProfiles', 'postal_code', 'VARCHAR(20)', NULL, v_required);
