@@ -1,11 +1,21 @@
+param(
+    [string]$db
+)
+
 # Get the directory of the current script
 $scriptPath = $PSScriptRoot
-$srcPath = $scriptPath
-$outputFile = Join-Path -Path $srcPath -ChildPath "output.sql"
+$srcPath = Join-Path -Path $scriptPath -ChildPath "src"
+$outputFile = Join-Path -Path $scriptPath -ChildPath "output.sql"
 
 # Clear the output file if it exists
 if (Test-Path $outputFile) {
     Clear-Content $outputFile
+}
+
+# Add USE <dbname> if db parameter is provided
+if (-not [string]::IsNullOrEmpty($db)) {
+    $useDbStatement = "USE $db;`n`n"
+    Add-Content -Path $outputFile -Value $useDbStatement
 }
 
 # Function to add script content to the output file
