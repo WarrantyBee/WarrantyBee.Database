@@ -61,6 +61,7 @@ jobs:
       - name: Checkout Head Code
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0 # To allow git diff later
 
       - name: List files on Head
