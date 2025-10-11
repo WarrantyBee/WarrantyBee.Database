@@ -49,10 +49,21 @@ jobs:
       - name: List files on Base
         run: ls -lA
 
+      - name: Check for base migration files
+        id: check-base-files
+        run: |
+          if [ -f "Run-Migration.ps1" ] && [ -d "src" ] && [ -f "src/dependencies.json" ]; then
+            echo "files_exist=true" >> $GITHUB_OUTPUT
+          else
+            echo "files_exist=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Run Migration on Base
+        if: steps.check-base-files.outputs.files_exist == 'true'
         run: pwsh -File ./Run-Migration.ps1 -db test_db
 
       - name: Validate Base SQL
+        if: steps.check-base-files.outputs.files_exist == 'true'
         id: validate-base
         continue-on-error: true
         run: mysql -h 127.0.0.1 -uroot -proot test_db < "output.sql"
@@ -82,7 +93,9 @@ jobs:
           echo "Baseline validation status: ${{ steps.validate-base.outcome }}"
           echo "HEAD validation status: ${{ steps.validate-head.outcome }}"
 
-          if [ "${{ steps.validate-base.outcome }}" == "success" ] && [ "${{ steps.validate-head.outcome }}" == "failure" ]; then
+          # If the base validation was skipped, it means the migration files weren't there.
+          # In this case, we treat the baseline as 'success' for the purpose of comparison.
+          if ( [ "${{ steps.validate-base.outcome }}" == "success" ] || [ "${{ steps.validate-base.outcome }}" == "skipped" ] || [ "${{ steps.validate-base.outcome }}" == "" ] ) && [ "${{ steps.validate-head.outcome }}" == "failure" ]; then
             echo "::error::A syntax error was introduced in this commit."
             
             echo "The failure is likely caused by changes in one of the following files:"
@@ -98,4 +111,7 @@ jobs:
             echo "::warning::Syntax check failed, but the error was already present in the base commit. The workflow will not be failed."
           elif [ "${{ steps.validate-head.outcome }}" == "success" ]; then
             echo "SQL syntax check passed."
+          else
+            # This case handles when both pass, or when base fails and head is skipped (which shouldn't happen).
+            echo "No new errors detected. Base status: ${{ steps.validate-base.outcome }}, Head status: ${{ steps.validate-head.outcome }}"
           fi
