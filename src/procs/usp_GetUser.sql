@@ -39,7 +39,8 @@ proc_label:BEGIN
     LEFT JOIN tblUserProfiles up ON u.id = up.user_id
     LEFT JOIN tblCountries c ON up.country_id = c.id
     LEFT JOIN tblStates s ON up.region_id = s.id
-    WHERE (in_id IS NOT NULL AND u.id = in_id) OR (in_email IS NOT NULL AND u.email = in_email)
+    WHERE (in_id IS NOT NULL AND u.id = in_id)
+    OR (in_email IS NOT NULL AND u.email = in_email)
     LIMIT 1;
 
 END$$
