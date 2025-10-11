@@ -1,4 +1,4 @@
-name: SQLFluff Lint
+name: MySQL Syntax Check
 
 on:
   pull_request:
@@ -9,21 +9,38 @@ on:
       - "**/*.sql"
 
 jobs:
-  lint:
+  mysql-syntax-check:
     runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: test_db
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install SQLFluff
-        run: pip install sqlfluff
-
-      - name: Preprocess SQL files
+      - name: Wait for MySQL to be ready
         run: |
-          # Delete lines starting with DELIMITER
-          find . -name "*.sql" -exec sed -i '/^DELIMITER/d' {} \;
-          # Replace $$ with ;
-          find . -name "*.sql" -exec sed -i 's/\$\$/;/g' {} \;
+          echo "Waiting for MySQL to start..."
+          for i in {1..30}; do
+            mysql -h 127.0.0.1 -uroot -proot -e "SELECT 1" && break
+            sleep 2
+          done
 
-      - name: Lint SQL files
-        run: sqlfluff lint . --dialect mysql --templater jinja
+      - name: Validate SQL files
+        run: |
+          for f in $(find . -name "*.sql"); do
+            echo "Checking syntax for $f"
+            mysql -h 127.0.0.1 -uroot -proot test_db < "$f"
+          done
