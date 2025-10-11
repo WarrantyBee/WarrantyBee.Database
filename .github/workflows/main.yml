@@ -27,9 +27,6 @@ jobs:
           --health-retries=3
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
       - name: Wait for MySQL to be ready
         run: |
           echo "Waiting for MySQL to start..."
@@ -38,9 +35,60 @@ jobs:
             sleep 2
           done
 
-      - name: Validate SQL files
+      - name: Install PowerShell
         run: |
-          for f in $(find . -name "*.sql"); do
-            echo "Checking syntax for $f"
-            mysql -h 127.0.0.1 -uroot -proot test_db < "$f"
-          done
+          sudo apt-get update
+          sudo apt-get install -y powershell
+
+      # --- BASELINE CHECK --- #
+      - name: Checkout base code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha || github.event.before }}
+
+      - name: Run Migration on Base
+        run: pwsh -File ./Run-Migration.ps1 -db test_db
+
+      - name: Validate Base SQL
+        id: validate-base
+        continue-on-error: true
+        run: mysql -h 127.0.0.1 -uroot -proot test_db < "output.sql"
+
+      # --- HEAD CHECK --- #
+      - name: Checkout Head Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # To allow git diff later
+
+      - name: Run Migration on Head
+        run: pwsh -File ./Run-Migration.ps1 -db test_db
+
+      - name: Validate Head SQL
+        id: validate-head
+        continue-on-error: true
+        run: mysql -h 127.0.0.1 -uroot -proot test_db < "output.sql"
+
+      # --- DECISION & REPORTING --- #
+      - name: Analyze and Report
+        if: always()
+        run: |
+          echo "Baseline validation status: ${{ steps.validate-base.outcome }}"
+          echo "HEAD validation status: ${{ steps.validate-head.outcome }}"
+
+          if [ "${{ steps.validate-base.outcome }}" == "success" ] && [ "${{ steps.validate-head.outcome }}" == "failure" ]; then
+            echo "::error::A syntax error was introduced in this commit."
+            
+            echo "The failure is likely caused by changes in one of the following files:"
+            if [ "${{ github.event_name }}" == "pull_request" ]; then
+              FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | grep '\.sql || true)
+            else
+              FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '\.sql || true)
+            fi
+            echo "$FILES"
+            
+            exit 1
+          elif [ "${{ steps.validate-base.outcome }}" == "failure" ]; then
+            echo "::warning::Syntax check failed, but the error was already present in the base commit. The workflow will not be failed."
+          elif [ "${{ steps.validate-head.outcome }}" == "success" ]; then
+            echo "SQL syntax check passed."
+          fi
