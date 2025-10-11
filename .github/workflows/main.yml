@@ -18,5 +18,12 @@ jobs:
       - name: Install SQLFluff
         run: pip install sqlfluff
 
+      - name: Preprocess SQL files
+        run: |
+          # Delete lines starting with DELIMITER
+          find . -name "*.sql" -exec sed -i '/^DELIMITER/d' {} \;
+          # Replace $$ with ;
+          find . -name "*.sql" -exec sed -i 's/\$\$/;/g' {} \;
+
       - name: Lint SQL files
         run: sqlfluff lint . --dialect mysql --templater jinja
