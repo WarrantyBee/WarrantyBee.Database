@@ -19,4 +19,4 @@ jobs:
         run: pip install sqlfluff
 
       - name: Lint SQL files
-        run: sqlfluff lint . --dialect mysql
+        run: sqlfluff lint . --dialect mysql --templater jinja
