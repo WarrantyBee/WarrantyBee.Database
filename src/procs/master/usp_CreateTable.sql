@@ -81,3 +81,5 @@ END
 $$
 
 DELIMITER ;
+
+SELECT "usp_CreateTable created successfully";

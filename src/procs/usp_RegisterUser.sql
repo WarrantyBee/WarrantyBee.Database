@@ -120,3 +120,5 @@ proc_label:BEGIN
 END$$
 
 DELIMITER ;
+
+SELECT "usp_RegisterUser created successfully";

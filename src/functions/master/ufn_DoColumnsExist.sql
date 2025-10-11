@@ -43,3 +43,5 @@ BEGIN
 END$$
 
 DELIMITER ;
+
+SELECT "ufn_DoColumnsExists created successfully";

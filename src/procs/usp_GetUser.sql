@@ -46,3 +46,5 @@ proc_label:BEGIN
 END$$
 
 DELIMITER ;
+
+SELECT "usp_GetUser created successfully";

@@ -151,3 +151,5 @@ proc:BEGIN
 END proc$$
 
 DELIMITER ;
+
+SELECT "usp_CreateUniqueKey created successfully";

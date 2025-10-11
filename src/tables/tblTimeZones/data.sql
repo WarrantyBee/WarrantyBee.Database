@@ -429,3 +429,5 @@ VALUES
 ('Pacific/Truk', NULL, 600, 0, 600),
 ('Pacific/Wake', NULL, 720, 0, 720),
 ('Pacific/Wallis', NULL, 720, 0, 720);
+
+SELECT "tblTimeZones data inserted successfully";

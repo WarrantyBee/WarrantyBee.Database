@@ -95,3 +95,5 @@ END
 $$
 
 DELIMITER ;
+
+SELECT "usp_MarkRequired created successfully";

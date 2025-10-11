@@ -18,3 +18,5 @@ BEGIN
 END$$
 
 DELIMITER ;
+
+SELECT "usp_GetCurrencies created successfully";

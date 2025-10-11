@@ -25,3 +25,5 @@ BEGIN
 END$$
 
 DELIMITER ;
+
+SELECT "usp_GetCountries created successfully";

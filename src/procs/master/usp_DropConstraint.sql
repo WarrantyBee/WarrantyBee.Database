@@ -116,3 +116,5 @@ END
 $$
 
 DELIMITER ;
+
+SELECT "usp_DropConstraint created successfully";

@@ -116,3 +116,5 @@ END
 $
 
 DELIMITER ;
+
+SELECT "usp_AddCheck created successfully";

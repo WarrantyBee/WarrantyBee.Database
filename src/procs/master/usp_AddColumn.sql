@@ -130,3 +130,5 @@ END
 $$
 
 DELIMITER ;
+
+SELECT "usp_AddColumn created successfully";

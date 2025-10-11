@@ -26,3 +26,5 @@ BEGIN
 END$
 
 DELIMITER ;
+
+SELECT "usp_GetStates created successfully";

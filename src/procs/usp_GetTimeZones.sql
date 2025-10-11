@@ -18,3 +18,5 @@ BEGIN
 END$$
 
 DELIMITER ;
+
+SELECT "usp_GetTimeZones created successfully";

@@ -80,3 +80,5 @@ END
 $$
 
 DELIMITER ;
+
+SELECT "usp_DropColumn created successfully";

@@ -131,3 +131,5 @@ END
 $$
 
 DELIMITER ;
+
+SELECT "usp_CreateForeignKey created successfully";

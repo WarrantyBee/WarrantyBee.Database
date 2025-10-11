@@ -208,3 +208,5 @@ VALUES
 (191, 'YE', 'YEM', '887', 'Yemen', 'Republic of Yemen', 'Sana''a', '+967', 153),
 (192, 'ZM', 'ZMB', '894', 'Zambia', 'Republic of Zambia', 'Lusaka', '+260', 155),
 (193, 'ZW', 'ZWE', '716', 'Zimbabwe', 'Republic of Zimbabwe', 'Harare', '+263', 156);
+
+SELECT "tblCountries data inserted successfully";

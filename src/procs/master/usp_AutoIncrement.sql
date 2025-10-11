@@ -103,3 +103,5 @@ END
 $$
 
 DELIMITER ;
+
+SELECT "usp_AutoIncrement created successfully";

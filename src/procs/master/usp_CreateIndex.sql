@@ -113,3 +113,5 @@ END
 $$
 
 DELIMITER ;
+
+SELECT "usp_CreateIndex created successfully";

@@ -45,3 +45,5 @@ BEGIN
 END$$
 
 DELIMITER ;
+
+SELECT "ufn_DoesColumnExist created successfully";

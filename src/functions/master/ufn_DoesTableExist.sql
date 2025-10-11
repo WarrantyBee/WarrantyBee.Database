@@ -40,3 +40,5 @@ BEGIN
 END$$
 
 DELIMITER ;
+
+SELECT "ufn_DoesTableExist created successfully";
