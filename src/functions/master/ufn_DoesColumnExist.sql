@@ -46,4 +46,4 @@ END$$
 
 DELIMITER ;
 
-SELECT "ufn_DoesColumnExist created successfully";
+SELECT "ufn_DoesColumnExist created successfully" AS message;

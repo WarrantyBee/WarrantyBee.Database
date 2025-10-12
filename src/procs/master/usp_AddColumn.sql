@@ -131,4 +131,4 @@ $$
 
 DELIMITER ;
 
-SELECT "usp_AddColumn created successfully";
+SELECT "usp_AddColumn created successfully" AS message;

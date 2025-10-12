@@ -104,4 +104,4 @@ $$
 
 DELIMITER ;
 
-SELECT "usp_AutoIncrement created successfully";
+SELECT "usp_AutoIncrement created successfully" AS message;

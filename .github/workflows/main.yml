@@ -1,15 +1,12 @@
-name: MySQL Syntax Check
+name: build
 
 on:
   pull_request:
-    paths:
-      - "**/*.sql"
-  push:
-    paths:
-      - "**/*.sql"
+    branches:
+      - main
 
 jobs:
-  mysql-syntax-check:
+  build:
     runs-on: ubuntu-latest
 
     services:
@@ -27,7 +24,7 @@ jobs:
           --health-retries=3
 
     steps:
-      - name: Wait for MySQL to be ready
+      - name: Check MySQL status
         run: |
           echo "Waiting for MySQL to start..."
           for i in {1..30}; do
@@ -40,16 +37,12 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y powershell
 
-      # --- BASELINE CHECK --- #
-      - name: Checkout base code
+      - name: Checkout base branch
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.base.sha || github.event.before }}
 
-      - name: List files on Base
-        run: ls -lA
-
-      - name: Check for base migration files
+      - name: Check required files in base branch
         id: check-base-files
         run: |
           if [ -f "Run-Migration.ps1" ] && [ -d "src" ] && [ -f "src/dependencies.json" ]; then
@@ -58,43 +51,36 @@ jobs:
             echo "files_exist=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Run Migration on Base
+      - name: Compile scripts on base branch
         if: steps.check-base-files.outputs.files_exist == 'true'
         run: pwsh -File ./Run-Migration.ps1 -db test_db
 
-      - name: Validate Base SQL
+      - name: Execute processed scripts on base branch
         if: steps.check-base-files.outputs.files_exist == 'true'
         id: validate-base
         continue-on-error: true
         run: mysql -h 127.0.0.1 -uroot -proot test_db < "output.sql"
 
-      # --- HEAD CHECK --- #
-      - name: Checkout Head Code
+      - name: Checkout current branch
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
-          fetch-depth: 0 # To allow git diff later
+          fetch-depth: 0
 
-      - name: List files on Head
-        run: ls -lA
-
-      - name: Run Migration on Head
+      - name: Compile scripts on current branch
         run: pwsh -File ./Run-Migration.ps1 -db test_db
 
-      - name: Validate Head SQL
+      - name: Execute processed scripts on current branch
         id: validate-head
         continue-on-error: true
         run: mysql -h 127.0.0.1 -uroot -proot test_db < "output.sql"
 
-      # --- DECISION & REPORTING --- #
       - name: Analyze and Report
         if: always()
         run: |
           echo "Baseline validation status: ${{ steps.validate-base.outcome }}"
           echo "HEAD validation status: ${{ steps.validate-head.outcome }}"
 
-          # If the base validation was skipped, it means the migration files weren't there.
-          # In this case, we treat the baseline as 'success' for the purpose of comparison.
           if ( [ "${{ steps.validate-base.outcome }}" == "success" ] || [ "${{ steps.validate-base.outcome }}" == "skipped" ] || [ "${{ steps.validate-base.outcome }}" == "" ] ) && [ "${{ steps.validate-head.outcome }}" == "failure" ]; then
             echo "::error::A syntax error was introduced in this commit."
             
@@ -112,6 +98,5 @@ jobs:
           elif [ "${{ steps.validate-head.outcome }}" == "success" ]; then
             echo "SQL syntax check passed."
           else
-            # This case handles when both pass, or when base fails and head is skipped (which shouldn't happen).
             echo "No new errors detected. Base status: ${{ steps.validate-base.outcome }}, Head status: ${{ steps.validate-head.outcome }}"
           fi

@@ -121,4 +121,4 @@ END$$
 
 DELIMITER ;
 
-SELECT "usp_RegisterUser created successfully";
+SELECT "usp_RegisterUser created successfully" AS message;

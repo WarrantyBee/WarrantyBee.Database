@@ -82,4 +82,4 @@ $$
 
 DELIMITER ;
 
-SELECT "usp_CreateTable created successfully";
+SELECT "usp_CreateTable created successfully" AS message;

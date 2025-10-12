@@ -47,4 +47,4 @@ END$$
 
 DELIMITER ;
 
-SELECT "usp_GetUser created successfully";
+SELECT "usp_GetUser created successfully" AS message;

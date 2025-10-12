@@ -27,4 +27,4 @@ END$
 
 DELIMITER ;
 
-SELECT "usp_GetStates created successfully";
+SELECT "usp_GetStates created successfully" AS message;

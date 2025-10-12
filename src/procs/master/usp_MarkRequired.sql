@@ -96,4 +96,4 @@ $$
 
 DELIMITER ;
 
-SELECT "usp_MarkRequired created successfully";
+SELECT "usp_MarkRequired created successfully" AS message;

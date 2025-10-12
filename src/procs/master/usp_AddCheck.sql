@@ -117,4 +117,4 @@ $
 
 DELIMITER ;
 
-SELECT "usp_AddCheck created successfully";
+SELECT "usp_AddCheck created successfully" AS message;

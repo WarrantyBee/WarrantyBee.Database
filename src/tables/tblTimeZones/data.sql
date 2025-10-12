@@ -430,4 +430,4 @@ VALUES
 ('Pacific/Wake', NULL, 720, 0, 720),
 ('Pacific/Wallis', NULL, 720, 0, 720);
 
-SELECT "tblTimeZones data inserted successfully";
+SELECT "tblTimeZones data inserted successfully" AS message;

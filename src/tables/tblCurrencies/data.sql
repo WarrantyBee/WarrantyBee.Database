@@ -168,4 +168,4 @@ VALUES
 ('ZMW', NULL, 'Zambian Kwacha', 'ZK', 2),
 ('ZWL', NULL, 'Zimbabwean Dollar', 'ZWL$', 2);
 
-SELECT "tblCurrencies data inserted successfully";
+SELECT "tblCurrencies data inserted successfully" AS message;

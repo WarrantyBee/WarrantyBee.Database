@@ -117,4 +117,4 @@ $$
 
 DELIMITER ;
 
-SELECT "usp_DropConstraint created successfully";
+SELECT "usp_DropConstraint created successfully" AS message;
