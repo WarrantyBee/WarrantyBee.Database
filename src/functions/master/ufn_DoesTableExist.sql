@@ -41,4 +41,4 @@ END$$
 
 DELIMITER ;
 
-SELECT "ufn_DoesTableExist created successfully" AS message;
+SELECT "ufn_DoesTableExist created successfully." AS message;

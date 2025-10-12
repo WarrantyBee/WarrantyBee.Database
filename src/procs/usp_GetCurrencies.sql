@@ -19,4 +19,4 @@ END$$
 
 DELIMITER ;
 
-SELECT "usp_GetCurrencies created successfully" AS message;
+SELECT "usp_GetCurrencies created successfully." AS message;

@@ -101,4 +101,4 @@ $$
 
 DELIMITER ;
 
-SELECT "usp_CreatePrimaryKey created successfully" AS message;
+SELECT "usp_CreatePrimaryKey created successfully." AS message;

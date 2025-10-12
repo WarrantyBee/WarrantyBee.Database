@@ -26,4 +26,4 @@ END$$
 
 DELIMITER ;
 
-SELECT "usp_GetCountries created successfully" AS message;
+SELECT "usp_GetCountries created successfully." AS message;

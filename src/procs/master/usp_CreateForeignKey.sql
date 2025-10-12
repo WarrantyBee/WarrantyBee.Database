@@ -132,4 +132,4 @@ $$
 
 DELIMITER ;
 
-SELECT "usp_CreateForeignKey created successfully" AS message;
+SELECT "usp_CreateForeignKey created successfully." AS message;

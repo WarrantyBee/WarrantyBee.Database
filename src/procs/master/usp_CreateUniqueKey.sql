@@ -152,4 +152,4 @@ END proc$$
 
 DELIMITER ;
 
-SELECT "usp_CreateUniqueKey created successfully" AS message;
+SELECT "usp_CreateUniqueKey created successfully." AS message;

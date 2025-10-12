@@ -81,4 +81,4 @@ $$
 
 DELIMITER ;
 
-SELECT "usp_DropColumn created successfully" AS message;
+SELECT "usp_DropColumn created successfully." AS message;
