@@ -2,23 +2,22 @@ param(
     [string]$db
 )
 
-# Get the directory of the current script
 $scriptPath = $PSScriptRoot
 $srcPath = Join-Path -Path $scriptPath -ChildPath "src"
 $outputFile = Join-Path -Path $scriptPath -ChildPath "output.sql"
 
-# Clear the output file if it exists
 if (Test-Path $outputFile) {
     Clear-Content $outputFile
 }
 
-# Add USE <dbname> if db parameter is provided
 if (-not [string]::IsNullOrEmpty($db)) {
     $useDbStatement = "USE $db;`n`n"
     Add-Content -Path $outputFile -Value $useDbStatement
 }
 
-# Function to add script content to the output file
+$setUTCTimezone = "SET time_zone = '+00:00';`n`n"
+Add-Content -Path $outputFile -Value $setUTCTimezone
+
 function Add-ScriptContent {
     param (
         [string]$filePath
@@ -31,11 +30,9 @@ function Add-ScriptContent {
     Add-Content -Path $outputFile -Value "$content`r`n`r`n"
 }
 
-# Read and parse dependencies.json
 $dependenciesPath = Join-Path -Path $srcPath -ChildPath "dependencies.json"
 $dependencies = Get-Content -Path $dependenciesPath | ConvertFrom-Json
 
-# Topological Sort Function
 function Get-TopologicalSort {
     param (
         [System.Collections.IDictionary]$itemsWithDependencies
@@ -96,9 +93,6 @@ function Get-TopologicalSort {
 }
 
 
-# --- Processing Order ---
-
-# 1. Functions
 Write-Host "Processing functions..."
 $allFunctions = @{}
 $dependencies.functions.PSObject.Properties | ForEach-Object {
@@ -117,7 +111,6 @@ foreach ($functionName in $sortedFunctions) {
     }
 }
 
-# 2. Master Procedures
 Write-Host "`nProcessing master procedures..."
 $masterProcedures = @{}
 if ($dependencies.procedures.master) {
@@ -135,7 +128,6 @@ if ($dependencies.procedures.master) {
     }
 }
 
-# 3. Tables
 Write-Host "`nProcessing tables..."
 $mergedTableDependencies = @{}
 $dependencies.tables.PSObject.Properties | ForEach-Object {
@@ -143,7 +135,7 @@ $dependencies.tables.PSObject.Properties | ForEach-Object {
 }
 $sortedTables = Get-TopologicalSort -itemsWithDependencies $mergedTableDependencies
 
-$tableFileOrder = @("columns.sql", "constraints.sql", "indexes.sql", "foreignkeys.sql", "data.sql")
+$tableFileOrder = @("columns.sql", "constraints.sql", "indexes.sql", "foreignkeys.sql")
 
 $objectsFile = Join-Path -Path $srcPath -ChildPath "tables\objects.sql"
 if (Test-Path $objectsFile) {
@@ -159,10 +151,22 @@ foreach ($tableName in $sortedTables) {
                 Add-ScriptContent -filePath $filePath
             }
         }
+
+        $triggersPath = Join-Path -Path $tablePath -ChildPath "triggers"
+        if (Test-Path $triggersPath) {
+            $triggerFiles = Get-ChildItem -Path $triggersPath -Filter *.sql
+            foreach ($triggerFile in $triggerFiles) {
+                Add-ScriptContent -filePath $triggerFile.FullName
+            }
+        }
+
+        $dataFilePath = Join-Path -Path $tablePath -ChildPath "data.sql"
+        if (Test-Path $dataFilePath) {
+            Add-ScriptContent -filePath $dataFilePath
+        }
     }
 }
 
-# 4. Business Procedures
 Write-Host "`nProcessing business procedures..."
 $businessProcedures = @{}
 if ($dependencies.procedures.business) {

@@ -93,7 +93,7 @@ BEGIN
             -- Date/time types: allow functions or quote as needed
             ELSEIF v_type_prefix IN ('DATE', 'DATETIME', 'TIMESTAMP', 'TIME', 'YEAR') THEN
                 IF in_default_value REGEXP '^[A-Za-z_][A-Za-z0-9_]*\\(.*\\)$' OR
-                   in_default_value IN ('CURRENT_TIMESTAMP', 'UTC_TIMESTAMP', 'NOW()') THEN
+                   in_default_value IN ('CURRENT_TIMESTAMP', 'NOW()') THEN
                     SET @sql = CONCAT(@sql, ' DEFAULT ', in_default_value);
                 ELSEIF LEFT(in_default_value, 1) = '''' AND RIGHT(in_default_value, 1) = '''' THEN
                     SET @sql = CONCAT(@sql, ' DEFAULT ', in_default_value);
