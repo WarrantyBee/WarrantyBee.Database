@@ -1,22 +1,102 @@
-name: SQLFluff Lint
+name: build
 
 on:
   pull_request:
-    paths:
-      - '**/*.sql'
-  push:
-    paths:
-      - '**/*.sql'
+    branches:
+      - main
 
 jobs:
-  lint:
+  build:
     runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: test_db
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
     steps:
-      - name: Checkout code
+      - name: Check MySQL status
+        run: |
+          echo "Waiting for MySQL to start..."
+          for i in {1..30}; do
+            mysql -h 127.0.0.1 -uroot -proot -e "SELECT 1" && break
+            sleep 2
+          done
+
+      - name: Install PowerShell
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y powershell
+
+      - name: Checkout base branch
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha || github.event.before }}
 
-      - name: Install SQLFluff
-        run: pip install sqlfluff
+      - name: Check required files in base branch
+        id: check-base-files
+        run: |
+          if [ -f "Run-Migration.ps1" ] && [ -d "src" ] && [ -f "src/dependencies.json" ]; then
+            echo "files_exist=true" >> $GITHUB_OUTPUT
+          else
+            echo "files_exist=false" >> $GITHUB_OUTPUT
+          fi
 
-      - name: Lint SQL files
-        run: sqlfluff lint . --dialect mysql
+      - name: Compile scripts on base branch
+        if: steps.check-base-files.outputs.files_exist == 'true'
+        run: pwsh -File ./Run-Migration.ps1 -db test_db
+
+      - name: Execute processed scripts on base branch
+        if: steps.check-base-files.outputs.files_exist == 'true'
+        id: validate-base
+        continue-on-error: true
+        run: mysql -h 127.0.0.1 -uroot -proot test_db < "output.sql"
+
+      - name: Checkout current branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+
+      - name: Compile scripts on current branch
+        run: pwsh -File ./Run-Migration.ps1 -db test_db
+
+      - name: Execute processed scripts on current branch
+        id: validate-head
+        continue-on-error: true
+        run: mysql -h 127.0.0.1 -uroot -proot test_db < "output.sql"
+
+      - name: Analyze and Report
+        if: always()
+        run: |
+          echo "Baseline validation status: ${{ steps.validate-base.outcome }}"
+          echo "HEAD validation status: ${{ steps.validate-head.outcome }}"
+
+          if ( [ "${{ steps.validate-base.outcome }}" == "success" ] || [ "${{ steps.validate-base.outcome }}" == "skipped" ] || [ "${{ steps.validate-base.outcome }}" == "" ] ) && [ "${{ steps.validate-head.outcome }}" == "failure" ]; then
+            echo "::error::A syntax error was introduced in this commit."
+            
+            echo "The failure is likely caused by changes in one of the following files:"
+            if [ "${{ github.event_name }}" == "pull_request" ]; then
+              FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | grep '\.sql || true)
+            else
+              FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '\.sql || true)
+            fi
+            echo "$FILES"
+            
+            exit 1
+          elif [ "${{ steps.validate-base.outcome }}" == "failure" ]; then
+            echo "::warning::Syntax check failed, but the error was already present in the base commit. The workflow will not be failed."
+          elif [ "${{ steps.validate-head.outcome }}" == "success" ]; then
+            echo "SQL syntax check passed."
+          else
+            echo "No new errors detected. Base status: ${{ steps.validate-base.outcome }}, Head status: ${{ steps.validate-head.outcome }}"
+          fi

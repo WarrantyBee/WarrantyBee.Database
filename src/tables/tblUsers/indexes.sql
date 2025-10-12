@@ -1,0 +1,1 @@
+CALL usp_CreateIndex('tblUsers', 'email');
