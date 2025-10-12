@@ -167,3 +167,5 @@ VALUES
 ('ZAR', NULL, 'South African Rand', 'R', 2),
 ('ZMW', NULL, 'Zambian Kwacha', 'ZK', 2),
 ('ZWL', NULL, 'Zimbabwean Dollar', 'ZWL$', 2);
+
+SELECT "tblCurrencies data inserted successfully";
