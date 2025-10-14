@@ -1,6 +1,4 @@
-TRUNCATE TABLE `tblCurrencies`;
-
-ALTER TABLE `tblCurrencies` AUTO_INCREMENT = 1;
+CALL usp_ResetAutoIncrement('tblCurrencies');
 
 INSERT INTO `tblCurrencies`
 (

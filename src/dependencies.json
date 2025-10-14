@@ -90,6 +90,12 @@
 					"functions": ["ufn_DoesTableExist", "ufn_DoesColumnExist"],
 					"procs": []
 				}
+			},
+			"usp_ResetAutoIncrement": {
+				"dependencies": {
+					"functions": ["ufn_DoesTableExist"],
+					"procs": []
+				}
 			}
 		},
 		"business": {

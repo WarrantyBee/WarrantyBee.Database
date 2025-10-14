@@ -1,5 +1,6 @@
 param(
-    [string]$db
+    [string]$db,
+    [switch]$skipdata
 )
 
 $scriptPath = $PSScriptRoot
@@ -160,9 +161,11 @@ foreach ($tableName in $sortedTables) {
             }
         }
 
-        $dataFilePath = Join-Path -Path $tablePath -ChildPath "data.sql"
-        if (Test-Path $dataFilePath) {
-            Add-ScriptContent -filePath $dataFilePath
+        if (-not $skipdata) {
+            $dataFilePath = Join-Path -Path $tablePath -ChildPath "data.sql"
+            if (Test-Path $dataFilePath) {
+                Add-ScriptContent -filePath $dataFilePath
+            }
         }
     }
 }

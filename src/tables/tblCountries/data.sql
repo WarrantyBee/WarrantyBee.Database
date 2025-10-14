@@ -1,6 +1,4 @@
-TRUNCATE TABLE `tblCountries`;
-
-ALTER TABLE `tblCountries` AUTO_INCREMENT = 1;
+CALL usp_ResetAutoIncrement('tblCountries');
 
 INSERT INTO `tblCountries`
 (

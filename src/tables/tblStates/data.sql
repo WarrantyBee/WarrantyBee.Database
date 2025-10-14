@@ -1,6 +1,4 @@
-TRUNCATE TABLE `tblStates`;
-
-ALTER TABLE `tblStates` AUTO_INCREMENT = 1;
+CALL usp_ResetAutoIncrement('tblStates');
 
 INSERT INTO `tblStates`
 (

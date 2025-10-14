@@ -1,6 +1,4 @@
-TRUNCATE TABLE `tblTimeZones`;
-
-ALTER TABLE `tblTimeZones` AUTO_INCREMENT = 1;
+CALL usp_ResetAutoIncrement('tblTimeZones');
 
 INSERT INTO `tblTimeZones`
 (
