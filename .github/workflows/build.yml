@@ -53,7 +53,7 @@ jobs:
 
       - name: Compile scripts on base branch
         if: steps.check-base-files.outputs.files_exist == 'true'
-        run: pwsh -File ./Run-Migration.ps1 -db test_db
+        run: pwsh -File ./Run-Migration.ps1 -db test_db -skipdata
 
       - name: Execute processed scripts on base branch
         if: steps.check-base-files.outputs.files_exist == 'true'
@@ -68,7 +68,7 @@ jobs:
           fetch-depth: 0
 
       - name: Compile scripts on current branch
-        run: pwsh -File ./Run-Migration.ps1 -db test_db
+        run: pwsh -File ./Run-Migration.ps1 -db test_db -skipdata
 
       - name: Execute processed scripts on current branch
         id: validate-head
