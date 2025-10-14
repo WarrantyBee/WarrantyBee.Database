@@ -19,4 +19,4 @@ END$$
 
 DELIMITER ;
 
-SELECT "usp_GetTimeZones created successfully." AS message;
+SELECT 'usp_GetTimeZones created successfully.' AS message;

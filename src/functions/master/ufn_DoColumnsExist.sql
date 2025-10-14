@@ -44,4 +44,4 @@ END$$
 
 DELIMITER ;
 
-SELECT "ufn_DoColumnsExists created successfully." AS message;
+SELECT 'ufn_DoColumnsExists created successfully.' AS message;

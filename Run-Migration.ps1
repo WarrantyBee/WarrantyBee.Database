@@ -11,11 +11,11 @@ if (Test-Path $outputFile) {
 }
 
 if (-not [string]::IsNullOrEmpty($db)) {
-    $useDbStatement = "USE $db;`n`n"
+    $useDbStatement = "USE $db;`n"
     Add-Content -Path $outputFile -Value $useDbStatement
 }
 
-$setUTCTimezone = "SET time_zone = '+00:00';`n`n"
+$setUTCTimezone = "SET time_zone = '+00:00';`nSET sql_require_primary_key = OFF;`n`n"
 Add-Content -Path $outputFile -Value $setUTCTimezone
 
 function Add-ScriptContent {

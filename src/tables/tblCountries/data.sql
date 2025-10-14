@@ -209,4 +209,4 @@ VALUES
 (192, 'ZM', 'ZMB', '894', 'Zambia', 'Republic of Zambia', 'Lusaka', '+260', 155),
 (193, 'ZW', 'ZWE', '716', 'Zimbabwe', 'Republic of Zimbabwe', 'Harare', '+263', 156);
 
-SELECT "tblCountries data inserted successfully." AS message;
+SELECT 'tblCountries data inserted successfully.' AS message;
