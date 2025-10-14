@@ -1,6 +1,4 @@
-TRUNCATE TABLE `tblTimeZones`;
-
-ALTER TABLE `tblTimeZones` AUTO_INCREMENT = 1;
+CALL usp_ResetAutoIncrement('tblTimeZones');
 
 INSERT INTO `tblTimeZones`
 (
@@ -430,4 +428,4 @@ VALUES
 ('Pacific/Wake', NULL, 720, 0, 720),
 ('Pacific/Wallis', NULL, 720, 0, 720);
 
-SELECT "tblTimeZones data inserted successfully." AS message;
+SELECT 'tblTimeZones data inserted successfully.' AS message;

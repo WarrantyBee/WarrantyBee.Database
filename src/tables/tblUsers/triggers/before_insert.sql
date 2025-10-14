@@ -13,4 +13,4 @@ $$
 
 DELIMITER ;
 
-SELECT "trg_BeforeInsert_tblUsers created successfully." AS message;
+SELECT 'trg_BeforeInsert_tblUsers created successfully.' AS message;

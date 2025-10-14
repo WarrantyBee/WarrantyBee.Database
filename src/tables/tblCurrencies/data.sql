@@ -1,6 +1,4 @@
-TRUNCATE TABLE `tblCurrencies`;
-
-ALTER TABLE `tblCurrencies` AUTO_INCREMENT = 1;
+CALL usp_ResetAutoIncrement('tblCurrencies');
 
 INSERT INTO `tblCurrencies`
 (
@@ -168,4 +166,4 @@ VALUES
 ('ZMW', NULL, 'Zambian Kwacha', 'ZK', 2),
 ('ZWL', NULL, 'Zimbabwean Dollar', 'ZWL$', 2);
 
-SELECT "tblCurrencies data inserted successfully." AS message;
+SELECT 'tblCurrencies data inserted successfully.' AS message;

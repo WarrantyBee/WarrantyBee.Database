@@ -114,4 +114,4 @@ $$
 
 DELIMITER ;
 
-SELECT "usp_CreateIndex created successfully." AS message;
+SELECT 'usp_CreateIndex created successfully.' AS message;

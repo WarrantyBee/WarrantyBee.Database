@@ -1,6 +1,4 @@
-TRUNCATE TABLE `tblStates`;
-
-ALTER TABLE `tblStates` AUTO_INCREMENT = 1;
+CALL usp_ResetAutoIncrement('tblStates');
 
 INSERT INTO `tblStates`
 (
@@ -279,4 +277,4 @@ INSERT INTO `tblStates` (`name`, `iso_code`, `capital`, `timezone_id`, `country_
 ('Kagoshima', '46', 'Kagoshima', 92, 84),
 ('Okinawa', '47', 'Naha', 92, 84);
 
-SELECT "tblStates data inserted successfully." AS message;
+SELECT 'tblStates data inserted successfully.' AS message;

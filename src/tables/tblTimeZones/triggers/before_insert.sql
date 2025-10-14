@@ -13,4 +13,4 @@ $$
 
 DELIMITER ;
 
-SELECT "trg_BeforeInsert_tblTimeZones created successfully." AS message;
+SELECT 'trg_BeforeInsert_tblTimeZones created successfully.' AS message;
