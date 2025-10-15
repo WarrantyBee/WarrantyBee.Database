@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       branch:
-        description: "The branch to deploy"
+        description: "Source"
         required: true
         type: choice
         options:
@@ -12,7 +12,7 @@ on:
           - stage
           - develop
       reason:
-        description: "Reason for deployment"
+        description: "Notes"
         required: false
         default: "Manual trigger"
 
@@ -89,6 +89,8 @@ jobs:
     if: github.event.inputs.branch == 'develop'
     name: Deploy Migration to Testing Environment
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     environment: Test
     concurrency:
       group: deploy-develop
