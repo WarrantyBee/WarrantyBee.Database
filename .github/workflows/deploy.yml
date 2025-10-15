@@ -56,6 +56,7 @@ jobs:
       DB_USER: ${{ secrets.DB_USER }}
       DB_PWD: ${{ secrets.DB_PWD }}
       DB_CA_CERT: ${{ secrets.DB_CA_CERT }}
+      DB_PORT: ${{ secrets.DB_PORT }}
     steps:
       - name: Checkout ${{ github.event.inputs.branch }} branch
         uses: actions/checkout@v4
@@ -75,4 +76,6 @@ jobs:
                 --host=$DB_HOST \
                 --user=$DB_USER \
                 --password=$DB_PWD \
+                --port=$DB_PORT \
+                --protocol=tcp \
                 warrantybeedb < output.sql
