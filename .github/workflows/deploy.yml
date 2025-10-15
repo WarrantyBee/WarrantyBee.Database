@@ -1,4 +1,4 @@
-name: deploy
+name: Deploy
 
 on:
   workflow_dispatch:
@@ -13,63 +13,51 @@ on:
           - develop
       reason:
         description: "Notes"
-        required: false
+        required: true
         default: "Manual trigger"
 
 jobs:
-  deploy-prod:
-    if: github.event.inputs.branch == 'main'
-    name: Deploy Migration to Production Environment
+  prepare:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    environment: Prod
-    concurrency:
-      group: deploy-main
-      cancel-in-progress: false
-    env:
-      DB_URL: ${{ secrets.DB_URL }}
-      DB_USER: ${{ secrets.DB_USER }}
-      DB_PWD: ${{ secrets.DB_PWD }}
-      DB_CA_CERT: ${{ secrets.DB_CA_CERT }}
+    outputs:
+      env_name: ${{ steps.set_vars.outputs.env_name }}
+      env_display_name: ${{ steps.set_vars.outputs.env_display_name }}
+      concurrency_group: ${{ steps.set_vars.outputs.concurrency_group }}
     steps:
-      - name: Checkout main branch
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.inputs.branch }}
-      - name: Install MySQL client
-        run: sudo apt-get update && sudo apt-get install -y mysql-client
-      - name: Install PowerShell
-        run: sudo apt-get update && sudo apt-get install -y powershell
-      - name: Run PowerShell Migration Script
-        shell: pwsh
-        run: ./Run-Migration.ps1 -db warrantybeedb -skipdata
-      - name: Run Generated SQL Script on DB
+      - name: Set environment variables
+        id: set_vars
         run: |
-          echo "$DB_CA_CERT" > db-ca.pem
-          mysql --ssl-ca=db-ca.pem \
-                --host=$DB_URL \
-                --user=$DB_USER \
-                --password=$DB_PWD \
-                warrantybeedb < output.sql
+          if [ "${{ github.event.inputs.branch }}" = "main" ]; then
+            echo "env_name=Prod" >> $GITHUB_OUTPUT
+            echo "env_display_name=Production" >> $GITHUB_OUTPUT
+            echo "concurrency_group=deploy-main" >> $GITHUB_OUTPUT
+          elif [ "${{ github.event.inputs.branch }}" = "stage" ]; then
+            echo "env_name=Stage" >> $GITHUB_OUTPUT
+            echo "env_display_name=Stage" >> $GITHUB_OUTPUT
+            echo "concurrency_group=deploy-stage" >> $GITHUB_OUTPUT
+          elif [ "${{ github.event.inputs.branch }}" = "develop" ]; then
+            echo "env_name=Test" >> $GITHUB_OUTPUT
+            echo "env_display_name=Testing" >> $GITHUB_OUTPUT
+            echo "concurrency_group=deploy-develop" >> $GITHUB_OUTPUT
+          fi
 
-  deploy-stage:
-    if: github.event.inputs.branch == 'stage'
-    name: Deploy Migration to Stage Environment
+  deploy:
+    name: Deploy Migration to ${{ needs.prepare.outputs.env_display_name }} Environment
+    needs: prepare
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    environment: Stage
+    environment: ${{ needs.prepare.outputs.env_name }}
     concurrency:
-      group: deploy-stage
+      group: ${{ needs.prepare.outputs.concurrency_group }}
       cancel-in-progress: false
     env:
-      DB_URL: ${{ secrets.DB_URL }}
+      DB_HOST: ${{ secrets.DB_HOST }}
       DB_USER: ${{ secrets.DB_USER }}
       DB_PWD: ${{ secrets.DB_PWD }}
       DB_CA_CERT: ${{ secrets.DB_CA_CERT }}
     steps:
-      - name: Checkout stage branch
+      - name: Checkout ${{ github.event.inputs.branch }} branch
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.inputs.branch }}
@@ -84,43 +72,7 @@ jobs:
         run: |
           echo "$DB_CA_CERT" > db-ca.pem
           mysql --ssl-ca=db-ca.pem \
-                --host=$DB_URL \
-                --user=$DB_USER \
-                --password=$DB_PWD \
-                warrantybeedb < output.sql
-
-  deploy-test:
-    if: github.event.inputs.branch == 'develop'
-    name: Deploy Migration to Testing Environment
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    environment: Test
-    concurrency:
-      group: deploy-develop
-      cancel-in-progress: false
-    env:
-      DB_URL: ${{ secrets.DB_URL }}
-      DB_USER: ${{ secrets.DB_USER }}
-      DB_PWD: ${{ secrets.DB_PWD }}
-      DB_CA_CERT: ${{ secrets.DB_CA_CERT }}
-    steps:
-      - name: Checkout develop branch
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.inputs.branch }}
-      - name: Install MySQL client
-        run: sudo apt-get update && sudo apt-get install -y mysql-client
-      - name: Install PowerShell
-        run: sudo apt-get update && sudo apt-get install -y powershell
-      - name: Run PowerShell Migration Script
-        shell: pwsh
-        run: ./Run-Migration.ps1 -db warrantybeedb -skipdata
-      - name: Run Generated SQL Script on DB
-        run: |
-          echo "$DB_CA_CERT" > db-ca.pem
-          mysql --ssl-ca=db-ca.pem \
-                --host=$DB_URL \
+                --host=$DB_HOST \
                 --user=$DB_USER \
                 --password=$DB_PWD \
                 warrantybeedb < output.sql
