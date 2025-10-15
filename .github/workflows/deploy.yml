@@ -40,7 +40,7 @@ jobs:
       - name: Install MySQL client
         run: sudo apt-get update && sudo apt-get install -y mysql-client
       - name: Install PowerShell
-        uses: PowerShell/PowerShell@v1.2.0
+        run: sudo apt-get update && sudo apt-get install -y powershell
       - name: Run PowerShell Migration Script
         shell: pwsh
         run: ./Run-Migration.ps1 -db warrantybeedb -skipdata
@@ -76,7 +76,7 @@ jobs:
       - name: Install MySQL client
         run: sudo apt-get update && sudo apt-get install -y mysql-client
       - name: Install PowerShell
-        uses: PowerShell/PowerShell@v1.2.0
+        run: sudo apt-get update && sudo apt-get install -y powershell
       - name: Run PowerShell Migration Script
         shell: pwsh
         run: ./Run-Migration.ps1 -db warrantybeedb -skipdata
@@ -112,7 +112,7 @@ jobs:
       - name: Install MySQL client
         run: sudo apt-get update && sudo apt-get install -y mysql-client
       - name: Install PowerShell
-        uses: PowerShell/PowerShell@v1.2.0
+        run: sudo apt-get update && sudo apt-get install -y powershell
       - name: Run PowerShell Migration Script
         shell: pwsh
         run: ./Run-Migration.ps1 -db warrantybeedb -skipdata
