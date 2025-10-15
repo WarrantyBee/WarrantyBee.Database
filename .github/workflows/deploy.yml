@@ -1,0 +1,126 @@
+name: deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Source"
+        required: true
+        type: choice
+        options:
+          - main
+          - stage
+          - develop
+      reason:
+        description: "Notes"
+        required: false
+        default: "Manual trigger"
+
+jobs:
+  deploy-prod:
+    if: github.event.inputs.branch == 'main'
+    name: Deploy Migration to Production Environment
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    environment: Prod
+    concurrency:
+      group: deploy-main
+      cancel-in-progress: false
+    env:
+      DB_URL: ${{ secrets.DB_URL }}
+      DB_USER: ${{ secrets.DB_USER }}
+      DB_PWD: ${{ secrets.DB_PWD }}
+      DB_CA_CERT: ${{ secrets.DB_CA_CERT }}
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch }}
+      - name: Install MySQL client
+        run: sudo apt-get update && sudo apt-get install -y mysql-client
+      - name: Install PowerShell
+        uses: PowerShell/PowerShell@v1.2.0
+      - name: Run PowerShell Migration Script
+        shell: pwsh
+        run: ./Run-Migration.ps1 -db warrantybeedb -skipdata
+      - name: Run Generated SQL Script on DB
+        run: |
+          echo "$DB_CA_CERT" > db-ca.pem
+          mysql --ssl-ca=db-ca.pem \
+                --host=$DB_URL \
+                --user=$DB_USER \
+                --password=$DB_PWD \
+                warrantybeedb < output.sql
+
+  deploy-stage:
+    if: github.event.inputs.branch == 'stage'
+    name: Deploy Migration to Stage Environment
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    environment: Stage
+    concurrency:
+      group: deploy-stage
+      cancel-in-progress: false
+    env:
+      DB_URL: ${{ secrets.DB_URL }}
+      DB_USER: ${{ secrets.DB_USER }}
+      DB_PWD: ${{ secrets.DB_PWD }}
+      DB_CA_CERT: ${{ secrets.DB_CA_CERT }}
+    steps:
+      - name: Checkout stage branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch }}
+      - name: Install MySQL client
+        run: sudo apt-get update && sudo apt-get install -y mysql-client
+      - name: Install PowerShell
+        uses: PowerShell/PowerShell@v1.2.0
+      - name: Run PowerShell Migration Script
+        shell: pwsh
+        run: ./Run-Migration.ps1 -db warrantybeedb -skipdata
+      - name: Run Generated SQL Script on DB
+        run: |
+          echo "$DB_CA_CERT" > db-ca.pem
+          mysql --ssl-ca=db-ca.pem \
+                --host=$DB_URL \
+                --user=$DB_USER \
+                --password=$DB_PWD \
+                warrantybeedb < output.sql
+
+  deploy-test:
+    if: github.event.inputs.branch == 'develop'
+    name: Deploy Migration to Testing Environment
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    environment: Test
+    concurrency:
+      group: deploy-develop
+      cancel-in-progress: false
+    env:
+      DB_URL: ${{ secrets.DB_URL }}
+      DB_USER: ${{ secrets.DB_USER }}
+      DB_PWD: ${{ secrets.DB_PWD }}
+      DB_CA_CERT: ${{ secrets.DB_CA_CERT }}
+    steps:
+      - name: Checkout develop branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch }}
+      - name: Install MySQL client
+        run: sudo apt-get update && sudo apt-get install -y mysql-client
+      - name: Install PowerShell
+        uses: PowerShell/PowerShell@v1.2.0
+      - name: Run PowerShell Migration Script
+        shell: pwsh
+        run: ./Run-Migration.ps1 -db warrantybeedb -skipdata
+      - name: Run Generated SQL Script on DB
+        run: |
+          echo "$DB_CA_CERT" > db-ca.pem
+          mysql --ssl-ca=db-ca.pem \
+                --host=$DB_URL \
+                --user=$DB_USER \
+                --password=$DB_PWD \
+                warrantybeedb < output.sql
