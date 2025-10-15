@@ -1,5 +1,8 @@
 name: Deploy
 
+permissions:
+  contents: read
+
 on:
   workflow_dispatch:
     inputs:
@@ -46,8 +49,6 @@ jobs:
     name: Deploy (${{ needs.prepare.outputs.env_display_name }})
     needs: prepare
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
     environment: ${{ needs.prepare.outputs.env_name }}
     concurrency:
       group: ${{ needs.prepare.outputs.concurrency_group }}
