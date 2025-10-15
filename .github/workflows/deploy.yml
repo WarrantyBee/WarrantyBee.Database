@@ -18,6 +18,7 @@ on:
 
 jobs:
   prepare:
+    name: Prepare Deployment
     runs-on: ubuntu-latest
     outputs:
       env_name: ${{ steps.set_vars.outputs.env_name }}
@@ -37,12 +38,12 @@ jobs:
             echo "concurrency_group=deploy-stage" >> $GITHUB_OUTPUT
           elif [ "${{ github.event.inputs.branch }}" = "develop" ]; then
             echo "env_name=Test" >> $GITHUB_OUTPUT
-            echo "env_display_name=Testing" >> $GITHUB_OUTPUT
+            echo "env_display_name=Test" >> $GITHUB_OUTPUT
             echo "concurrency_group=deploy-develop" >> $GITHUB_OUTPUT
           fi
 
   deploy:
-    name: Deploy Migration to ${{ needs.prepare.outputs.env_display_name }} Environment
+    name: Deploy (${{ needs.prepare.outputs.env_display_name }})
     needs: prepare
     runs-on: ubuntu-latest
     permissions:
