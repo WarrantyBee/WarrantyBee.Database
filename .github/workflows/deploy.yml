@@ -83,6 +83,13 @@ jobs:
           EMAIL_BODY: ${{ steps.prep_start_email.outputs.body }}
         run: echo "$EMAIL_BODY"
 
+      - name: Prepare Start Notification Subject
+        id: prep_start_subject
+        run: |
+          subject='${{ vars.PRE_DEPLOYMENT_NOTIFICATION_EMAIL_SUBJECT }}'
+          subject="${subject//'{{ENV_NAME}}'/'${{ needs.prepare.outputs.env_display_name }}'}"
+          echo "value=$subject" >> $GITHUB_OUTPUT
+
       - name: Send Deployment Start Notification
         uses: dawidd6/action-send-mail@v3
         with:
@@ -90,7 +97,7 @@ jobs:
           server_port: 465
           username: ${{ secrets.SMTP_USER }}
           password: ${{ secrets.SMTP_PWD }}
-          subject: "🚀 Deployment Started: ${{ github.repository }} to ${{ needs.prepare.outputs.env_display_name }}"
+          subject: ${{ steps.prep_start_subject.outputs.value }}
           to: ${{ secrets.AUDIENCE_ON_DEPLOY }}
           from: ${{ secrets.SMTP_USER }}
           html_body: ${{ steps.prep_start_email.outputs.body }}
@@ -157,6 +164,14 @@ jobs:
           EMAIL_BODY: ${{ steps.prep_end_email.outputs.body }}
         run: echo "$EMAIL_BODY"
 
+      - name: Prepare End Notification Subject
+        id: prep_end_subject
+        run: |
+          subject='${{ vars.POST_DEPLOYMENT_NOTIFICATION_EMAIL_SUBJECT }}'
+          subject="${subject//'{{ENV_NAME}}'/'${{ needs.prepare.outputs.env_display_name }}'}"
+          subject="${subject//'{{STATUS}}'/'${{ needs.deploy.result }}'}"
+          echo "value=$subject" >> $GITHUB_OUTPUT
+
       - name: Send deployment status email
         uses: dawidd6/action-send-mail@v3
         with:
@@ -164,7 +179,7 @@ jobs:
           server_port: 465
           username: ${{ secrets.SMTP_USER }}
           password: ${{ secrets.SMTP_PWD }}
-          subject: "${{ needs.deploy.result == 'success' && '✅' || '❌' }} Deployment Finished: ${{ github.repository }} to ${{ needs.prepare.outputs.env_display_name }} - ${{ needs.deploy.result }}"
+          subject: ${{ steps.prep_end_subject.outputs.value }}
           to: ${{ secrets.AUDIENCE_ON_DEPLOY }}
           from: ${{ secrets.SMTP_USER }}
           html_body: ${{ steps.prep_end_email.outputs.body }}
