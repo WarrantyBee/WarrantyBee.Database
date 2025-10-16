@@ -63,7 +63,9 @@ jobs:
       - name: Prepare Start Notification Body
         id: prep_start_email
         run: |
-          echo "${{ vars.PRE_DEPLOYMENT_NOTIFICATION_EMAIL_TEMPLATE }}" > template_start.html
+          cat <<EOF > template_start.html
+          ${{ vars.PRE_DEPLOYMENT_NOTIFICATION_EMAIL_TEMPLATE }}
+          EOF
           body=$(sed -e 's/{{REPO_NAME}}/${{ github.repository }}/g' \
               -e 's/{{ENV_NAME}}/${{ needs.prepare.outputs.env_display_name }}/g' \
               -e 's/{{BRANCH}}/${{ github.event.inputs.branch }}/g' \
@@ -131,7 +133,9 @@ jobs:
             DEPLOY_STATUS="Failed"
             DEPLOY_RESULT="❌ Failure"
           fi
-          echo "${{ vars.POST_DEPLOYMENT_NOTIFICATION_EMAIL_TEMPLATE }}" > template_end.html
+          cat <<EOF > template_end.html
+          ${{ vars.POST_DEPLOYMENT_NOTIFICATION_EMAIL_TEMPLATE }}
+          EOF
           body=$(sed -e "s/{{DEPLOY_COLOR}}/$DEPLOY_COLOR/g" \
               -e "s/{{DEPLOY_STATUS}}/$DEPLOY_STATUS/g" \
               -e "s/{{DEPLOY_RESULT}}/$DEPLOY_RESULT/g" \
