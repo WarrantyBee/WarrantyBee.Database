@@ -79,7 +79,9 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Print Start Notification Body
-        run: echo "${{ steps.prep_start_email.outputs.body }}"
+        env:
+          EMAIL_BODY: ${{ steps.prep_start_email.outputs.body }}
+        run: echo "$EMAIL_BODY"
 
       - name: Send Deployment Start Notification
         uses: dawidd6/action-send-mail@v3
@@ -151,7 +153,9 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Print End Notification Body
-        run: echo "${{ steps.prep_end_email.outputs.body }}"
+        env:
+          EMAIL_BODY: ${{ steps.prep_end_email.outputs.body }}
+        run: echo "$EMAIL_BODY"
 
       - name: Send deployment status email
         uses: dawidd6/action-send-mail@v3
