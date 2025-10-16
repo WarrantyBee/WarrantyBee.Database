@@ -63,16 +63,19 @@ jobs:
       - name: Prepare Start Notification Body
         id: prep_start_email
         run: |
-          body=$(echo "${{ vars.PRE_DEPLOYMENT_NOTIFICATION_EMAIL_TEMPLATE }}" | \
-            sed 's/{{REPO_NAME}}/${{ github.repository }}/g' | \
-            sed 's/{{ENV_NAME}}/${{ needs.prepare.outputs.env_display_name }}/g' | \
-            sed 's/{{BRANCH}}/${{ github.event.inputs.branch }}/g' | \
-            sed 's/{{COMMIT_SHA}}/${{ github.sha }}/g' | \
-            sed 's/{{TRIGGERED_BY}}/${{ github.actor }}/g' | \
-            sed 's/{{REASON}}/${{ github.event.inputs.reason }}/g' | \
-            sed 's|{{WORKFLOW_URL}}|${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|g')
-          echo "body=$body" >> $GITHUB_OUTPUT
-      
+          echo "${{ vars.PRE_DEPLOYMENT_NOTIFICATION_EMAIL_TEMPLATE }}" > template_start.html
+          body=$(sed -e 's/{{REPO_NAME}}/${{ github.repository }}/g' \
+              -e 's/{{ENV_NAME}}/${{ needs.prepare.outputs.env_display_name }}/g' \
+              -e 's/{{BRANCH}}/${{ github.event.inputs.branch }}/g' \
+              -e 's/{{COMMIT_SHA}}/${{ github.sha }}/g' \
+              -e 's/{{TRIGGERED_BY}}/${{ github.actor }}/g' \
+              -e 's/{{REASON}}/${{ github.event.inputs.reason }}/g' \
+              -e "s|{{WORKFLOW_URL}}|${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|g" \
+              template_start.html)
+          echo "body<<EOF" >> $GITHUB_OUTPUT
+          echo "$body" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
       - name: Print Start Notification Body
         run: echo "${{ steps.prep_start_email.outputs.body }}"
 
@@ -128,17 +131,20 @@ jobs:
             DEPLOY_STATUS="Failed"
             DEPLOY_RESULT="❌ Failure"
           fi
-          body=$(echo "${{ vars.POST_DEPLOYMENT_NOTIFICATION_EMAIL_TEMPLATE }}" | \
-            sed "s/{{DEPLOY_COLOR}}/$DEPLOY_COLOR/g" | \
-            sed "s/{{DEPLOY_STATUS}}/$DEPLOY_STATUS/g" | \
-            sed "s/{{DEPLOY_RESULT}}/$DEPLOY_RESULT/g" | \
-            sed 's/{{REPO_NAME}}/${{ github.repository }}/g' | \
-            sed 's/{{ENV_NAME}}/${{ needs.prepare.outputs.env_display_name }}/g' | \
-            sed 's/{{BRANCH}}/${{ github.event.inputs.branch }}/g' | \
-            sed 's/{{COMMIT_SHA}}/${{ github.sha }}/g' | \
-            sed 's/{{TRIGGERED_BY}}/${{ github.actor }}/g' | \
-            sed 's|{{WORKFLOW_URL}}|${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|g')
-          echo "body=$body" >> $GITHUB_OUTPUT
+          echo "${{ vars.POST_DEPLOYMENT_NOTIFICATION_EMAIL_TEMPLATE }}" > template_end.html
+          body=$(sed -e "s/{{DEPLOY_COLOR}}/$DEPLOY_COLOR/g" \
+              -e "s/{{DEPLOY_STATUS}}/$DEPLOY_STATUS/g" \
+              -e "s/{{DEPLOY_RESULT}}/$DEPLOY_RESULT/g" \
+              -e 's/{{REPO_NAME}}/${{ github.repository }}/g' \
+              -e 's/{{ENV_NAME}}/${{ needs.prepare.outputs.env_display_name }}/g' \
+              -e 's/{{BRANCH}}/${{ github.event.inputs.branch }}/g' \
+              -e 's/{{COMMIT_SHA}}/${{ github.sha }}/g' \
+              -e 's/{{TRIGGERED_BY}}/${{ github.actor }}/g' \
+              -e "s|{{WORKFLOW_URL}}|${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|g" \
+              template_end.html)
+          echo "body<<EOF" >> $GITHUB_OUTPUT
+          echo "$body" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Print End Notification Body
         run: echo "${{ steps.prep_end_email.outputs.body }}"
