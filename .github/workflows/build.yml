@@ -6,6 +6,8 @@ on:
   pull_request:
     branches:
       - main
+      - stage
+      - develop
 
 jobs:
   build:
@@ -26,7 +28,31 @@ jobs:
           --health-retries=3
 
     steps:
+      - name: Checkout current branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for .sql file changes
+        id: check-sql-changes
+        run: |
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | grep '\.sql || true)
+          else
+            FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '\.sql || true)
+          fi
+
+          if [ -z "$FILES" ]; then
+            echo "No .sql files changed. Skipping the rest of the job."
+            echo "skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+            echo "The following .sql files were changed:"
+            echo "$FILES"
+          fi
+
       - name: Check MySQL status
+        if: steps.check-sql-changes.outputs.skip == 'false'
         run: |
           echo "Waiting for MySQL to start..."
           for i in {1..30}; do
@@ -35,16 +61,19 @@ jobs:
           done
 
       - name: Install PowerShell
+        if: steps.check-sql-changes.outputs.skip == 'false'
         run: |
           sudo apt-get update
           sudo apt-get install -y powershell
 
       - name: Checkout base branch
+        if: steps.check-sql-changes.outputs.skip == 'false'
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.base.sha || github.event.before }}
 
       - name: Check required files in base branch
+        if: steps.check-sql-changes.outputs.skip == 'false'
         id: check-base-files
         run: |
           if [ -f "Run-Migration.ps1" ] && [ -d "src" ] && [ -f "src/dependencies.json" ]; then
@@ -54,31 +83,34 @@ jobs:
           fi
 
       - name: Compile scripts on base branch
-        if: steps.check-base-files.outputs.files_exist == 'true'
+        if: steps.check-sql-changes.outputs.skip == 'false' && steps.check-base-files.outputs.files_exist == 'true'
         run: pwsh -File ./Run-Migration.ps1 -db test_db -skipdata
 
       - name: Execute processed scripts on base branch
-        if: steps.check-base-files.outputs.files_exist == 'true'
+        if: steps.check-sql-changes.outputs.skip == 'false' && steps.check-base-files.outputs.files_exist == 'true'
         id: validate-base
         continue-on-error: true
         run: mysql -h 127.0.0.1 -uroot -proot test_db < "output.sql"
 
       - name: Checkout current branch
+        if: steps.check-sql-changes.outputs.skip == 'false'
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
 
       - name: Compile scripts on current branch
+        if: steps.check-sql-changes.outputs.skip == 'false'
         run: pwsh -File ./Run-Migration.ps1 -db test_db -skipdata
 
       - name: Execute processed scripts on current branch
+        if: steps.check-sql-changes.outputs.skip == 'false'
         id: validate-head
         continue-on-error: true
         run: mysql -h 127.0.0.1 -uroot -proot test_db < "output.sql"
 
       - name: Analyze and Report
-        if: always()
+        if: always() && steps.check-sql-changes.outputs.skip == 'false'
         run: |
           echo "Baseline validation status: ${{ steps.validate-base.outcome }}"
           echo "HEAD validation status: ${{ steps.validate-head.outcome }}"
