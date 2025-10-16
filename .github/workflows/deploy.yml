@@ -45,38 +45,9 @@ jobs:
             echo "concurrency_group=deploy-develop" >> $GITHUB_OUTPUT
           fi
 
-  notify-start:
-    name: Send Deployment Start Notification
-    needs: prepare
-    runs-on: ubuntu-latest
-    steps:
-      - name: Prepare Email Body
-        id: prep_email
-        run: |
-          body=$(echo "${{ vars.PRE_DEPLOYMENT_NOTIFICATION_EMAIL_TEMPLATE }}" | \
-            sed 's/{{REPO_NAME}}/${{ github.repository }}/g' | \
-            sed 's/{{ENV_NAME}}/${{ needs.prepare.outputs.env_display_name }}/g' | \
-            sed 's/{{BRANCH}}/${{ github.event.inputs.branch }}/g' | \
-            sed 's/{{COMMIT_SHA}}/${{ github.sha }}/g' | \
-            sed 's/{{TRIGGERED_BY}}/${{ github.actor }}/g' | \
-            sed 's/{{REASON}}/${{ github.event.inputs.reason }}/g' | \
-            sed 's|{{WORKFLOW_URL}}|${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|g')
-          echo "body=$body" >> $GITHUB_OUTPUT
-      - name: Send deployment start email
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: ${{ secrets.SMTP_SERVER }}
-          server_port: 465
-          username: ${{ secrets.SMTP_USER }}
-          password: ${{ secrets.SMTP_PWD }}
-          subject: "🚀 Deployment Started: ${{ github.repository }} to ${{ needs.prepare.outputs.env_display_name }}"
-          to: ${{ secrets.AUDIENCE_ON_DEPLOY }}
-          from: ${{ secrets.SMTP_USER }}
-          html_body: ${{ steps.prep_email.outputs.body }}
-
   deploy:
     name: Deploy (${{ needs.prepare.outputs.env_display_name }})
-    needs: [prepare, notify-start]
+    needs: [prepare]
     runs-on: ubuntu-latest
     environment: ${{ needs.prepare.outputs.env_name }}
     concurrency:
@@ -89,6 +60,34 @@ jobs:
       DB_CA_CERT: ${{ secrets.DB_CA_CERT }}
       DB_PORT: ${{ secrets.DB_PORT }}
     steps:
+      - name: Prepare Start Notification Body
+        id: prep_start_email
+        run: |
+          body=$(echo "${{ vars.PRE_DEPLOYMENT_NOTIFICATION_EMAIL_TEMPLATE }}" | \
+            sed 's/{{REPO_NAME}}/${{ github.repository }}/g' | \
+            sed 's/{{ENV_NAME}}/${{ needs.prepare.outputs.env_display_name }}/g' | \
+            sed 's/{{BRANCH}}/${{ github.event.inputs.branch }}/g' | \
+            sed 's/{{COMMIT_SHA}}/${{ github.sha }}/g' | \
+            sed 's/{{TRIGGERED_BY}}/${{ github.actor }}/g' | \
+            sed 's/{{REASON}}/${{ github.event.inputs.reason }}/g' | \
+            sed 's|{{WORKFLOW_URL}}|${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|g')
+          echo "body=$body" >> $GITHUB_OUTPUT
+      
+      - name: Print Start Notification Body
+        run: echo "${{ steps.prep_start_email.outputs.body }}"
+
+      - name: Send Deployment Start Notification
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: ${{ secrets.SMTP_SERVER }}
+          server_port: 465
+          username: ${{ secrets.SMTP_USER }}
+          password: ${{ secrets.SMTP_PWD }}
+          subject: "🚀 Deployment Started: ${{ github.repository }} to ${{ needs.prepare.outputs.env_display_name }}"
+          to: ${{ secrets.AUDIENCE_ON_DEPLOY }}
+          from: ${{ secrets.SMTP_USER }}
+          html_body: ${{ steps.prep_start_email.outputs.body }}
+
       - name: Checkout ${{ github.event.inputs.branch }} branch
         uses: actions/checkout@v4
         with:
@@ -117,8 +116,8 @@ jobs:
     if: always()
     runs-on: ubuntu-latest
     steps:
-      - name: Prepare Email Body
-        id: prep_email
+      - name: Prepare End Notification Body
+        id: prep_end_email
         run: |
           if [ "${{ needs.deploy.result }}" == "success" ]; then
             DEPLOY_COLOR="#28a745"
@@ -141,6 +140,9 @@ jobs:
             sed 's|{{WORKFLOW_URL}}|${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|g')
           echo "body=$body" >> $GITHUB_OUTPUT
 
+      - name: Print End Notification Body
+        run: echo "${{ steps.prep_end_email.outputs.body }}"
+
       - name: Send deployment status email
         uses: dawidd6/action-send-mail@v3
         with:
@@ -151,4 +153,4 @@ jobs:
           subject: "${{ needs.deploy.result == 'success' && '✅' || '❌' }} Deployment Finished: ${{ github.repository }} to ${{ needs.prepare.outputs.env_display_name }} - ${{ needs.deploy.result }}"
           to: ${{ secrets.AUDIENCE_ON_DEPLOY }}
           from: ${{ secrets.SMTP_USER }}
-          html_body: ${{ steps.prep_email.outputs.body }}
+          html_body: ${{ steps.prep_end_email.outputs.body }}
