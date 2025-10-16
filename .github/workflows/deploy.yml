@@ -78,11 +78,6 @@ jobs:
           echo "$body" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: Print Start Notification Body
-        env:
-          EMAIL_BODY: ${{ steps.prep_start_email.outputs.body }}
-        run: echo "$EMAIL_BODY"
-
       - name: Prepare Start Notification Subject
         id: prep_start_subject
         run: |
@@ -159,17 +154,12 @@ jobs:
           echo "$body" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: Print End Notification Body
-        env:
-          EMAIL_BODY: ${{ steps.prep_end_email.outputs.body }}
-        run: echo "$EMAIL_BODY"
-
       - name: Prepare End Notification Subject
         id: prep_end_subject
         run: |
           subject='${{ vars.POST_DEPLOYMENT_NOTIFICATION_EMAIL_SUBJECT }}'
           subject="${subject//'{{ENV_NAME}}'/'${{ needs.prepare.outputs.env_display_name }}'}"
-          subject="${subject//'{{STATUS}}'/'${{ needs.deploy.result }}'}"
+          subject="${subject//'{{STATUS}}'/'$DEPLOY_STATUS'}"
           echo "value=$subject" >> $GITHUB_OUTPUT
 
       - name: Send deployment status email
