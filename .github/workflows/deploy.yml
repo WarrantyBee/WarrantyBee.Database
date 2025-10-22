@@ -125,24 +125,27 @@ jobs:
     if: always()
     runs-on: ubuntu-latest
     steps:
+      - name: Set Deployment Status
+        id: set_status
+        run: |
+          if [ "${{ needs.deploy.result }}" == "success" ]; then
+            echo "status=Succeeded" >> $GITHUB_OUTPUT
+            echo "color=#28a745" >> $GITHUB_OUTPUT
+            echo "result=✅ Success" >> $GITHUB_OUTPUT
+          else
+            echo "status=Failed" >> $GITHUB_OUTPUT
+            echo "color=#dc3545" >> $GITHUB_OUTPUT
+            echo "result=❌ Failure" >> $GITHUB_OUTPUT
+          fi
       - name: Prepare End Notification Body
         id: prep_end_email
         run: |
-          if [ "${{ needs.deploy.result }}" == "success" ]; then
-            DEPLOY_COLOR="#28a745"
-            DEPLOY_STATUS="Succeeded"
-            DEPLOY_RESULT="✅ Success"
-          else
-            DEPLOY_COLOR="#dc3545"
-            DEPLOY_STATUS="Failed"
-            DEPLOY_RESULT="❌ Failure"
-          fi
           cat <<EOF > template_end.html
           ${{ vars.POST_DEPLOYMENT_NOTIFICATION_EMAIL_TEMPLATE }}
           EOF
-          body=$(sed -e "s|{{DEPLOY_COLOR}}|$DEPLOY_COLOR|g" \
-              -e "s|{{DEPLOY_STATUS}}|$DEPLOY_STATUS|g" \
-              -e "s|{{DEPLOY_RESULT}}|$DEPLOY_RESULT|g" \
+          body=$(sed -e "s|{{DEPLOY_COLOR}}|${{ steps.set_status.outputs.color }}|g" \
+              -e "s|{{DEPLOY_STATUS}}|${{ steps.set_status.outputs.status }}|g" \
+              -e "s|{{DEPLOY_RESULT}}|${{ steps.set_status.outputs.result }}|g" \
               -e 's|{{REPO_NAME}}|${{ github.repository }}|g' \
               -e 's|{{ENV_NAME}}|${{ needs.prepare.outputs.env_display_name }}|g' \
               -e 's|{{BRANCH}}|${{ github.event.inputs.branch }}|g' \
@@ -159,7 +162,7 @@ jobs:
         run: |
           subject='${{ vars.POST_DEPLOYMENT_NOTIFICATION_EMAIL_SUBJECT }}'
           subject="${subject//'{{ENV_NAME}}'/'${{ needs.prepare.outputs.env_display_name }}'}"
-          subject="${subject//'{{STATUS}}'/'$DEPLOY_STATUS'}"
+          subject="${subject//'{{STATUS}}'/'${{ steps.set_status.outputs.status }}'}"
           echo "value=$subject" >> $GITHUB_OUTPUT
 
       - name: Send deployment status email
