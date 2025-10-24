@@ -61,7 +61,7 @@ BEGIN
 
         -- Add standard columns using usp_AddColumn
         CALL usp_AddColumn(in_table_name, 'internal_id', 'BINARY(16)', NULL, TRUE);
-        CALL usp_AddColumn(in_table_name, 'created_by', 'BIGINT UNSIGNED', '0', TRUE);
+        CALL usp_AddColumn(in_table_name, 'created_by', 'BIGINT UNSIGNED', NULL, TRUE);
         CALL usp_AddColumn(in_table_name, 'updated_by', 'BIGINT UNSIGNED', NULL, FALSE);
         CALL usp_AddColumn(in_table_name, 'created_at', 'TIMESTAMP', 'CURRENT_TIMESTAMP', TRUE);
         CALL usp_AddColumn(in_table_name, 'updated_at', 'TIMESTAMP', NULL, FALSE);
