@@ -10,6 +10,8 @@ BEGIN
     CALL usp_AddColumn('tblTimeZones', 'utc_offset_minutes', 'SMALLINT', NULL, v_required);
     CALL usp_AddColumn('tblTimeZones', 'observes_dst', 'BOOLEAN', '0', v_required);
     CALL usp_AddColumn('tblTimeZones', 'current_offset_minutes', 'SMALLINT', NULL, v_required);
+    CALL usp_DropColumn('tblTimeZones', 'created_by');
+    CALL usp_DropColumn('tblTimeZones', 'updated_by');
 END$$
 
 DELIMITER ;

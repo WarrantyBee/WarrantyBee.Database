@@ -155,9 +155,12 @@ foreach ($tableName in $sortedTables) {
 
         $triggersPath = Join-Path -Path $tablePath -ChildPath "triggers"
         if (Test-Path $triggersPath) {
-            $triggerFiles = Get-ChildItem -Path $triggersPath -Filter *.sql
+            $triggerFiles = @("before_insert.sql", "before_update.sql")
             foreach ($triggerFile in $triggerFiles) {
-                Add-ScriptContent -filePath $triggerFile.FullName
+                $triggerPath = Join-Path -Path $triggersPath -ChildPath $triggerFile
+                if (Test-Path $triggerPath) {
+                    Add-ScriptContent -filePath $triggerPath
+                }
             }
         }
 
