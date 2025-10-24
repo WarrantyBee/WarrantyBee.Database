@@ -10,6 +10,8 @@ BEGIN
     CALL usp_AddColumn('tblCurrencies', 'name', 'VARCHAR(100)', NULL, v_required);
     CALL usp_AddColumn('tblCurrencies', 'symbol', 'VARCHAR(10)', NULL, v_required);
     CALL usp_AddColumn('tblCurrencies', 'minor_unit', 'TINYINT UNSIGNED', '2', v_required);
+    CALL usp_DropColumn('tblCurrencies', 'created_by');
+    CALL usp_DropColumn('tblCurrencies', 'updated_by');
 END$$
 
 DELIMITER ;

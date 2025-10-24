@@ -12,6 +12,8 @@ BEGIN
     CALL usp_AddColumn('tblStates', 'timezone_id', 'BIGINT UNSIGNED', NULL, v_required);
     CALL usp_AddColumn('tblStates', 'phone_code', 'VARCHAR(10)', NULL, v_optional);
     CALL usp_AddColumn('tblStates', 'country_id', 'BIGINT UNSIGNED', NULL, v_required);
+    CALL usp_DropColumn('tblStates', 'created_by');
+    CALL usp_DropColumn('tblStates', 'updated_by');
 END$$
 
 DELIMITER ;
