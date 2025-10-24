@@ -13,6 +13,8 @@ BEGIN
     CALL usp_AddColumn('tblCountries', 'capital', 'VARCHAR(100)', NULL, v_optional);
     CALL usp_AddColumn('tblCountries', 'phone_code', 'VARCHAR(50)', NULL, v_optional);
     CALL usp_AddColumn('tblCountries', 'currency_id', 'BIGINT UNSIGNED', NULL, v_optional);
+    CALL usp_DropColumn('tblCountries', 'created_by');
+    CALL usp_DropColumn('tblCountries', 'updated_by');
 END$$
 
 DELIMITER ;

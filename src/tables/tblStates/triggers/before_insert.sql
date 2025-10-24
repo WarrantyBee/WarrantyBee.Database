@@ -8,6 +8,7 @@ FOR EACH ROW
 BEGIN
   SET NEW.internal_id = UUID_TO_BIN(UUID());
   SET NEW.created_at = UTC_TIMESTAMP();
+  SET NEW.void = 0;
 END;
 $$
 

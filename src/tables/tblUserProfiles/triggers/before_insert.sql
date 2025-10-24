@@ -8,6 +8,11 @@ FOR EACH ROW
 BEGIN
   SET NEW.internal_id = UUID_TO_BIN(UUID());
   SET NEW.created_at = UTC_TIMESTAMP();
+  SET NEW.void = 0;
+  
+  IF NEW.created_by IS NULL THEN
+    SET NEW.created_by = NEW.user_id;
+  END IF;
 END;
 $$
 
