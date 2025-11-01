@@ -23,8 +23,10 @@ proc_label:BEGIN
 
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
+        DECLARE v_error_message VARCHAR(255);
+        GET DIAGNOSTICS CONDITION 1 v_error_message = MESSAGE_TEXT;
         ROLLBACK;
-        RESIGNAL;
+        SELECT NULL AS inserted_id, v_error_message AS message;
     END;
 
     IF in_firstname IS NULL OR TRIM(in_firstname) = '' THEN
@@ -55,10 +57,6 @@ proc_label:BEGIN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'This email address is already registered.';
     END IF;
 
-    IF in_password IS NULL OR NOT in_password REGEXP '^[a-f0-9]{64}$' THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Invalid password format. A SHA-256 hash is expected.';
-    END IF;
-
     IF in_gender NOT IN (1, 2, 3) THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Invalid gender specified. Allowed values are 1, 2, 3.';
     END IF;
@@ -69,7 +67,7 @@ proc_label:BEGIN
 
     SELECT COUNT(1) INTO v_record_exists FROM tblCountries WHERE id = in_country_id;
     IF v_record_exists = 0 THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'The specified country does not exist.';
+        SIGNAL SQLSTATE '45000' SET MESSAGE_text = 'The specified country does not exist.';
     END IF;
 
     SELECT COUNT(1) INTO v_record_exists FROM tblStates WHERE id = in_region_id AND country_id = in_country_id;
@@ -115,7 +113,7 @@ proc_label:BEGIN
 
     COMMIT;
 
-    SELECT v_user_id AS new_user_id;
+    SELECT v_user_id AS inserted_id, 'Success' AS message;
 
 END$$
 
