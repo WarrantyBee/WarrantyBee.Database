@@ -10,6 +10,9 @@ proc_label:BEGIN
 
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
+        DECLARE v_error_message VARCHAR(255);
+        GET DIAGNOSTICS CONDITION 1 v_error_message = MESSAGE_TEXT;
+        SELECT 1 AS status, v_error_message AS message;
         SELECT
             NULL AS id,
             NULL AS internal_id,
@@ -45,6 +48,8 @@ proc_label:BEGIN
     IF v_user_exists = 0 THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'User not found.';
     END IF;
+
+    SELECT 0 AS status, 'Success' AS message;
 
     SELECT
         u.id,
