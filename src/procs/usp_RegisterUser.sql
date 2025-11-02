@@ -77,11 +77,9 @@ proc_label:BEGIN
 
     START TRANSACTION;
 
-    INSERT INTO tblUsers (firstname, lastname, email, `password`, created_by)
-    VALUES (TRIM(in_firstname), TRIM(in_lastname), TRIM(in_email), in_password, 0);
+    INSERT INTO tblUsers (firstname, lastname, email, `password`)
+    VALUES (TRIM(in_firstname), TRIM(in_lastname), TRIM(in_email), in_password);
     SET v_user_id = LAST_INSERT_ID();
-
-    UPDATE tblUsers SET created_by = v_user_id WHERE id = v_user_id;
 
     INSERT INTO tblUserProfiles (
         user_id,
@@ -94,8 +92,7 @@ proc_label:BEGIN
         region_id,
         city,
         postal_code,
-        avatar_url,
-        created_by
+        avatar_url
     ) VALUES (
         v_user_id,
         TRIM(in_phone_number),
@@ -107,8 +104,7 @@ proc_label:BEGIN
         in_region_id,
         TRIM(in_city),
         TRIM(in_postal_code),
-        IF(in_avatar_url IS NULL OR TRIM(in_avatar_url) = '', NULL, TRIM(in_avatar_url)),
-        v_user_id
+        IF(in_avatar_url IS NULL OR TRIM(in_avatar_url) = '', NULL, TRIM(in_avatar_url))
     );
 
     COMMIT;

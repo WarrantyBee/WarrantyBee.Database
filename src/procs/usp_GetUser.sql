@@ -13,28 +13,6 @@ proc_label:BEGIN
         DECLARE v_error_message VARCHAR(255);
         GET DIAGNOSTICS CONDITION 1 v_error_message = MESSAGE_TEXT;
         SELECT 1 AS status, v_error_message AS message;
-        SELECT
-            NULL AS id,
-            NULL AS internal_id,
-            NULL AS firstname,
-            NULL AS lastname,
-            NULL AS email,
-            NULL AS created_at,
-            NULL AS updated_at,
-            NULL AS phone_number,
-            NULL AS gender,
-            NULL AS date_of_birth,
-            NULL AS address_line1,
-            NULL AS address_line2,
-            NULL AS city,
-            NULL AS postal_code,
-            NULL AS avatar_url,
-            NULL AS country_id,
-            NULL AS country_name,
-            NULL AS country_iso3,
-            NULL AS region_id,
-            NULL AS region_name,
-            NULL AS region_iso;
     END;
 
     IF in_id IS NULL AND (in_email IS NULL OR TRIM(in_email) = '') THEN
@@ -72,12 +50,26 @@ proc_label:BEGIN
         c.iso3_code AS country_iso3,
         s.id AS region_id,
         s.name AS region_name,
-        s.iso_code AS region_iso
+        s.iso_code AS region_iso,
+        tz.id AS timezone_id,
+        tz.name AS timezone_name,
+        tz.abbreviation AS timezone_abbreviation,
+        tz.utc_offset_minutes AS timezone_utc_offset_minutes,
+        tz.observes_dst AS timezone_observes_dst,
+        tz.current_offset_minutes AS timezone_current_offset_minutes,
+        cur.id AS currency_id,
+        cur.name AS currency_name,
+        cur.numeric_code AS currency_code,
+        cur.iso_code AS currency_iso_code,
+        cur.symbol AS currency_symbol,
+        cur.minor_unit AS currency_minor_unit
     FROM
         tblUsers u
     LEFT JOIN tblUserProfiles up ON u.id = up.user_id
     LEFT JOIN tblCountries c ON up.country_id = c.id
     LEFT JOIN tblStates s ON up.region_id = s.id
+    LEFT JOIN tblTimeZones tz on tz.id = s.timezone_id
+    LEFT JOIN tblCurrencies cur on cur.id = c.currency_id
     WHERE (in_id IS NOT NULL AND u.id = in_id)
     OR (in_email IS NOT NULL AND u.email = in_email)
     LIMIT 1;
