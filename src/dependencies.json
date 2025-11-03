@@ -96,6 +96,12 @@
 					"functions": ["ufn_DoesTableExist"],
 					"procs": []
 				}
+			},
+			"usp_RenameColumn": {
+				"dependencies": {
+					"functions": ["ufn_DoesTableExist, ufn_DoesColumnExist"],
+					"procs": []
+				}
 			}
 		},
 		"business": {

@@ -16,6 +16,7 @@ BEGIN
     CALL usp_AddColumn('tblUserProfiles', 'postal_code', 'VARCHAR(20)', NULL, v_required);
     CALL usp_AddColumn('tblUserProfiles', 'avatar_url', 'VARCHAR(512)', NULL, v_optional);
     CALL usp_AddColumn('tblUserProfiles', 'user_id', 'BIGINT UNSIGNED', NULL, v_required);
+    CALL usp_RenameColumn('tblUserProfiles', 'state_id', 'region_id');
 
     ALTER TABLE tblUserProfiles
     MODIFY COLUMN created_by
