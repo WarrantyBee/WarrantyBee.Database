@@ -6,6 +6,8 @@ CREATE PROCEDURE usp_GetOtp(
 )
 proc_label:BEGIN
     DECLARE v_active BOOLEAN DEFAULT FALSE;
+    DECLARE v_expired BOOLEAN DEFAULT TRUE;
+
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
         DECLARE v_error_message VARCHAR(255);
@@ -35,6 +37,9 @@ proc_label:BEGIN
         created_at DESC
     LIMIT 1;
 
+    UPDATE tblOtp
+    SET void = v_expired
+    WHERE recipient = in_recipient;
 END$$
 
 DELIMITER ;
