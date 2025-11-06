@@ -8,13 +8,13 @@ DROP PROCEDURE IF EXISTS usp_StoreOtp$$
 --
 -- Parameters:
 --   in_value     - The OTP value to store.
---   in_sender    - The sender's identifier (e.g., email or phone number).
---   in_user_id   - Optional: The user ID associated with this OTP.
+--   in_recipient    - The recipient's email address.
+--   in_recipient_id   - Optional: The recipient's identifier.
 -- =============================================
 CREATE PROCEDURE usp_StoreOtp(
     in_value VARCHAR(255),
-    in_sender VARCHAR(255),
-    in_user_id BIGINT UNSIGNED
+    in_recipient VARCHAR(255),
+    in_recipient_id BIGINT UNSIGNED
 )
 proc_label:BEGIN
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
@@ -29,14 +29,14 @@ proc_label:BEGIN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Value is required.';
     END IF;
 
-    IF in_sender IS NULL OR TRIM(in_sender) = '' THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Sender is required.';
+    IF in_recipient IS NULL OR TRIM(in_recipient) = '' THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Recipient is required.';
     END IF;
 
     START TRANSACTION;
 
-    INSERT INTO tblOtp (user_id, value, sender)
-    VALUES (in_user_id, in_value, in_sender);
+    INSERT INTO tblOtp (recipient_id, value, recipient)
+    VALUES (in_recipient_id, in_value, in_recipient);
 
     COMMIT;
 

@@ -12,7 +12,7 @@ BEGIN
 
   UPDATE tblOtp
   SET void = 1
-  WHERE sender = NEW.sender;
+  WHERE recipient = NEW.recipient;
 END;
 $$
 

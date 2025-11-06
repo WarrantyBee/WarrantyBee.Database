@@ -1,1 +1,1 @@
-CALL usp_CreateForeignKey('tblOtp', 'user_id', 'tblUsers', 'id');
+CALL usp_CreateForeignKey('tblOtp', 'recipient_id', 'tblUsers', 'id');
