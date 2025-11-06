@@ -3,10 +3,10 @@ DROP FUNCTION IF EXISTS ufn_ValidateOtp$$
 
 -- =============================================
 -- ufn_ValidateOtp
--- Checks if an OTP is valid for a given sender.
+-- Checks if an OTP is valid for a given recipient.
 --
 -- Parameters:
---   in_sender - The sender's identifier (e.g., email or phone number).
+--   in_recipient - The recipient's email address.
 --   in_value  - The OTP value to validate.
 --
 -- Returns:
@@ -14,7 +14,7 @@ DROP FUNCTION IF EXISTS ufn_ValidateOtp$$
 -- =============================================
 
 CREATE FUNCTION ufn_ValidateOtp(
-    in_sender VARCHAR(255),
+    in_recipient VARCHAR(255),
     in_value VARCHAR(255)
 )
 RETURNS BOOLEAN
@@ -29,7 +29,7 @@ BEGIN
     FROM
         tblOtp
     WHERE
-        sender = in_sender AND value = in_value AND void = v_active
+        recipient = in_recipient AND value = in_value AND void = v_active
     ORDER BY
         created_at DESC
     LIMIT 1;
