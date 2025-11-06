@@ -6,12 +6,14 @@ CREATE TRIGGER trg_BeforeInsert_tblOtp
 BEFORE INSERT ON tblOtp
 FOR EACH ROW
 BEGIN
+  DECLARE v_current_timestamp DATETIME;
+  SET v_current_timestamp = UTC_TIMESTAMP();
+
   SET NEW.internal_id = UUID_TO_BIN(UUID());
-  SET NEW.created_at = UTC_TIMESTAMP();
+  SET NEW.created_at = v_current_timestamp;
   SET NEW.void = 0;
 
-  UPDATE tblOtp
-  SET void = 1
+  DELETE FROM tblOtp
   WHERE recipient = NEW.recipient;
 END;
 $$
