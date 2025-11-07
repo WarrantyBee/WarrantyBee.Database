@@ -35,6 +35,9 @@ proc_label:BEGIN
 
     START TRANSACTION;
 
+    DELETE FROM tblOtp
+    WHERE recipient = in_recipient;
+
     INSERT INTO tblOtp (recipient_id, value, recipient)
     VALUES (in_recipient_id, in_value, in_recipient);
 
