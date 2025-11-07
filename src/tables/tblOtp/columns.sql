@@ -10,6 +10,8 @@ BEGIN
     CALL usp_AddColumn('tblOtp', 'recipient', 'VARCHAR(255)', NULL, v_required);
     CALL usp_DropColumn('tblOtp', 'created_by');
     CALL usp_DropColumn('tblOtp', 'updated_by');
+    
+    CALL usp_MarkRequired('tblOtp', 'recipient_id', 0);
 END$$
 
 DELIMITER ;

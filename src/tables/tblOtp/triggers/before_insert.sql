@@ -12,9 +12,6 @@ BEGIN
   SET NEW.internal_id = UUID_TO_BIN(UUID());
   SET NEW.created_at = v_current_timestamp;
   SET NEW.void = 0;
-
-  DELETE FROM tblOtp
-  WHERE recipient = NEW.recipient;
 END;
 $$
 
