@@ -2,7 +2,8 @@ DELIMITER $$
 DROP PROCEDURE IF EXISTS usp_GetOtp$$
 
 CREATE PROCEDURE usp_GetOtp(
-    IN in_recipient VARCHAR(255)
+    IN in_recipient VARCHAR(255),
+    IN in_type TINYINT
 )
 proc_label:BEGIN
     DECLARE v_active BOOLEAN DEFAULT FALSE;
@@ -19,17 +20,23 @@ proc_label:BEGIN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Recipient must be provided.';
     END IF;
 
+    IF in_type IS NULL THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Type must be provided.';
+    END IF;
+
     SELECT 0 AS status, 'Success' AS message;
 
     SELECT
         id,
         value,
         recipient,
-        created_at
+        recipient_id,
+        `type`
     FROM
         tblOtp
     WHERE
         recipient = in_recipient AND
+        `type` = in_type AND
         NOW() BETWEEN o.created_at AND
         created_at + INTERVAL 1 MINUTE AND
         void = v_active
@@ -39,7 +46,8 @@ proc_label:BEGIN
 
     UPDATE tblOtp
     SET void = v_expired
-    WHERE recipient = in_recipient;
+    WHERE recipient = in_recipient
+    AND `type` = in_type;
 END$$
 
 DELIMITER ;

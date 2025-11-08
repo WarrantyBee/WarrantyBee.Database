@@ -1,15 +1,23 @@
+
 Table tblUsers {
   id BIGINT [pk, increment]
+  internal_id BINARY(16) [unique, not null]
   firstname VARCHAR(128) [not null]
   lastname VARCHAR(128) [not null]
   email VARCHAR(255) [unique, not null]
   password VARCHAR(255) [not null]
-  created_at TIMESTAMP
-  updated_at TIMESTAMP
+  void BOOLEAN [default: 0]
+  created_at TIMESTAMP [default: `now()`]
+  updated_at TIMESTAMP [default: `now()`]
+
+  Indexes {
+    email
+  }
 }
 
 Table tblUserProfiles {
   id BIGINT [pk, increment]
+  internal_id BINARY(16) [unique, not null]
   phone_number VARCHAR(15) [not null]
   gender TINYINT [not null, note: '1: Male, 2: Female, 3: Other']
   date_of_birth DATE [not null]
@@ -21,21 +29,16 @@ Table tblUserProfiles {
   postal_code VARCHAR(20) [not null]
   avatar_url VARCHAR(512)
   user_id BIGINT [unique, not null]
-  created_at TIMESTAMP
-  updated_at TIMESTAMP
-}
-
-Table tblOtp {
-  id BIGINT [pk, increment]
-  recipient_id BIGINT [not null]
-  value VARCHAR(255) [not null]
-  recipient VARCHAR(255) [not null]
-  created_at TIMESTAMP
-  updated_at TIMESTAMP
+  void BOOLEAN [default: 0]
+  created_at TIMESTAMP [default: `now()`]
+  updated_at TIMESTAMP [default: `now()`]
+  created_by BIGINT 
+  updated_by BIGINT
 }
 
 Table tblCountries {
   id BIGINT [pk, increment]
+  internal_id BINARY(16) [unique, not null]
   iso2_code CHAR(2) [unique, not null]
   iso3_code CHAR(3) [unique, not null]
   numeric_code CHAR(3) [unique, not null]
@@ -44,12 +47,14 @@ Table tblCountries {
   capital VARCHAR(100)
   phone_code VARCHAR(50)
   currency_id BIGINT
-  created_at TIMESTAMP
-  updated_at TIMESTAMP
+  void BOOLEAN [default: 0]
+  created_at TIMESTAMP [default: `now()`]
+  updated_at TIMESTAMP [default: `now()`]
 }
 
 Table tblStates {
   id BIGINT [pk, increment]
+  internal_id BINARY(16) [unique, not null]
   name VARCHAR(255) [not null]
   official_name VARCHAR(150)
   iso_code VARCHAR(10) [not null]
@@ -57,41 +62,58 @@ Table tblStates {
   timezone_id BIGINT [not null]
   phone_code VARCHAR(10)
   country_id BIGINT [not null]
-  created_at TIMESTAMP
-  updated_at TIMESTAMP
-  
-  indexes {
+  void BOOLEAN [default: 0]
+  created_at TIMESTAMP [default: `now()`]
+  updated_at TIMESTAMP [default: `now()`]
+
+  Indexes {
     (country_id, iso_code) [unique]
     (country_id, name) [unique]
   }
 }
 
+Table tblTimeZones {
+  id BIGINT [pk, increment]
+  internal_id BINARY(16) [unique, not null]
+  name VARCHAR(100) [unique, not null]
+  abbreviation VARCHAR(10)
+  utc_offset_minutes SMALLINT [not null]
+  observes_dst BOOLEAN [not null, default: false]
+  current_offset_minutes SMALLINT [not null]
+  void BOOLEAN [default: 0]
+  created_at TIMESTAMP [default: `now()`]
+  updated_at TIMESTAMP [default: `now()`]
+}
+
 Table tblCurrencies {
   id BIGINT [pk, increment]
+  internal_id BINARY(16) [unique, not null]
   iso_code CHAR(3) [unique, not null]
   numeric_code CHAR(3) [unique]
   name VARCHAR(100) [unique, not null]
   symbol VARCHAR(10) [not null]
   minor_unit TINYINT [not null, default: 2]
-  created_at TIMESTAMP
-  updated_at TIMESTAMP
+  void BOOLEAN [default: 0]
+  created_at TIMESTAMP [default: `now()`]
+  updated_at TIMESTAMP [default: `now()`]
 }
 
-Table tblTimeZones {
+Table tblOtp {
   id BIGINT [pk, increment]
-  name VARCHAR(100) [unique, not null]
-  abbreviation VARCHAR(10)
-  utc_offset_minutes SMALLINT [not null]
-  observes_dst BOOLEAN [not null, default: 0]
-  current_offset_minutes SMALLINT [not null]
-  created_at TIMESTAMP
-  updated_at TIMESTAMP
+  internal_id BINARY(16) [unique, not null]
+  recipient_id BIGINT
+  value VARCHAR(255) [not null]
+  recipient VARCHAR(255) [not null]
+  type TINYINT [not null]
+  void BOOLEAN [default: 0]
+  created_at TIMESTAMP [default: `now()`]
+  updated_at TIMESTAMP [default: `now()`]
 }
 
 Ref: tblUserProfiles.user_id > tblUsers.id
 Ref: tblUserProfiles.country_id > tblCountries.id
 Ref: tblUserProfiles.region_id > tblStates.id
-Ref: tblOtp.recipient_id > tblUsers.id
+Ref: tblCountries.currency_id > tblCurrencies.id
 Ref: tblStates.country_id > tblCountries.id
 Ref: tblStates.timezone_id > tblTimeZones.id
-Ref: tblCountries.currency_id > tblCurrencies.id
+Ref: tblOtp.recipient_id > tblUsers.id
