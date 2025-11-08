@@ -9,6 +9,8 @@ BEGIN
     CALL usp_AddColumn('tblUsers', 'lastname', 'VARCHAR(128)', NULL, v_required);
     CALL usp_AddColumn('tblUsers', 'email', 'VARCHAR(255)', NULL, v_required);
     CALL usp_AddColumn('tblUsers', 'password', 'VARCHAR(255)', NULL, v_required);
+    CALL usp_AddColumn('tblUsers', 'is_2fa_enabled', 'BOOLEAN', '0', v_required);
+    CALL usp_AddColumn('tblUsers', 'login_token', 'VARCHAR(255)', NULL, v_optional);
     CALL usp_DropColumn('tblUsers', 'created_by');
     CALL usp_DropColumn('tblUsers', 'updated_by');
 END$$

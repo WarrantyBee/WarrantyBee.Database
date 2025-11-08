@@ -3,6 +3,7 @@ DROP PROCEDURE IF EXISTS usp_GetOtp$$
 
 CREATE PROCEDURE usp_GetOtp(
     IN in_recipient VARCHAR(255),
+    IN in_recipient_id BIGINT UNSIGNED,
     IN in_type TINYINT
 )
 proc_label:BEGIN
@@ -36,6 +37,7 @@ proc_label:BEGIN
         tblOtp
     WHERE
         recipient = in_recipient AND
+        (in_recipient_id IS NULL OR recipient_id = in_recipient_id) AND
         `type` = in_type AND
         NOW() BETWEEN o.created_at AND
         created_at + INTERVAL 1 MINUTE AND
