@@ -63,7 +63,8 @@ proc_label:BEGIN
         cur.iso_code AS currency_iso_code,
         cur.symbol AS currency_symbol,
         cur.minor_unit AS currency_minor_unit,
-        u.is_2fa_enabled
+        u.is_2fa_enabled,
+        u.password
     FROM
         tblUsers u
     LEFT JOIN tblUserProfiles up ON u.id = up.user_id

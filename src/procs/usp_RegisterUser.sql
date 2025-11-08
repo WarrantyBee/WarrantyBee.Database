@@ -77,8 +77,8 @@ proc_label:BEGIN
 
     START TRANSACTION;
 
-    INSERT INTO tblUsers (firstname, lastname, email, `password`)
-    VALUES (TRIM(in_firstname), TRIM(in_lastname), TRIM(in_email), in_password);
+    INSERT INTO tblUsers (firstname, lastname, email, `password`, is_2fa_enabled)
+    VALUES (TRIM(in_firstname), TRIM(in_lastname), TRIM(in_email), in_password, 0);
     SET v_user_id = LAST_INSERT_ID();
 
     INSERT INTO tblUserProfiles (

@@ -39,8 +39,8 @@ proc_label:BEGIN
         recipient = in_recipient AND
         (in_recipient_id IS NULL OR recipient_id = in_recipient_id) AND
         `type` = in_type AND
-        NOW() BETWEEN o.created_at AND
-        created_at + INTERVAL 1 MINUTE AND
+        UTC_TIMESTAMP() BETWEEN created_at AND
+        created_at + INTERVAL 10 MINUTE AND
         void = v_active
     ORDER BY
         created_at DESC
