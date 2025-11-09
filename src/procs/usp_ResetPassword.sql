@@ -16,26 +16,53 @@ CREATE PROCEDURE usp_ResetPassword(
     in_new_password VARCHAR(255)
 )
 proc_label:BEGIN
+    DECLARE v_password_updated_at TIMESTAMP;
+    DECLARE v_user_found BOOLEAN DEFAULT FALSE;
+    DECLARE v_error_message VARCHAR(255);
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
-        DECLARE v_error_message VARCHAR(255);
         GET DIAGNOSTICS CONDITION 1 v_error_message = MESSAGE_TEXT;
         SELECT 1 AS status, v_error_message AS message;
     END;
 
     IF in_user_id IS NULL THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'User identifier must be provided.';
+        SET v_error_message = 'User identifier must be provided.';
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = v_error_message;
     END IF;
 
     IF in_new_password IS NULL OR TRIM(in_new_password) = '' THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'New password must be provided.';
+        SET v_error_message = 'New password must be provided.';
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = v_error_message;
     END IF;
 
-    UPDATE tblUsers
-    SET `password` = in_new_password
+    SELECT EXISTS (
+        SELECT 1
+        FROM tblUsers
+        WHERE id = in_user_id
+    ) INTO v_user_found;
+
+    IF NOT v_user_found THEN
+        SET v_error_message = 'User not found.';
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = v_error_message;
+    END IF;
+
+    SELECT password_updated_at INTO v_password_updated_at
+    FROM tblUsers
     WHERE id = in_user_id;
 
-    SELECT 0 AS status, 'Success' AS message;
+    IF v_password_updated_at IS NOT NULL AND
+    UTC_TIMESTAMP() BETWEEN v_password_updated_at AND
+    v_password_updated_at + INTERVAL 10 MINUTE THEN
+        SELECT -1 AS status, 'Password was recently updated. Please wait before resetting again.' AS message;
+        LEAVE proc_label;
+    ELSE
+        UPDATE tblUsers
+        SET `password` = in_new_password,
+        password_updated_at = UTC_TIMESTAMP()
+        WHERE id = in_user_id;
+        
+        SELECT 0 AS status, 'Success' AS message;
+    END IF;
 END$$
 
 DELIMITER ;
