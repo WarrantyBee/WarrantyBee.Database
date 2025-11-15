@@ -171,6 +171,12 @@
 					"functions": [],
 					"procs": []
 				}
+			},
+			"usp_GetUserPasswords": {
+				"dependencies": {
+					"functions": [],
+					"procs": []
+				}
 			}
 		}
 	},
