@@ -65,7 +65,13 @@ proc_label:BEGIN
         cur.minor_unit AS currency_minor_unit,
         u.is_2fa_enabled,
         u.password,
-        u.password_updated_at
+        u.password_updated_at,
+        cu.id AS culture_id,
+        cu.iso_code AS culture_iso_code,
+        cu.rtl AS culture_rtl,
+        lang.id AS language_id,
+        lang.name AS language_name,
+        lang.iso_code AS language_iso_code
     FROM
         tblUsers u
     LEFT JOIN tblUserProfiles up ON u.id = up.user_id
@@ -73,6 +79,8 @@ proc_label:BEGIN
     LEFT JOIN tblStates s ON up.region_id = s.id
     LEFT JOIN tblTimeZones tz on tz.id = s.timezone_id
     LEFT JOIN tblCurrencies cur on cur.id = c.currency_id
+    LEFT JOIN tblCultures cu ON cu.id = up.culture_id
+    LEFT JOIN tblLanguages lang ON lang.id = cu.language_id
     WHERE (in_id IS NOT NULL AND u.id = in_id)
     OR (in_email IS NOT NULL AND u.email = in_email)
     LIMIT 1;

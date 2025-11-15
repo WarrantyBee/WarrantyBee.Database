@@ -15,7 +15,8 @@ CREATE PROCEDURE usp_RegisterUser(
     IN in_region_id BIGINT UNSIGNED,
     IN in_city VARCHAR(255),
     IN in_postal_code VARCHAR(20),
-    IN in_avatar_url VARCHAR(512)
+    IN in_avatar_url VARCHAR(512),
+    IN in_culture_id BIGINT UNSIGNED
 )
 proc_label:BEGIN
     DECLARE v_user_id BIGINT UNSIGNED;
@@ -75,6 +76,11 @@ proc_label:BEGIN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'The specified region is not valid for the selected country.';
     END IF;
 
+    SELECT COUNT(1) INTO v_record_exists FROM tblCultures WHERE id = in_culture_id;
+    IF v_record_exists = 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'The specified culture does not exist.';
+    END IF;
+
     START TRANSACTION;
 
     INSERT INTO tblUsers (firstname, lastname, email, `password`, is_2fa_enabled)
@@ -92,7 +98,8 @@ proc_label:BEGIN
         region_id,
         city,
         postal_code,
-        avatar_url
+        avatar_url,
+        culture_id
     ) VALUES (
         v_user_id,
         TRIM(in_phone_number),
@@ -104,7 +111,8 @@ proc_label:BEGIN
         in_region_id,
         TRIM(in_city),
         TRIM(in_postal_code),
-        IF(in_avatar_url IS NULL OR TRIM(in_avatar_url) = '', NULL, TRIM(in_avatar_url))
+        IF(in_avatar_url IS NULL OR TRIM(in_avatar_url) = '', NULL, TRIM(in_avatar_url)),
+        in_culture_id
     );
 
     COMMIT;

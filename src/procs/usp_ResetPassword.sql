@@ -16,6 +16,7 @@ CREATE PROCEDURE usp_ResetPassword(
     in_new_password VARCHAR(255)
 )
 proc_label:BEGIN
+    DECLARE v_old_password VARCHAR(255);
     DECLARE v_password_updated_at TIMESTAMP;
     DECLARE v_user_found BOOLEAN DEFAULT FALSE;
     DECLARE v_error_message VARCHAR(255);
@@ -23,6 +24,7 @@ proc_label:BEGIN
     BEGIN
         GET DIAGNOSTICS CONDITION 1 v_error_message = MESSAGE_TEXT;
         SELECT 1 AS status, v_error_message AS message;
+        ROLLBACK;
     END;
 
     IF in_user_id IS NULL THEN
@@ -56,10 +58,21 @@ proc_label:BEGIN
         SELECT -1 AS status, 'Password was recently updated. Please wait before resetting again.' AS message;
         LEAVE proc_label;
     ELSE
+        START TRANSACTION;
+
+        SELECT `password` INTO v_old_password
+        FROM tblUsers
+        WHERE id = in_user_id;
+
         UPDATE tblUsers
         SET `password` = in_new_password,
         password_updated_at = UTC_TIMESTAMP()
         WHERE id = in_user_id;
+
+        INSERT INTO tblPasswordLogs (`user_id`, `password`)
+        VALUES (in_user_id, v_old_password);
+
+        COMMIT;
         
         SELECT 0 AS status, 'Success' AS message;
     END IF;

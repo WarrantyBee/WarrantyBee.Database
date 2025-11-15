@@ -181,6 +181,9 @@
 		"tblTimeZones": [],
 		"tblUserProfiles": ["tblUsers", "tblCountries", "tblStates"],
 		"tblUsers": [],
-		"tblOtp": ["tblUsers"]
+		"tblOtp": ["tblUsers"],
+		"tblLanguages": [],
+		"tblCultures": ["tblLanguages", "tblCountries"],
+		"tblPasswordLogs": ["tblUsers"]
 	}
 }

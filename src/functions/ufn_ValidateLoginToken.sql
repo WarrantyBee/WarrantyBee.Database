@@ -30,10 +30,6 @@ BEGIN
     FROM tblUsers
     WHERE id = in_user_id;
 
-    UPDATE tblUsers
-    SET login_token = NULL
-    WHERE id = in_user_id;
-
     IF v_stored_token IS NOT NULL AND v_stored_token = in_token THEN
         RETURN TRUE;
     ELSE
