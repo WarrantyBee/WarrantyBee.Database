@@ -14,15 +14,17 @@ BEGIN
         s.capital,
         s.phone_code,
         s.country_id,
-        c.name AS country_name,
         s.timezone_id,
-        tz.name AS timezone_name
+        tz.name AS timezone_name,
+        tz.abbreviation AS timezone_abbreviation,
+        tz.utc_offset_minutes AS timezone_utc_offset_minutes,
+        tz.observes_dst AS timezone_observes_dst,
+        tz.current_offset_minutes AS timezone_current_offset_minutes
     FROM tblStates s
-    LEFT JOIN tblCountries c ON s.country_id = c.id
     LEFT JOIN tblTimeZones tz ON s.timezone_id = tz.id
     WHERE s.void = 0 AND (in_id IS NULL OR s.id = in_id)
     AND (in_country_id IS NULL OR s.country_id = in_country_id)
-    ORDER BY c.name, s.name;
+    ORDER BY s.name;
 END$
 
 DELIMITER ;

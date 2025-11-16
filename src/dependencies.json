@@ -177,6 +177,12 @@
 					"functions": [],
 					"procs": []
 				}
+			},
+			"usp_GetCultures": {
+				"dependencies": {
+					"functions": [],
+					"procs": []
+				}
 			}
 		}
 	},
