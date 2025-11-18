@@ -6,6 +6,7 @@ BEGIN
     DECLARE v_required BOOLEAN DEFAULT TRUE;
     DECLARE v_optional BOOLEAN DEFAULT FALSE;
 
+    CALL usp_AddColumn('tblUserProfiles', 'phone_code', 'VARCHAR(8)', NULL, v_required);
     CALL usp_AddColumn('tblUserProfiles', 'phone_number', 'VARCHAR(15)', NULL, v_required);
     CALL usp_AddColumn('tblUserProfiles', 'gender', 'TINYINT', NULL, v_required);
     CALL usp_AddColumn('tblUserProfiles', 'date_of_birth', 'DATE', NULL, v_required);

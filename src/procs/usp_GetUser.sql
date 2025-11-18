@@ -72,7 +72,8 @@ proc_label:BEGIN
         lang.id AS language_id,
         lang.name AS language_name,
         lang.iso_code AS language_iso_code,
-        lang.native_name AS language_native_name
+        lang.native_name AS language_native_name,
+        up.phone_code
     FROM
         tblUsers u
     LEFT JOIN tblUserProfiles up ON u.id = up.user_id
