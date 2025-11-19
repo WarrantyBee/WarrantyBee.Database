@@ -4,3 +4,7 @@ CALL usp_CreateTable('tblCountries');
 CALL usp_CreateTable('tblStates');
 CALL usp_CreateTable('tblUsers');
 CALL usp_CreateTable('tblUserProfiles');
+CALL usp_CreateTable('tblOtp');
+CALL usp_CreateTable('tblPasswordLogs');
+CALL usp_CreateTable('tblLanguages');
+CALL usp_CreateTable('tblCultures');

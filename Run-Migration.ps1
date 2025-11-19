@@ -12,7 +12,7 @@ if (Test-Path $outputFile) {
 }
 
 if (-not [string]::IsNullOrEmpty($db)) {
-    $useDbStatement = "USE $db;`n"
+    $useDbStatement = "CREATE DATABASE IF NOT EXISTS $db;`nUSE $db;`n"
     Add-Content -Path $outputFile -Value $useDbStatement
 }
 
@@ -94,21 +94,20 @@ function Get-TopologicalSort {
 }
 
 
-Write-Host "Processing functions..."
-$allFunctions = @{}
-$dependencies.functions.PSObject.Properties | ForEach-Object {
-    $folder = $_.Name
-    $_.Value.PSObject.Properties | ForEach-Object {
+Write-Host "Processing master functions..."
+$masterFunctions = @{}
+if ($dependencies.functions.master) {
+    $dependencies.functions.master.PSObject.Properties | ForEach-Object {
         $functionName = $_.Name
         $deps = $_.Value.dependencies.functions
-        $allFunctions[$functionName] = $deps
+        $masterFunctions[$functionName] = $deps
     }
-}
-$sortedFunctions = Get-TopologicalSort -itemsWithDependencies $allFunctions
-foreach ($functionName in $sortedFunctions) {
-    $filePath = Join-Path -Path $srcPath -ChildPath "functions\master\$functionName.sql"
-    if (Test-Path $filePath) {
-        Add-ScriptContent -filePath $filePath
+    $sortedMasterFunctions = Get-TopologicalSort -itemsWithDependencies $masterFunctions
+    foreach ($functionName in $sortedMasterFunctions) {
+        $filePath = Join-Path -Path $srcPath -ChildPath "functions\master\$functionName.sql"
+        if (Test-Path $filePath) {
+            Add-ScriptContent -filePath $filePath
+        }
     }
 }
 
@@ -169,6 +168,26 @@ foreach ($tableName in $sortedTables) {
             if (Test-Path $dataFilePath) {
                 Add-ScriptContent -filePath $dataFilePath
             }
+        }
+    }
+}
+
+Write-Host "`nProcessing business functions..."
+$businessFunctions = @{}
+if ($dependencies.functions.business) {
+    $dependencies.functions.business.PSObject.Properties | ForEach-Object {
+        $functionName = $_.Name
+        $deps = $_.Value.dependencies.functions
+        $businessFunctions[$functionName] = $deps
+    }
+    $sortedBusinessFunctions = Get-TopologicalSort -itemsWithDependencies $businessFunctions
+    foreach ($functionName in $sortedBusinessFunctions) {
+        $filePath = Join-Path -Path $srcPath -ChildPath "functions\$functionName.sql"
+        if (-not (Test-Path $filePath)) {
+            $filePath = Join-Path -Path $srcPath -ChildPath "functions\business\$functionName.sql"
+        }
+        if (Test-Path $filePath) {
+            Add-ScriptContent -filePath $filePath
         }
     }
 }

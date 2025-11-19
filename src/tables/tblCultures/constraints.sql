@@ -1,0 +1,1 @@
+CALL usp_CreateUniqueKey('tblCultures', 'iso_code');

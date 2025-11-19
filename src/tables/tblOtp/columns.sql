@@ -1,0 +1,20 @@
+DROP PROCEDURE IF EXISTS usp_CreateColumns_tblOtp;
+DELIMITER $$
+
+CREATE PROCEDURE usp_CreateColumns_tblOtp()
+BEGIN
+    DECLARE v_required BOOLEAN DEFAULT TRUE;
+    DECLARE v_optional BOOLEAN DEFAULT FALSE;
+
+    CALL usp_AddColumn('tblOtp', 'recipient_id', 'BIGINT UNSIGNED', NULL, v_optional);
+    CALL usp_AddColumn('tblOtp', 'value', 'VARCHAR(255)', NULL, v_required);
+    CALL usp_AddColumn('tblOtp', 'recipient', 'VARCHAR(255)', NULL, v_required);
+    CALL usp_AddColumn('tblOtp', 'type', 'TINYINT', NULL, v_required);
+    CALL usp_DropColumn('tblOtp', 'created_by');
+    CALL usp_DropColumn('tblOtp', 'updated_by');
+END$$
+
+DELIMITER ;
+
+CALL usp_CreateColumns_tblOtp();
+DROP PROCEDURE usp_CreateColumns_tblOtp;

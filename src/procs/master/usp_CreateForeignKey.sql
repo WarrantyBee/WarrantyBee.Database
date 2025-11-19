@@ -51,39 +51,31 @@ BEGIN
     -- Check if table and columns exist
     IF NOT ufn_DoesTableExist(in_table_name) THEN
         SELECT CONCAT(
-            'Foreign key `',
-            v_constraint_name,
-            '` creation failed due to table `',
-            in_table_name,
-            '` does not exist.'
+            'Foreign key `', v_constraint_name,
+            '` creation failed due to table `', in_table_name, '` not existing.'
         ) AS message;
+
     ELSEIF NOT ufn_DoesColumnExist(in_table_name, in_column_name) THEN
         SELECT CONCAT(
-            'Foreign key `',
-            v_constraint_name,
-            '` creation failed due to column `',
-            in_column_name,
-            '` does not exist on the table `',
-            in_table_name, '`.'
+            'Foreign key `', v_constraint_name,
+            '` creation failed due to column `', in_column_name,
+            '` not existing on table `', in_table_name, '`.'
         ) AS message;
+
     ELSEIF NOT ufn_DoesTableExist(in_ref_table_name) THEN
         SELECT CONCAT(
-            'Foreign key `',
-            v_constraint_name,
-            '` creation failed due to referenced table `',
-            in_ref_table_name,
-            '` does not exist.'
+            'Foreign key `', v_constraint_name,
+            '` creation failed due to referenced table `', in_ref_table_name, '` not existing.'
         ) AS message;
+
     ELSEIF NOT ufn_DoesColumnExist(in_ref_table_name, in_ref_column_name) THEN
         SELECT CONCAT(
-            'Foreign key `',
-            v_constraint_name,
-            '` creation failed due to referenced column `',
-            in_ref_column_name,
-            '` does not exist on the table `',
-            in_ref_table_name, '`.'
+            'Foreign key `', v_constraint_name,
+            '` creation failed due to referenced column `', in_ref_column_name,
+            '` not existing on table `', in_ref_table_name, '`.'
         ) AS message;
-    -- Check if the constraint already exists
+
+    -- Check if a constraint with the same name exists
     ELSEIF EXISTS (
         SELECT 1
         FROM information_schema.table_constraints
@@ -92,43 +84,46 @@ BEGIN
           AND constraint_type = 'FOREIGN KEY'
           AND constraint_name = v_constraint_name
     ) THEN
+        SELECT CONCAT('Foreign key `', v_constraint_name, '` already exists.') AS message;
+
+    -- Check if any foreign key already references the same table & column (even with different name)
+    ELSEIF EXISTS (
+        SELECT 1
+        FROM information_schema.key_column_usage
+        WHERE table_schema = DATABASE()
+          AND table_name = in_table_name
+          AND column_name = in_column_name
+          AND referenced_table_name = in_ref_table_name
+          AND referenced_column_name = in_ref_column_name
+    ) THEN
         SELECT CONCAT(
-            'Foreign key `',
-            v_constraint_name,
-            '` already exists.'
+            'A foreign key already exists on `', in_table_name, '`(`', in_column_name,
+            '`) referencing `', in_ref_table_name, '`(`', in_ref_column_name, '`).'
         ) AS message;
+
     ELSE
         -- Try to create the foreign key constraint
         BEGIN
             DECLARE EXIT HANDLER FOR SQLEXCEPTION
             BEGIN
-                SELECT CONCAT(
-                    'Foreign key `',
-                    v_constraint_name,
-                    '` creation failed.'
-                ) AS message;
+                SELECT CONCAT('Foreign key `', v_constraint_name, '` creation failed.') AS message;
             END;
 
             -- Build and execute the ALTER TABLE statement
             SET @sql = CONCAT(
                 'ALTER TABLE `', in_table_name,
                 '` ADD CONSTRAINT `', v_constraint_name,
-                '` FOREIGN KEY (`', in_column_name, '`)',
-                ' REFERENCES `', in_ref_table_name, '`(`', in_ref_column_name, '`)'
+                '` FOREIGN KEY (`', in_column_name, '`) ',
+                'REFERENCES `', in_ref_table_name, '`(`', in_ref_column_name, '`)'
             );
             PREPARE stmt FROM @sql;
             EXECUTE stmt;
             DEALLOCATE PREPARE stmt;
 
-            SELECT CONCAT(
-                'Foreign key `',
-                v_constraint_name,
-                '` created successfully.'
-            ) AS message;
+            SELECT CONCAT('Foreign key `', v_constraint_name, '` created successfully.') AS message;
         END;
     END IF;
-END
-$$
+END$$
 
 DELIMITER ;
 

@@ -1,0 +1,1 @@
+CALL usp_CreateForeignKey('tblPasswordLogs', 'user_id', 'tblUsers', 'id');
