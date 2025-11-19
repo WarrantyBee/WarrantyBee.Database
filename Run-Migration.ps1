@@ -12,7 +12,7 @@ if (Test-Path $outputFile) {
 }
 
 if (-not [string]::IsNullOrEmpty($db)) {
-    $useDbStatement = "USE $db;`n"
+    $useDbStatement = "CREATE DATABASE IF NOT EXISTS $db;`nUSE $db;`n"
     Add-Content -Path $outputFile -Value $useDbStatement
 }
 

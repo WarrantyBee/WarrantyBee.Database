@@ -17,7 +17,13 @@
 				}
 			}
 		},
-		"business": {}
+		"business": {
+			"ufn_ValidateLoginToken": {
+				"dependencies": {
+					"functions": []
+				}
+			}
+		}
 	},
 	"procedures": {
 		"master": {
@@ -153,6 +159,30 @@
 					"functions": [],
 					"procs": []
 				}
+			},
+			"usp_StoreLoginToken": {
+				"dependencies": {
+					"functions": [],
+					"procs": []
+				}
+			},
+			"usp_ResetPassword": {
+				"dependencies": {
+					"functions": [],
+					"procs": []
+				}
+			},
+			"usp_GetUserPasswords": {
+				"dependencies": {
+					"functions": [],
+					"procs": []
+				}
+			},
+			"usp_GetCultures": {
+				"dependencies": {
+					"functions": [],
+					"procs": []
+				}
 			}
 		}
 	},
@@ -163,6 +193,9 @@
 		"tblTimeZones": [],
 		"tblUserProfiles": ["tblUsers", "tblCountries", "tblStates"],
 		"tblUsers": [],
-		"tblOtp": ["tblUsers"]
+		"tblOtp": ["tblUsers"],
+		"tblLanguages": [],
+		"tblCultures": ["tblLanguages", "tblCountries"],
+		"tblPasswordLogs": ["tblUsers"]
 	}
 }

@@ -1,3 +1,4 @@
+DROP PROCEDURE IF EXISTS usp_CreateColumns_tblTimeZones;
 DELIMITER $$
 
 CREATE PROCEDURE usp_CreateColumns_tblTimeZones()
