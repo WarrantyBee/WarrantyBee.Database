@@ -61,7 +61,7 @@ VALUES
 (46, 'DK', 'DNK', '208', 'Denmark', 'Kingdom of Denmark', 'Copenhagen', '+45', 37),
 (47, 'DJ', 'DJI', '262', 'Djibouti', 'Republic of Djibouti', 'Djibouti City', '+253', 36),
 (48, 'DM', 'DMA', '212', 'Dominica', 'Commonwealth of Dominica', 'Roseau', '+1-767', 150),
-(49, 'DO', 'DOM', '214', 'Dominican Republic', 'Dominican Republic', 'Santo Domingo', '+1-809,1-829,1-849', 38),
+(49, 'DO', 'DOM', '214', 'Dominican Republic', 'Dominican Republic', 'Santo Domingo', '+1-809,+1-829,+1-849', 38),
 (50, 'EC', 'ECU', '218', 'Ecuador', 'Republic of Ecuador', 'Quito', '+593', 142),
 (51, 'EG', 'EGY', '818', 'Egypt', 'Arab Republic of Egypt', 'Cairo', '+20', 40),
 (52, 'SV', 'SLV', '222', 'El Salvador', 'Republic of El Salvador', 'San Salvador', '+503', 142),

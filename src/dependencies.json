@@ -16,6 +16,13 @@
 					"functions": ["ufn_DoesColumnExist"]
 				}
 			}
+		},
+		"business": {
+			"ufn_ValidateLoginToken": {
+				"dependencies": {
+					"functions": []
+				}
+			}
 		}
 	},
 	"procedures": {
@@ -96,6 +103,12 @@
 					"functions": ["ufn_DoesTableExist"],
 					"procs": []
 				}
+			},
+			"usp_RenameColumn": {
+				"dependencies": {
+					"functions": ["ufn_DoesTableExist, ufn_DoesColumnExist"],
+					"procs": []
+				}
 			}
 		},
 		"business": {
@@ -134,6 +147,42 @@
 					"functions": [],
 					"procs": []
 				}
+			},
+			"usp_StoreOtp": {
+				"dependencies": {
+					"functions": [],
+					"procs": []
+				}
+			},
+			"usp_GetOtp": {
+				"dependencies": {
+					"functions": [],
+					"procs": []
+				}
+			},
+			"usp_StoreLoginToken": {
+				"dependencies": {
+					"functions": [],
+					"procs": []
+				}
+			},
+			"usp_ResetPassword": {
+				"dependencies": {
+					"functions": [],
+					"procs": []
+				}
+			},
+			"usp_GetUserPasswords": {
+				"dependencies": {
+					"functions": [],
+					"procs": []
+				}
+			},
+			"usp_GetCultures": {
+				"dependencies": {
+					"functions": [],
+					"procs": []
+				}
 			}
 		}
 	},
@@ -143,6 +192,10 @@
 		"tblStates": ["tblCountries", "tblTimeZones"],
 		"tblTimeZones": [],
 		"tblUserProfiles": ["tblUsers", "tblCountries", "tblStates"],
-		"tblUsers": []
+		"tblUsers": [],
+		"tblOtp": ["tblUsers"],
+		"tblLanguages": [],
+		"tblCultures": ["tblLanguages", "tblCountries"],
+		"tblPasswordLogs": ["tblUsers"]
 	}
 }
