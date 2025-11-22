@@ -43,6 +43,9 @@ jobs:
             echo "env_name=Test" >> $GITHUB_OUTPUT
             echo "env_display_name=Test" >> $GITHUB_OUTPUT
             echo "concurrency_group=deploy-develop" >> $GITHUB_OUTPUT
+          else
+            echo "Unsupported branch: ${{ github.event.inputs.branch }}" >> $GITHUB_OUTPUT
+            exit 1
           fi
 
   deploy:
@@ -71,6 +74,8 @@ jobs:
               -e 's|{{BRANCH}}|${{ github.event.inputs.branch }}|g' \
               -e 's|{{COMMIT_SHA}}|${{ github.sha }}|g' \
               -e 's|{{TRIGGERED_BY}}|${{ github.actor }}|g' \
+              -e "s|{{TRIGGERED_AT}}|$(date -u +"%Y-%m-%dT%H:%M:%SZ")|g" \
+              -e 's|{{WORKFLOW_ID}}|${{ github.run_id }}|g' \
               -e 's|{{REASON}}|${{ github.event.inputs.reason }}|g' \
               -e "s|{{WORKFLOW_URL}}|${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|g" \
               template_start.html)
@@ -119,24 +124,20 @@ jobs:
                 --protocol=tcp \
                 warrantybeedb < output.sql
 
-  notify-end:
-    name: Send Deployment Completion Notification
-    needs: [prepare, deploy]
-    if: always()
-    runs-on: ubuntu-latest
-    steps:
       - name: Set Deployment Status
         id: set_status
+        if: always()
         run: |
-          if [ "${{ needs.deploy.result }}" == "success" ]; then
-            echo "status=Succeeded" >> $GITHUB_OUTPUT
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "status=SUCCEEDED" >> $GITHUB_OUTPUT
             echo "color=#28a745" >> $GITHUB_OUTPUT
-            echo "result=✅ Success" >> $GITHUB_OUTPUT
+            echo "result=Success" >> $GITHUB_OUTPUT
           else
-            echo "status=Failed" >> $GITHUB_OUTPUT
+            echo "status=FAILED" >> $GITHUB_OUTPUT
             echo "color=#dc3545" >> $GITHUB_OUTPUT
-            echo "result=❌ Failure" >> $GITHUB_OUTPUT
+            echo "result=Failure" >> $GITHUB_OUTPUT
           fi
+
       - name: Prepare End Notification Body
         id: prep_end_email
         run: |
@@ -151,6 +152,8 @@ jobs:
               -e 's|{{BRANCH}}|${{ github.event.inputs.branch }}|g' \
               -e 's|{{COMMIT_SHA}}|${{ github.sha }}|g' \
               -e 's|{{TRIGGERED_BY}}|${{ github.actor }}|g' \
+              -e "s|{{TRIGGERED_AT}}|$(date -u +"%Y-%m-%dT%H:%M:%SZ")|g" \
+              -e 's|{{WORKFLOW_ID}}|${{ github.run_id }}|g' \
               -e "s|{{WORKFLOW_URL}}|${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|g" \
               template_end.html)
           echo "body<<EOF" >> $GITHUB_OUTPUT
