@@ -129,11 +129,11 @@ jobs:
         if: always()
         run: |
           if [ "${{ job.status }}" == "success" ]; then
-            echo "status=Succeeded" >> $GITHUB_OUTPUT
+            echo "status=SUCCEEDED" >> $GITHUB_OUTPUT
             echo "color=#28a745" >> $GITHUB_OUTPUT
             echo "result=Success" >> $GITHUB_OUTPUT
           else
-            echo "status=Failed" >> $GITHUB_OUTPUT
+            echo "status=FAILED" >> $GITHUB_OUTPUT
             echo "color=#dc3545" >> $GITHUB_OUTPUT
             echo "result=Failure" >> $GITHUB_OUTPUT
           fi
