@@ -43,6 +43,10 @@ jobs:
             echo "env_name=Test" >> $GITHUB_OUTPUT
             echo "env_display_name=Test" >> $GITHUB_OUTPUT
             echo "concurrency_group=deploy-develop" >> $GITHUB_OUTPUT
+          else
+            echo "Unsupported branch: ${{ github.event.inputs.branch }}" >> $GITHUB_OUTPUT
+            exit 1
+          fi
 
   deploy:
     name: Deploy (${{ needs.prepare.outputs.env_display_name }})
@@ -59,7 +63,6 @@ jobs:
       DB_CA_CERT: ${{ secrets.DB_CA_CERT }}
       DB_PORT: ${{ secrets.DB_PORT }}
     steps:
-      # --- START NOTIFICATIONS ---
       - name: Prepare Start Notification Body
         id: prep_start_email
         run: |
@@ -98,7 +101,6 @@ jobs:
           to: ${{ secrets.AUDIENCE_ON_DEPLOY }}
           from: ${{ secrets.SMTP_USER }}
           html_body: ${{ steps.prep_start_email.outputs.body }}
-      # --- END START NOTIFICATIONS ---
 
       - name: Checkout ${{ github.event.inputs.branch }} branch
         uses: actions/checkout@v4
@@ -122,7 +124,6 @@ jobs:
                 --protocol=tcp \
                 warrantybeedb < output.sql
 
-      # --- END NOTIFICATIONS ---
       - name: Set Deployment Status
         id: set_status
         if: always()
@@ -135,6 +136,7 @@ jobs:
             echo "status=Failed" >> $GITHUB_OUTPUT
             echo "color=#dc3545" >> $GITHUB_OUTPUT
             echo "result=Failure" >> $GITHUB_OUTPUT
+          fi
 
       - name: Prepare End Notification Body
         id: prep_end_email
