@@ -43,7 +43,6 @@ jobs:
             echo "env_name=Test" >> $GITHUB_OUTPUT
             echo "env_display_name=Test" >> $GITHUB_OUTPUT
             echo "concurrency_group=deploy-develop" >> $GITHUB_OUTPUT
-          fi
 
   deploy:
     name: Deploy (${{ needs.prepare.outputs.env_display_name }})
@@ -60,6 +59,7 @@ jobs:
       DB_CA_CERT: ${{ secrets.DB_CA_CERT }}
       DB_PORT: ${{ secrets.DB_PORT }}
     steps:
+      # --- START NOTIFICATIONS ---
       - name: Prepare Start Notification Body
         id: prep_start_email
         run: |
@@ -71,6 +71,8 @@ jobs:
               -e 's|{{BRANCH}}|${{ github.event.inputs.branch }}|g' \
               -e 's|{{COMMIT_SHA}}|${{ github.sha }}|g' \
               -e 's|{{TRIGGERED_BY}}|${{ github.actor }}|g' \
+              -e "s|{{TRIGGERED_AT}}|$(date -u +"%Y-%m-%dT%H:%M:%SZ")|g" \
+              -e 's|{{WORKFLOW_ID}}|${{ github.run_id }}|g' \
               -e 's|{{REASON}}|${{ github.event.inputs.reason }}|g' \
               -e "s|{{WORKFLOW_URL}}|${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|g" \
               template_start.html)
@@ -96,6 +98,7 @@ jobs:
           to: ${{ secrets.AUDIENCE_ON_DEPLOY }}
           from: ${{ secrets.SMTP_USER }}
           html_body: ${{ steps.prep_start_email.outputs.body }}
+      # --- END START NOTIFICATIONS ---
 
       - name: Checkout ${{ github.event.inputs.branch }} branch
         uses: actions/checkout@v4
@@ -119,24 +122,20 @@ jobs:
                 --protocol=tcp \
                 warrantybeedb < output.sql
 
-  notify-end:
-    name: Send Deployment Completion Notification
-    needs: [prepare, deploy]
-    if: always()
-    runs-on: ubuntu-latest
-    steps:
+      # --- END NOTIFICATIONS ---
       - name: Set Deployment Status
         id: set_status
+        if: always()
         run: |
-          if [ "${{ needs.deploy.result }}" == "success" ]; then
+          if [ "${{ job.status }}" == "success" ]; then
             echo "status=Succeeded" >> $GITHUB_OUTPUT
             echo "color=#28a745" >> $GITHUB_OUTPUT
-            echo "result=✅ Success" >> $GITHUB_OUTPUT
+            echo "result=Success" >> $GITHUB_OUTPUT
           else
             echo "status=Failed" >> $GITHUB_OUTPUT
             echo "color=#dc3545" >> $GITHUB_OUTPUT
-            echo "result=❌ Failure" >> $GITHUB_OUTPUT
-          fi
+            echo "result=Failure" >> $GITHUB_OUTPUT
+
       - name: Prepare End Notification Body
         id: prep_end_email
         run: |
@@ -151,6 +150,8 @@ jobs:
               -e 's|{{BRANCH}}|${{ github.event.inputs.branch }}|g' \
               -e 's|{{COMMIT_SHA}}|${{ github.sha }}|g' \
               -e 's|{{TRIGGERED_BY}}|${{ github.actor }}|g' \
+              -e "s|{{TRIGGERED_AT}}|$(date -u +"%Y-%m-%dT%H:%M:%SZ")|g" \
+              -e 's|{{WORKFLOW_ID}}|${{ github.run_id }}|g' \
               -e "s|{{WORKFLOW_URL}}|${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|g" \
               template_end.html)
           echo "body<<EOF" >> $GITHUB_OUTPUT
