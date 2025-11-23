@@ -183,6 +183,12 @@
 					"functions": [],
 					"procs": []
 				}
+			},
+			"usp_UpdateUserProfile": {
+				"dependencies": {
+					"functions": [],
+					"procs": []
+				}
 			}
 		}
 	},
