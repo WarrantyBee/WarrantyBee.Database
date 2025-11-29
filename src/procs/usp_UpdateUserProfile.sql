@@ -30,6 +30,7 @@ CREATE PROCEDURE usp_UpdateUserProfile(
     IN in_phone_number VARCHAR(15),
     IN in_country_id BIGINT UNSIGNED,
     IN in_region_id BIGINT UNSIGNED,
+    IN in_culture_id BIGINT UNSIGNED,
     IN in_city VARCHAR(255),
     IN in_postal_code VARCHAR(20),
     IN in_avatar_url VARCHAR(512)
@@ -64,6 +65,13 @@ proc_label:BEGIN
         END IF;
     END IF;
 
+    IF in_culture_id IS NOT NULL THEN
+        SELECT COUNT(1) INTO v_record_exists FROM tblCultures WHERE id = in_culture_id;
+        IF v_record_exists = 0 THEN
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'The specified culture does not exist.';
+        END IF;
+    END IF;
+
     START TRANSACTION;
 
     UPDATE tblUserProfiles
@@ -74,6 +82,7 @@ proc_label:BEGIN
         phone_number = IFNULL(TRIM(in_phone_number), phone_number),
         country_id = IFNULL(in_country_id, country_id),
         region_id = IFNULL(in_region_id, region_id),
+        culture_id = IFNULL(in_culture_id, culture_id),
         city = IFNULL(TRIM(in_city), city),
         postal_code = IFNULL(TRIM(in_postal_code), postal_code),
         avatar_url = IF(in_avatar_url IS NULL, avatar_url, TRIM(in_avatar_url))
