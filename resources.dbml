@@ -110,6 +110,40 @@ Table tblOtp {
   updated_at TIMESTAMP [default: `now()`]
 }
 
+Table tblCultures {
+  id BIGINT [pk, increment]
+  internal_id BINARY(16) [unique, not null]
+  iso_code VARCHAR(5) [unique, not null]
+  rtl BOOLEAN [default: 0]
+  language_id BIGINT [not null]
+  country_id BIGINT [not null]
+  void BOOLEAN [default: 0]
+  created_at TIMESTAMP [default: `now()`]
+  updated_at TIMESTAMP [default: `now()`]
+}
+
+Table tblLanguages {
+  id BIGINT [pk, increment]
+  internal_id BINARY(16) [unique, not null]
+  name VARCHAR(50) [unique, not null]
+  native_name VARCHAR(50) [unique, not null]
+  iso_code VARCHAR(5) [unique, not null]
+  void BOOLEAN [default: 0]
+  created_at TIMESTAMP [default: `now()`]
+  updated_at TIMESTAMP [default: `now()`]
+}
+
+Table tblPasswordLogs {
+  id BIGINT [pk, increment]
+  internal_id BINARY(16) [unique, not null]
+  password VARCHAR(255) [not null]
+  user_id BIGINT [not null]
+  void BOOLEAN [default: 0]
+  created_at TIMESTAMP [default: `now()`]
+  updated_at TIMESTAMP [default: `now()`]
+}
+
+
 Ref: tblUserProfiles.user_id > tblUsers.id
 Ref: tblUserProfiles.country_id > tblCountries.id
 Ref: tblUserProfiles.region_id > tblStates.id
@@ -117,3 +151,6 @@ Ref: tblCountries.currency_id > tblCurrencies.id
 Ref: tblStates.country_id > tblCountries.id
 Ref: tblStates.timezone_id > tblTimeZones.id
 Ref: tblOtp.recipient_id > tblUsers.id
+Ref: tblCultures.language_id > tblLanguages.id
+Ref: tblCultures.country_id > tblCountries.id
+Ref: tblPasswordLogs.user_id > tblUsers.id

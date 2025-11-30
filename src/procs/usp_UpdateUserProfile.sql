@@ -12,6 +12,7 @@
 --   in_phone_number:   The user's phone number.
 --   in_country_id:     The ID of the user's country.
 --   in_region_id:      The ID of the user's state or region.
+--   in_culture_id:    The ID of the user's culture or locale.
 --   in_city:           The user's city.
 --   in_postal_code:    The user's postal code.
 --   in_avatar_url:     The URL of the user's avatar image (optional).
