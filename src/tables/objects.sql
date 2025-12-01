@@ -8,3 +8,6 @@ CALL usp_CreateTable('tblOtp');
 CALL usp_CreateTable('tblPasswordLogs');
 CALL usp_CreateTable('tblLanguages');
 CALL usp_CreateTable('tblCultures');
+CALL usp_CreateTable('tblRoles');
+CALL usp_CreateTable('tblPermissions');
+CALL usp_CreateTable('tblRolePermissions');
