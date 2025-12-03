@@ -73,7 +73,9 @@ proc_label:BEGIN
         lang.name AS language_name,
         lang.iso_code AS language_iso_code,
         lang.native_name AS language_native_name,
-        up.phone_code
+        up.phone_code,
+        trl.name AS role,
+        GROUP_CONCAT(tperm.name) AS permissions
     FROM
         tblUsers u
     LEFT JOIN tblUserProfiles up ON u.id = up.user_id
@@ -83,8 +85,12 @@ proc_label:BEGIN
     LEFT JOIN tblCurrencies cur on cur.id = c.currency_id
     LEFT JOIN tblCultures cu ON cu.id = up.culture_id
     LEFT JOIN tblLanguages lang ON lang.id = cu.language_id
+    LEFT JOIN tblRoles trl ON trl.id = u.role_id
+    LEFT JOIN tblRolePermissions trp ON trp.role_id = u.role_id
+    LEFT JOIN tblPermissions tperm ON tperm.id = trp.permission_id
     WHERE (in_id IS NOT NULL AND u.id = in_id)
     OR (in_email IS NOT NULL AND u.email = in_email)
+    GROUP BY u.id
     LIMIT 1;
 
 END$$
