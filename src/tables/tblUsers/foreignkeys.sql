@@ -1,0 +1,1 @@
+CALL usp_CreateForeignKey('tblUsers', 'role_id', 'tblRoles', 'id');

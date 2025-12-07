@@ -1,0 +1,1 @@
+CALL usp_CreateUniqueKey('tblRolePermissions', 'role_id,permission_id');

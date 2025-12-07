@@ -198,10 +198,13 @@
 		"tblStates": ["tblCountries", "tblTimeZones"],
 		"tblTimeZones": [],
 		"tblUserProfiles": ["tblUsers", "tblCountries", "tblStates"],
-		"tblUsers": [],
+		"tblUsers": ["tblRoles"],
 		"tblOtp": ["tblUsers"],
 		"tblLanguages": [],
 		"tblCultures": ["tblLanguages", "tblCountries"],
-		"tblPasswordLogs": ["tblUsers"]
+		"tblPasswordLogs": ["tblUsers"],
+		"tblRoles": [],
+		"tblPermissions": [],
+		"tblRolePermissions": ["tblRoles", "tblPermissions"]
 	}
 }
