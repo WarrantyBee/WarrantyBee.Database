@@ -6,8 +6,10 @@ BEGIN
     DECLARE v_required BOOLEAN DEFAULT TRUE;
     DECLARE v_optional BOOLEAN DEFAULT FALSE;
 
-    CALL usp_AddColumn('tblVendorLogins', 'vendor_id', 'VARCHAR(255)', NULL, v_required);
-    CALL usp_AddColumn('tblVendorLogins', 'user_id', 'VARCHAR(255)', NULL, v_required);
+    CALL usp_AddColumn('tblVendorLogins', 'vendor_id', 'BIGINT UNSIGNED', NULL, v_required);
+    CALL usp_AddColumn('tblVendorLogins', 'user_id', 'BIGINT UNSIGNED', NULL, v_required);
+    CALL usp_DropColumn('tblVendors', 'created_by');
+    CALL usp_DropColumn('tblVendors', 'updated_by');
     
 END$$
 
