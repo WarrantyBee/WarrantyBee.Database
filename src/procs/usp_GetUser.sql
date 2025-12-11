@@ -75,7 +75,9 @@ proc_label:BEGIN
         lang.native_name AS language_native_name,
         up.phone_code,
         trl.name AS role,
-        GROUP_CONCAT(tperm.name) AS permissions
+        GROUP_CONCAT(tperm.name) AS permissions,
+        u.auth_provider,
+        u.auth_provider_user_id
     FROM
         tblUsers u
     LEFT JOIN tblUserProfiles up ON u.id = up.user_id
