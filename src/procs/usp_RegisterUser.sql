@@ -35,6 +35,7 @@ proc_label:BEGIN
     DECLARE v_auth_provider_facebook TINYINT DEFAULT 2;
     DECLARE v_auth_provider_google TINYINT DEFAULT 3;
     DECLARE v_auth_provider_linkedin TINYINT DEFAULT 4;
+    DECLARE v_customer_role BIGINT UNSIGNED DEFAULT NULL;
 
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
@@ -116,6 +117,15 @@ proc_label:BEGIN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'The specified auth provider is not supported.';
     END IF;
 
+    IF in_auth_provider = v_auth_provider_internal AND
+        (in_auth_provider_user_id IS NULL OR TRIM(in_auth_provider_user_id) = '') THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'The auth provider user identifier is required.';
+    END IF;
+
+    SELECT id INTO v_customer_role
+    FROM tblRoles
+    WHERE name = 'customer';
+
     START TRANSACTION;
 
     INSERT INTO tblUsers (
@@ -127,18 +137,20 @@ proc_label:BEGIN
         accepted_tnc,
         accepted_pp,
         auth_provider,
-        auth_provider_user_id
+        auth_provider_user_id,
+        role_id
     )
     VALUES (
         TRIM(in_firstname),
         TRIM(in_lastname),
         TRIM(in_email),
-        in_password,
+        IF(in_auth_provider = v_auth_provider_internal, in_password, NULL),
         v_disabled,
         in_accepted_tnc,
         in_accepted_pp,
         in_auth_provider,
-        in_auth_provider_user_id
+        in_auth_provider_user_id,
+        v_customer_role
     );
     SET v_user_id = LAST_INSERT_ID();
 
