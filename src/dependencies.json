@@ -203,6 +203,9 @@
     "tblLanguages": [],
     "tblCultures": ["tblLanguages", "tblCountries"],
     "tblPasswordLogs": ["tblUsers"],
+    "tblRoles": [],
+    "tblPermissions": [],
+    "tblRolePermissions": ["tblRoles", "tblPermissions"],
     "tblVendors": ["tblAdminUsers"],
     "tblVendorLogins": ["tblVendors", "tblUsers", "tblAdminUsers"],
     "tblAdminUsers": []
