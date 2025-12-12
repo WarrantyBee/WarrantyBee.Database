@@ -15,6 +15,7 @@ BEGIN
     CALL usp_AddColumn('tblUsers', 'password_updated_at', 'TIMESTAMP', NULL, v_optional);
     CALL usp_AddColumn('tblUsers', 'accepted_tnc', 'BOOLEAN', NULL, v_required);
     CALL usp_AddColumn('tblUsers', 'accepted_pp', 'BOOLEAN', NULL, v_required);
+    CALL usp_AddColumn('tblUsers', 'role_id', 'BIGINT UNSIGNED', NULL, v_required);
     CALL usp_DropColumn('tblUsers', 'created_by');
     CALL usp_DropColumn('tblUsers', 'updated_by');
 END$$
