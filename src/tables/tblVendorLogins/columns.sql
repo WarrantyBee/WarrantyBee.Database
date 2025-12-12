@@ -8,8 +8,6 @@ BEGIN
 
     CALL usp_AddColumn('tblVendorLogins', 'vendor_id', 'BIGINT UNSIGNED', NULL, v_required);
     CALL usp_AddColumn('tblVendorLogins', 'user_id', 'BIGINT UNSIGNED', NULL, v_required);
-    CALL usp_DropColumn('tblVendors', 'created_by');
-    CALL usp_DropColumn('tblVendors', 'updated_by');
     
 END$$
 

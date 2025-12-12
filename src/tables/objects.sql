@@ -10,3 +10,4 @@ CALL usp_CreateTable('tblLanguages');
 CALL usp_CreateTable('tblCultures');
 CALL usp_CreateTable('tblVendors');
 CALL usp_CreateTable('tblVendorLogins');
+CALL usp_CreateTable('tblAdminUsers');

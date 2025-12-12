@@ -203,7 +203,8 @@
     "tblLanguages": [],
     "tblCultures": ["tblLanguages", "tblCountries"],
     "tblPasswordLogs": ["tblUsers"],
-    "tblVendors": [],
-    "tblVendorLogins": ["tblVendors", "tblUsers"]
+    "tblVendors": ["tblAdminUsers"],
+    "tblVendorLogins": ["tblVendors", "tblUsers", "tblAdminUsers"],
+    "tblAdminUsers": []
   }
 }

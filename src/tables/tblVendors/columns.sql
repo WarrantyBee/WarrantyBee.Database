@@ -19,8 +19,6 @@ BEGIN
     CALL usp_AddColumn('tblVendors', 'map_url', 'VARCHAR(2048)', NULL, v_required);
     CALL usp_AddColumn('tblVendors', 'latitude', 'DECIMAL(10, 8)', NULL, v_required);
     CALL usp_AddColumn('tblVendors', 'longitude', 'DECIMAL(11, 8)', NULL, v_required);
-    CALL usp_DropColumn('tblVendors', 'created_by');
-    CALL usp_DropColumn('tblVendors', 'updated_by');
 END$$
 
 DELIMITER ;

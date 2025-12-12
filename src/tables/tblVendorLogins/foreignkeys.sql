@@ -12,3 +12,16 @@ CALL usp_CreateForeignKey(
     'id'
 );
 
+CALL usp_CreateForeignKey
+(   'tblVendorLogins',
+    'created_by',
+    'tblAdminUsers',
+    'id'
+);
+
+CALL usp_CreateForeignKey
+(   'tblVendorLogins',
+    'updated_by',
+    'tblAdminUsers',
+    'id'
+);
