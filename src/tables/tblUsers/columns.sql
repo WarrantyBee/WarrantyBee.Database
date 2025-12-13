@@ -17,10 +17,10 @@ BEGIN
     CALL usp_AddColumn('tblUsers', 'accepted_pp', 'BOOLEAN', NULL, v_required);
     CALL usp_AddColumn('tblUsers', 'role_id', 'BIGINT UNSIGNED', NULL, v_required);
     CALL usp_AddColumn('tblUsers', 'auth_provider', 'TINYINT', '1', v_required);
-    CALL usp_AddColumn('tblUsers', 'auth_provider_user_id', 'VARCHAR(50)', NULL, v_optional);
+    CALL usp_AddColumn('tblUsers', 'auth_provider_user_id', 'VARCHAR(1024)', NULL, v_optional);
     CALL usp_DropColumn('tblUsers', 'created_by');
     CALL usp_DropColumn('tblUsers', 'updated_by');
-    CALL usp_MarkRequired('tblUsers', 'password', v_optional);
+    CALL usp_AlterColumn('tblUsers', 'password', 'VARCHAR(1024)', v_optional, NULL);
 END$$
 
 DELIMITER ;

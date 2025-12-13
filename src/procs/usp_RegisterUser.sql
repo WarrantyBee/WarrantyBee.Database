@@ -5,7 +5,7 @@ CREATE PROCEDURE usp_RegisterUser(
     IN in_firstname VARCHAR(128),
     IN in_lastname VARCHAR(128),
     IN in_email VARCHAR(255),
-    IN in_password VARCHAR(255),
+    IN in_password VARCHAR(1024),
     IN in_accepted_tnc BOOLEAN,
     IN in_accepted_pp BOOLEAN,
     IN in_phone_code VARCHAR(8),
@@ -21,7 +21,7 @@ CREATE PROCEDURE usp_RegisterUser(
     IN in_avatar_url VARCHAR(512),
     IN in_culture_id BIGINT UNSIGNED,
     IN in_auth_provider TINYINT,
-    IN in_auth_provider_user_id VARCHAR(50)
+    IN in_auth_provider_user_id VARCHAR(1024)
 )
 proc_label:BEGIN
     DECLARE v_user_id BIGINT UNSIGNED;
