@@ -1,11 +1,18 @@
-
 Table tblUsers {
   id BIGINT [pk, increment]
   internal_id BINARY(16) [unique, not null]
   firstname VARCHAR(128) [not null]
   lastname VARCHAR(128) [not null]
   email VARCHAR(255) [unique, not null]
-  password VARCHAR(255) [not null]
+  password VARCHAR(1024)
+  is_2fa_enabled BOOLEAN [not null, default: 0]
+  login_token VARCHAR(255)
+  password_updated_at TIMESTAMP
+  accepted_tnc BOOLEAN [not null]
+  accepted_pp BOOLEAN [not null]
+  role_id BIGINT [not null]
+  auth_provider TINYINT [not null, default: 1]
+  auth_provider_user_id VARCHAR(1024)
   void BOOLEAN [default: 0]
   created_at TIMESTAMP [default: `now()`]
   updated_at TIMESTAMP [default: `now()`]
@@ -18,8 +25,9 @@ Table tblUsers {
 Table tblUserProfiles {
   id BIGINT [pk, increment]
   internal_id BINARY(16) [unique, not null]
+  phone_code VARCHAR(8) [not null]
   phone_number VARCHAR(15) [not null]
-  gender TINYINT [not null, note: '1: Male, 2: Female, 3: Other']
+  gender TINYINT [not null]
   date_of_birth DATE [not null]
   address_line1 VARCHAR(255) [not null]
   address_line2 VARCHAR(255)
@@ -29,10 +37,11 @@ Table tblUserProfiles {
   postal_code VARCHAR(20) [not null]
   avatar_url VARCHAR(512)
   user_id BIGINT [unique, not null]
+  culture_id BIGINT [not null, default: 1]
   void BOOLEAN [default: 0]
   created_at TIMESTAMP [default: `now()`]
   updated_at TIMESTAMP [default: `now()`]
-  created_by BIGINT 
+  created_by BIGINT
   updated_by BIGINT
 }
 
@@ -42,9 +51,9 @@ Table tblCountries {
   iso2_code CHAR(2) [unique, not null]
   iso3_code CHAR(3) [unique, not null]
   numeric_code CHAR(3) [unique, not null]
-  name VARCHAR(100) [unique, not null]
-  official_name VARCHAR(150)
-  capital VARCHAR(100)
+  name VARCHAR(100) [unique, not null, note: 'CHECK: CHAR_LENGTH(name) > 0']
+  official_name VARCHAR(150) [note: 'CHECK: `official_name` IS NULL OR CHAR_LENGTH(`official_name`) > 0']
+  capital VARCHAR(100) [note: 'CHECK: `capital` IS NULL OR CHAR_LENGTH(`capital`) > 0']
   phone_code VARCHAR(50)
   currency_id BIGINT
   void BOOLEAN [default: 0]
@@ -77,9 +86,9 @@ Table tblTimeZones {
   internal_id BINARY(16) [unique, not null]
   name VARCHAR(100) [unique, not null]
   abbreviation VARCHAR(10)
-  utc_offset_minutes SMALLINT [not null]
-  observes_dst BOOLEAN [not null, default: false]
-  current_offset_minutes SMALLINT [not null]
+  utc_offset_minutes SMALLINT [not null, note: 'CHECK: `utc_offset_minutes` BETWEEN -720 AND 840']
+  observes_dst BOOLEAN [not null, default: 0]
+  current_offset_minutes SMALLINT [not null, note: 'CHECK: `current_offset_minutes` BETWEEN -720 AND 840']
   void BOOLEAN [default: 0]
   created_at TIMESTAMP [default: `now()`]
   updated_at TIMESTAMP [default: `now()`]
@@ -88,7 +97,7 @@ Table tblTimeZones {
 Table tblCurrencies {
   id BIGINT [pk, increment]
   internal_id BINARY(16) [unique, not null]
-  iso_code CHAR(3) [unique, not null]
+  iso_code CHAR(3) [unique, not null, note: 'CHECK: CHAR_LENGTH(iso_code) = 3']
   numeric_code CHAR(3) [unique]
   name VARCHAR(100) [unique, not null]
   symbol VARCHAR(10) [not null]
@@ -141,12 +150,49 @@ Table tblPasswordLogs {
   void BOOLEAN [default: 0]
   created_at TIMESTAMP [default: `now()`]
   updated_at TIMESTAMP [default: `now()`]
+  created_by BIGINT [not null]
+  updated_by BIGINT
 }
 
+Table tblRoles {
+  id BIGINT [pk, increment]
+  internal_id BINARY(16) [unique, not null]
+  name VARCHAR(128) [not null]
+  description VARCHAR(255) [not null]
+  void BOOLEAN [default: 0]
+  created_at TIMESTAMP [default: `now()`]
+  updated_at TIMESTAMP [default: `now()`]
+}
 
+Table tblPermissions {
+  id BIGINT [pk, increment]
+  internal_id BINARY(16) [unique, not null]
+  name VARCHAR(128) [not null]
+  description VARCHAR(255) [not null]
+  void BOOLEAN [default: 0]
+  created_at TIMESTAMP [default: `now()`]
+  updated_at TIMESTAMP [default: `now()`]
+}
+
+Table tblRolePermissions {
+  id BIGINT [pk, increment]
+  internal_id BINARY(16) [unique, not null]
+  role_id BIGINT [not null]
+  permission_id BIGINT [not null]
+  void BOOLEAN [default: 0]
+  created_at TIMESTAMP [default: `now()`]
+  updated_at TIMESTAMP [default: `now()`]
+
+  Indexes {
+    (role_id, permission_id) [unique]
+  }
+}
+
+Ref: tblUsers.role_id > tblRoles.id
 Ref: tblUserProfiles.user_id > tblUsers.id
 Ref: tblUserProfiles.country_id > tblCountries.id
 Ref: tblUserProfiles.region_id > tblStates.id
+Ref: tblUserProfiles.culture_id > tblCultures.id
 Ref: tblCountries.currency_id > tblCurrencies.id
 Ref: tblStates.country_id > tblCountries.id
 Ref: tblStates.timezone_id > tblTimeZones.id
@@ -154,3 +200,5 @@ Ref: tblOtp.recipient_id > tblUsers.id
 Ref: tblCultures.language_id > tblLanguages.id
 Ref: tblCultures.country_id > tblCountries.id
 Ref: tblPasswordLogs.user_id > tblUsers.id
+Ref: tblRolePermissions.role_id > tblRoles.id
+Ref: tblRolePermissions.permission_id > tblPermissions.id
