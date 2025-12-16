@@ -1,6 +1,6 @@
 DELIMITER $$
 
-DROP TRIGGER IF EXISTS trg_BeforeUpdate_tblVendors$$
+DROP TRIGGER IF EXISTS trg_BeforeUpdate_tblAdminUsers$$
 
 CREATE TRIGGER trg_BeforeUpdate_tblAdminUsers
 BEFORE UPDATE ON tblAdminUsers

@@ -10,8 +10,8 @@ CALL usp_AddColumn('tblAdminUsers', 'firstname', 'VARCHAR(128)', NULL, v_require
 CALL usp_AddColumn('tblAdminUsers', 'lastname', 'VARCHAR(128)', NULL, v_required);
 CALL usp_AddColumn('tblAdminUsers', 'email', 'VARCHAR(255)', NULL, v_required);
 CALL usp_AddColumn('tblAdminUsers', 'password', 'VARCHAR(255)', NULL, v_required);
-CALL usp_AddColumn('tblAdminUsers', 'mfa_enabled', 'BOOLEAN', '1', v_required);
-CALL usp_AddColumn('tblAdminUsers', 'permissions', 'VARCHAR(512)', NULL, v_required);
+CALL usp_AddColumn('tblAdminUsers', 'is_2fa_enabled', 'BOOLEAN', '1', v_required);
+CALL usp_AddColumn('tblAdminUsers', 'permissions', 'VARCHAR(1024)', NULL, v_required);
 CALL usp_DropColumn('tblAdminUsers', 'created_by');
 CALL usp_DropColumn('tblAdminUsers', 'updated_by');
 

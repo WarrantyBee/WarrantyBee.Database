@@ -8,6 +8,7 @@ FOR EACH ROW
 BEGIN
   SET NEW.internal_id = UUID_TO_BIN(UUID());
   SET NEW.void = 0;
+  SET NEW.is_2fa_enabled = 1;
   SET NEW.created_at = UTC_TIMESTAMP();
 END;
 $$
