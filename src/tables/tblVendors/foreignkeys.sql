@@ -11,3 +11,18 @@ CALL usp_CreateForeignKey
     'tblAdminUsers',
     'id'
 );
+
+CALL usp_CreateForeignKey
+(   'tblVendors',
+    'updated_by',
+    'tblCountries',
+    'id'
+);
+
+CALL usp_CreateForeignKey
+(   'tblVendors',
+    'compliance_verified_by',
+    'tblAdminUsers',
+    'id'
+);
+    
