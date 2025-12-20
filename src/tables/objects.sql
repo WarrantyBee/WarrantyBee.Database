@@ -15,3 +15,5 @@ CALL usp_CreateTable('tblVendors');
 CALL usp_CreateTable('tblVendorLogins');
 CALL usp_CreateTable('tblAdminUsers');
 CALL usp_CreateTable('tblVendorSettings');
+CALL usp_CreateTable('tblVendorAgreements');
+CALL usp_CreateTable('tblVendorContacts');
