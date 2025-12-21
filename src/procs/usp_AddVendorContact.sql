@@ -6,6 +6,7 @@ CREATE PROCEDURE usp_AddVendorContact(
     IN in_type TINYINT,
     IN in_email VARCHAR(255),
     IN in_phone_number VARCHAR(32),
+    IN in_phone_code VARCHAR(8),
     IN in_country_id BIGINT UNSIGNED,
     IN in_culture_id BIGINT UNSIGNED,
     IN in_business_hours JSON
@@ -13,6 +14,8 @@ CREATE PROCEDURE usp_AddVendorContact(
 proc_label:BEGIN
     DECLARE v_vendor_contact_id BIGINT UNSIGNED;
     DECLARE v_record_exists INT DEFAULT 0;
+    DECLARE v_phone_code BIGINT UNSIGNED;
+
 
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
@@ -34,7 +37,21 @@ proc_label:BEGIN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'A valid email address is required.';
     END IF;
 
+    IF in_phone_number IS NOT NULL 
+    AND in_phone_number REGEXP '^[0-9()\\-\\s+]+$' THEN
+    SIGNAL SQLSTATE '45000'
+    SET MESSAGE_TEXT = 'A valid phone number is required.';
+    END IF;
 
+    IF in_phone_number IS NOT NULL AND (in_phone_code IS NULL 
+    OR NOT EXISTS (
+       SELECT 1
+       FROM tblCountries
+       WHERE phone_code = in_phone_code
+    ))
+    THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'A valid phone code is required.';
+    END IF;
 
     IF in_country_id IS NULL THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Country ID is required.';
@@ -44,7 +61,7 @@ proc_label:BEGIN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Culture ID is required.';
     END IF;
 
-    IF in_business_hours IS NULL OR NOT JSON_VALID(in_business_hours) THEN
+    IF in_business_hours IS NULL OR NOT ufn_ValidateBusinessHours(in_business_hours) THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Business hours are required and must be a valid JSON object.';
     END IF;
     
@@ -63,11 +80,15 @@ proc_label:BEGIN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'The specified culture does not exist.';
     END IF;
     
-    SELECT COUNT(1) INTO v_record_exists FROM tblVendorContacts WHERE vendor_id = in_vendor_id AND email = in_email;
+    SELECT COUNT(1) INTO v_record_exists FROM tblVendorContacts WHERE email = in_email;
     IF v_record_exists > 0 THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'This email address is already registered for this vendor.';
     END IF;
 
+    SELECT COUNT(1) INTO v_record_exists FROM tblVendorContacts WHERE in_phone_number IS NOT NULL AND phone_number = in_phone_number;
+    IF v_record_exists > 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'This phone number is already registered.';
+    END IF
     START TRANSACTION;
 
     INSERT INTO tblVendorContacts (
@@ -75,6 +96,7 @@ proc_label:BEGIN
         `type`,
         email,
         phone_number,
+        phone_code,
         country_id,
         culture_id,
         business_hours
@@ -84,6 +106,7 @@ proc_label:BEGIN
         in_type,
         TRIM(in_email),
         in_phone_number,
+        in_phone_code
         in_country_id,
         in_culture_id,
         TRIM(in_business_hours)

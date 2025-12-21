@@ -200,6 +200,12 @@
 					"functions": [],
 					"procs": []
 				}
+			},
+			"usp_AddVendorContact": {
+				"dependencies": {
+					"function": ["ufn_ValidateBusinessHours"],
+					"procs": []
+				}
 			}
 		}
 	},

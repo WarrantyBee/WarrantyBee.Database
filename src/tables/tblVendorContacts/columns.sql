@@ -11,6 +11,7 @@ BEGIN
     CALL usp_AddColumn(v_table_name, 'type', 'TINYINT', NULL, v_required);
     CALL usp_AddColumn(v_table_name, 'email', 'VARCHAR(255)', NULL, v_required);
     CALL usp_AddColumn(v_table_name, 'phone_number', 'VARCHAR(32)', NULL, v_optional);
+    CALL usp_AddColumn(v_table_name, 'phone_code', 'VARCHAR(8)', NULL, v_optional);
     CALL usp_AddColumn(v_table_name, 'country_id', 'BIGINT UNSIGNED', NULL, v_required);
     CALL usp_AddColumn(v_table_name, 'culture_id', 'BIGINT UNSIGNED', NULL, v_required);
     CALL usp_AddColumn(v_table_name, 'business_hours', 'JSON', NULL, v_required);
