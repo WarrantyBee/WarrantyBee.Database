@@ -1,227 +1,233 @@
 {
-	"functions": {
-		"master": {
-			"ufn_DoesTableExist": {
-				"dependencies": {
-					"functions": []
-				}
-			},
-			"ufn_DoesColumnExist": {
-				"dependencies": {
-					"functions": []
-				}
-			},
-			"ufn_DoColumnsExist": {
-				"dependencies": {
-					"functions": ["ufn_DoesColumnExist"]
-				}
-			}
-		},
-		"business": {
-			"ufn_ValidateLoginToken": {
-				"dependencies": {
-					"functions": []
-				}
-			}
-		}
-	},
-	"procedures": {
-		"master": {
-			"usp_AddCheck": {
-				"dependencies": {
-					"functions": ["ufn_DoesTableExist", "ufn_DoesColumnExist"],
-					"procs": []
-				}
-			},
-			"usp_AddColumn": {
-				"dependencies": {
-					"functions": ["ufn_DoesTableExist", "ufn_DoesColumnExist"],
-					"procs": []
-				}
-			},
-			"usp_AutoIncrement": {
-				"dependencies": {
-					"functions": ["ufn_DoesTableExist", "ufn_DoesColumnExist"],
-					"procs": []
-				}
-			},
-			"usp_CreateForeignKey": {
-				"dependencies": {
-					"functions": ["ufn_DoesTableExist", "ufn_DoesColumnExist"],
-					"procs": []
-				}
-			},
-			"usp_CreateIndex": {
-				"dependencies": {
-					"functions": ["ufn_DoesTableExist", "ufn_DoColumnsExist"],
-					"procs": []
-				}
-			},
-			"usp_CreatePrimaryKey": {
-				"dependencies": {
-					"functions": ["ufn_DoesTableExist", "ufn_DoesColumnExist"],
-					"procs": []
-				}
-			},
-			"usp_CreateTable": {
-				"dependencies": {
-					"functions": ["ufn_DoesTableExist"],
-					"procs": [
-						"usp_CreatePrimaryKey",
-						"usp_AutoIncrement",
-						"usp_AddColumn",
-						"usp_CreateUniqueKey"
-					]
-				}
-			},
-			"usp_CreateUniqueKey": {
-				"dependencies": {
-					"functions": ["ufn_DoesTableExist", "ufn_DoesColumnExist"],
-					"procs": []
-				}
-			},
-			"usp_DropColumn": {
-				"dependencies": {
-					"functions": ["ufn_DoesTableExist", "ufn_DoesColumnExist"],
-					"procs": []
-				}
-			},
-			"usp_DropConstraint": {
-				"dependencies": {
-					"functions": ["ufn_DoesTableExist"],
-					"procs": []
-				}
-			},
-			"usp_MarkRequired": {
-				"dependencies": {
-					"functions": ["ufn_DoesTableExist", "ufn_DoesColumnExist"],
-					"procs": []
-				}
-			},
-			"usp_ResetAutoIncrement": {
-				"dependencies": {
-					"functions": ["ufn_DoesTableExist"],
-					"procs": []
-				}
-			},
-			"usp_RenameColumn": {
-				"dependencies": {
-					"functions": ["ufn_DoesTableExist, ufn_DoesColumnExist"],
-					"procs": []
-				}
-			},
-			"usp_AlterColumn": {
-				"dependencies": {
-					"functions": ["ufn_DoesTableExist, ufn_DoesColumnExist"],
-					"procs": []
-				}
-			}
-		},
-		"business": {
-			"usp_GetCountries": {
-				"dependencies": {
-					"functions": [],
-					"procs": []
-				}
-			},
-			"usp_GetCurrencies": {
-				"dependencies": {
-					"functions": [],
-					"procs": []
-				}
-			},
-			"usp_GetStates": {
-				"dependencies": {
-					"functions": [],
-					"procs": []
-				}
-			},
-			"usp_GetTimeZones": {
-				"dependencies": {
-					"functions": [],
-					"procs": []
-				}
-			},
-			"usp_GetUser": {
-				"dependencies": {
-					"functions": [],
-					"procs": []
-				}
-			},
-			"usp_RegisterUser": {
-				"dependencies": {
-					"functions": [],
-					"procs": []
-				}
-			},
-			"usp_StoreOtp": {
-				"dependencies": {
-					"functions": [],
-					"procs": []
-				}
-			},
-			"usp_GetOtp": {
-				"dependencies": {
-					"functions": [],
-					"procs": []
-				}
-			},
-			"usp_StoreLoginToken": {
-				"dependencies": {
-					"functions": [],
-					"procs": []
-				}
-			},
-			"usp_ResetPassword": {
-				"dependencies": {
-					"functions": [],
-					"procs": []
-				}
-			},
-			"usp_GetUserPasswords": {
-				"dependencies": {
-					"functions": [],
-					"procs": []
-				}
-			},
-			"usp_GetCultures": {
-				"dependencies": {
-					"functions": [],
-					"procs": []
-				}
-			},
-			"usp_UpdateUserProfile": {
-				"dependencies": {
-					"functions": [],
-					"procs": []
-				}
-			}
-		}
-	},
-	"tables": {
-		"tblCountries": ["tblCurrencies"],
-		"tblCurrencies": [],
-		"tblStates": ["tblCountries", "tblTimeZones"],
-		"tblTimeZones": [],
-		"tblUserProfiles": ["tblUsers", "tblCountries", "tblStates"],
-		"tblUsers": [],
-		"tblOtp": ["tblUsers"],
-		"tblLanguages": [],
-		"tblCultures": ["tblLanguages", "tblCountries"],
-		"tblPasswordLogs": ["tblUsers"],
-		"tblRoles": [],
-		"tblPermissions": [],
-		"tblRolePermissions": ["tblRoles", "tblPermissions"],
-		"tblVendors": ["tblAdminUsers"],
-		"tblVendorLogins": ["tblVendors", "tblUsers", "tblAdminUsers"],
-		"tblAdminUsers": [],
-		"tblVendorSettings": ["tblVendors"],
-		"tblVendorAgreements": ["tblVendors"],
-		"tblVendorContacts": [
-			"tblVendors",
-			"tblCountries",
-			"tblCultures",
-			"tblAdminUsers"
-		]
-	}
+  "functions": {
+    "master": {
+      "ufn_DoesTableExist": {
+        "dependencies": {
+          "functions": []
+        }
+      },
+      "ufn_DoesColumnExist": {
+        "dependencies": {
+          "functions": []
+        }
+      },
+      "ufn_DoColumnsExist": {
+        "dependencies": {
+          "functions": ["ufn_DoesColumnExist"]
+        }
+      }
+    },
+    "business": {
+      "ufn_ValidateLoginToken": {
+        "dependencies": {
+          "functions": []
+        }
+      }
+    }
+  },
+  "procedures": {
+    "master": {
+      "usp_AddCheck": {
+        "dependencies": {
+          "functions": ["ufn_DoesTableExist", "ufn_DoesColumnExist"],
+          "procs": []
+        }
+      },
+      "usp_AddColumn": {
+        "dependencies": {
+          "functions": ["ufn_DoesTableExist", "ufn_DoesColumnExist"],
+          "procs": []
+        }
+      },
+      "usp_AutoIncrement": {
+        "dependencies": {
+          "functions": ["ufn_DoesTableExist", "ufn_DoesColumnExist"],
+          "procs": []
+        }
+      },
+      "usp_CreateForeignKey": {
+        "dependencies": {
+          "functions": ["ufn_DoesTableExist", "ufn_DoesColumnExist"],
+          "procs": []
+        }
+      },
+      "usp_CreateIndex": {
+        "dependencies": {
+          "functions": ["ufn_DoesTableExist", "ufn_DoColumnsExist"],
+          "procs": []
+        }
+      },
+      "usp_CreatePrimaryKey": {
+        "dependencies": {
+          "functions": ["ufn_DoesTableExist", "ufn_DoesColumnExist"],
+          "procs": []
+        }
+      },
+      "usp_CreateTable": {
+        "dependencies": {
+          "functions": ["ufn_DoesTableExist"],
+          "procs": [
+            "usp_CreatePrimaryKey",
+            "usp_AutoIncrement",
+            "usp_AddColumn",
+            "usp_CreateUniqueKey"
+          ]
+        }
+      },
+      "usp_CreateUniqueKey": {
+        "dependencies": {
+          "functions": ["ufn_DoesTableExist", "ufn_DoesColumnExist"],
+          "procs": []
+        }
+      },
+      "usp_DropColumn": {
+        "dependencies": {
+          "functions": ["ufn_DoesTableExist", "ufn_DoesColumnExist"],
+          "procs": []
+        }
+      },
+      "usp_DropConstraint": {
+        "dependencies": {
+          "functions": ["ufn_DoesTableExist"],
+          "procs": []
+        }
+      },
+      "usp_MarkRequired": {
+        "dependencies": {
+          "functions": ["ufn_DoesTableExist", "ufn_DoesColumnExist"],
+          "procs": []
+        }
+      },
+      "usp_ResetAutoIncrement": {
+        "dependencies": {
+          "functions": ["ufn_DoesTableExist"],
+          "procs": []
+        }
+      },
+      "usp_RenameColumn": {
+        "dependencies": {
+          "functions": ["ufn_DoesTableExist, ufn_DoesColumnExist"],
+          "procs": []
+        }
+      },
+      "usp_AlterColumn": {
+        "dependencies": {
+          "functions": ["ufn_DoesTableExist, ufn_DoesColumnExist"],
+          "procs": []
+        }
+      }
+    },
+    "business": {
+      "usp_GetCountries": {
+        "dependencies": {
+          "functions": [],
+          "procs": []
+        }
+      },
+      "usp_GetCurrencies": {
+        "dependencies": {
+          "functions": [],
+          "procs": []
+        }
+      },
+      "usp_GetStates": {
+        "dependencies": {
+          "functions": [],
+          "procs": []
+        }
+      },
+      "usp_GetTimeZones": {
+        "dependencies": {
+          "functions": [],
+          "procs": []
+        }
+      },
+      "usp_GetUser": {
+        "dependencies": {
+          "functions": [],
+          "procs": []
+        }
+      },
+      "usp_RegisterUser": {
+        "dependencies": {
+          "functions": [],
+          "procs": []
+        }
+      },
+      "usp_StoreOtp": {
+        "dependencies": {
+          "functions": [],
+          "procs": []
+        }
+      },
+      "usp_GetOtp": {
+        "dependencies": {
+          "functions": [],
+          "procs": []
+        }
+      },
+      "usp_StoreLoginToken": {
+        "dependencies": {
+          "functions": [],
+          "procs": []
+        }
+      },
+      "usp_ResetPassword": {
+        "dependencies": {
+          "functions": [],
+          "procs": []
+        }
+      },
+      "usp_GetUserPasswords": {
+        "dependencies": {
+          "functions": [],
+          "procs": []
+        }
+      },
+      "usp_GetCultures": {
+        "dependencies": {
+          "functions": [],
+          "procs": []
+        }
+      },
+      "usp_UpdateUserProfile": {
+        "dependencies": {
+          "functions": [],
+          "procs": []
+        }
+      },
+      "usp_AddVendorContacts": {
+        "dependencies": {
+          "functions": ["ufn_ValidateBusinessHours"],
+          "procs": []
+        }
+      }
+    }
+  },
+  "tables": {
+    "tblCountries": ["tblCurrencies"],
+    "tblCurrencies": [],
+    "tblStates": ["tblCountries", "tblTimeZones"],
+    "tblTimeZones": [],
+    "tblUserProfiles": ["tblUsers", "tblCountries", "tblStates"],
+    "tblUsers": [],
+    "tblOtp": ["tblUsers"],
+    "tblLanguages": [],
+    "tblCultures": ["tblLanguages", "tblCountries"],
+    "tblPasswordLogs": ["tblUsers"],
+    "tblRoles": [],
+    "tblPermissions": [],
+    "tblRolePermissions": ["tblRoles", "tblPermissions"],
+    "tblVendors": ["tblAdminUsers"],
+    "tblVendorLogins": ["tblVendors", "tblUsers", "tblAdminUsers"],
+    "tblAdminUsers": [],
+    "tblVendorSettings": ["tblVendors"],
+    "tblVendorAgreements": ["tblVendors"],
+    "tblVendorContacts": [
+      "tblVendors",
+      "tblCountries",
+      "tblCultures",
+      "tblAdminUsers"
+    ]
+  }
 }
