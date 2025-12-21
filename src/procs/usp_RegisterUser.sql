@@ -117,7 +117,7 @@ proc_label:BEGIN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'The specified auth provider is not supported.';
     END IF;
 
-    IF in_auth_provider = v_auth_provider_internal AND
+    IF in_auth_provider <> v_auth_provider_internal AND
         (in_auth_provider_user_id IS NULL OR TRIM(in_auth_provider_user_id) = '') THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'The auth provider user identifier is required.';
     END IF;
