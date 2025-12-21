@@ -22,6 +22,11 @@
 				"dependencies": {
 					"functions": []
 				}
+			},
+			"ufn_ValidateBusinessHours": {
+				"dependencies": {
+					"functions": []
+				}
 			}
 		}
 	},
