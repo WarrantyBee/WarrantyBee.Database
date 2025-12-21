@@ -69,8 +69,10 @@ proc_label:BEGIN
         password_updated_at = UTC_TIMESTAMP()
         WHERE id = in_user_id;
 
-        INSERT INTO tblPasswordLogs (`user_id`, `password`)
-        VALUES (in_user_id, v_old_password);
+        IF v_old_password IS NOT NULL THEN
+            INSERT INTO tblPasswordLogs (`user_id`, `password`)
+            VALUES (in_user_id, v_old_password);
+        END IF;
 
         COMMIT;
         

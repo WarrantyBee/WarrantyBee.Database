@@ -109,6 +109,12 @@
 					"functions": ["ufn_DoesTableExist, ufn_DoesColumnExist"],
 					"procs": []
 				}
+			},
+			"usp_AlterColumn": {
+				"dependencies": {
+					"functions": ["ufn_DoesTableExist, ufn_DoesColumnExist"],
+					"procs": []
+				}
 			}
 		},
 		"business": {

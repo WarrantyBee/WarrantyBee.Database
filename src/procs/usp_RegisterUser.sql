@@ -5,7 +5,7 @@ CREATE PROCEDURE usp_RegisterUser(
     IN in_firstname VARCHAR(128),
     IN in_lastname VARCHAR(128),
     IN in_email VARCHAR(255),
-    IN in_password VARCHAR(255),
+    IN in_password VARCHAR(1024),
     IN in_accepted_tnc BOOLEAN,
     IN in_accepted_pp BOOLEAN,
     IN in_phone_code VARCHAR(8),
@@ -19,13 +19,23 @@ CREATE PROCEDURE usp_RegisterUser(
     IN in_city VARCHAR(255),
     IN in_postal_code VARCHAR(20),
     IN in_avatar_url VARCHAR(512),
-    IN in_culture_id BIGINT UNSIGNED
+    IN in_culture_id BIGINT UNSIGNED,
+    IN in_auth_provider TINYINT,
+    IN in_auth_provider_user_id VARCHAR(1024)
 )
 proc_label:BEGIN
     DECLARE v_user_id BIGINT UNSIGNED;
     DECLARE v_record_exists INT DEFAULT 0;
     DECLARE v_not_accepted BOOLEAN DEFAULT FALSE;
     DECLARE v_disabled BOOLEAN DEFAULT FALSE;
+    DECLARE v_gender_male TINYINT DEFAULT 1;
+    DECLARE v_gender_female TINYINT DEFAULT 2;
+    DECLARE v_gender_not_specified TINYINT DEFAULT 3;
+    DECLARE v_auth_provider_internal TINYINT DEFAULT 1;
+    DECLARE v_auth_provider_facebook TINYINT DEFAULT 2;
+    DECLARE v_auth_provider_google TINYINT DEFAULT 3;
+    DECLARE v_auth_provider_linkedin TINYINT DEFAULT 4;
+    DECLARE v_customer_role BIGINT UNSIGNED DEFAULT NULL;
 
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
@@ -80,7 +90,7 @@ proc_label:BEGIN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'This email address is already registered.';
     END IF;
 
-    IF in_gender NOT IN (1, 2, 3) THEN
+    IF in_gender NOT IN (v_gender_male, v_gender_female, v_gender_not_specified) THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Invalid gender specified. Allowed values are 1, 2, 3.';
     END IF;
 
@@ -103,6 +113,19 @@ proc_label:BEGIN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'The specified culture does not exist.';
     END IF;
 
+    IF in_auth_provider NOT IN (v_auth_provider_internal, v_auth_provider_facebook, v_auth_provider_google, v_auth_provider_linkedin) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'The specified auth provider is not supported.';
+    END IF;
+
+    IF in_auth_provider = v_auth_provider_internal AND
+        (in_auth_provider_user_id IS NULL OR TRIM(in_auth_provider_user_id) = '') THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'The auth provider user identifier is required.';
+    END IF;
+
+    SELECT id INTO v_customer_role
+    FROM tblRoles
+    WHERE name = 'customer';
+
     START TRANSACTION;
 
     INSERT INTO tblUsers (
@@ -112,16 +135,22 @@ proc_label:BEGIN
         `password`,
         is_2fa_enabled,
         accepted_tnc,
-        accepted_pp
+        accepted_pp,
+        auth_provider,
+        auth_provider_user_id,
+        role_id
     )
     VALUES (
         TRIM(in_firstname),
         TRIM(in_lastname),
         TRIM(in_email),
-        in_password,
+        IF(in_auth_provider = v_auth_provider_internal, in_password, NULL),
         v_disabled,
         in_accepted_tnc,
-        in_accepted_pp
+        in_accepted_pp,
+        in_auth_provider,
+        in_auth_provider_user_id,
+        v_customer_role
     );
     SET v_user_id = LAST_INSERT_ID();
 
