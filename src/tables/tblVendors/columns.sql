@@ -19,6 +19,7 @@ BEGIN
     CALL usp_AddColumn('tblVendors', 'registration_type', 'TINYINT', NULL, v_required);
     CALL usp_AddColumn('tblVendors', 'tax_identifier', 'VARCHAR(64)', NULL, v_required);
     CALL usp_AddColumn('tblVendors', 'tax_country_id', 'BIGINT UNSIGNED', NULL, v_required);
+    CALL usp_AddColumn('tblVendors', 'tax_verification_status', 'TINYINT', NULL, v_required);
     CALL usp_AddColumn('tblVendors', 'tax_verified_at', 'TIMESTAMP', NULL, v_optional);
     CALL usp_AddColumn('tblVendors', 'compliance_status', 'TINYINT', NULL, v_required);
     CALL usp_AddColumn('tblVendors', 'compliance_reason', 'VARCHAR(255)', NULL, v_optional);
