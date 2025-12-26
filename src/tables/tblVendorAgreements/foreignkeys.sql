@@ -1,0 +1,1 @@
+CALL usp_CreateForeignKey('tblVendorAgreements', 'vendor_id', 'tblVendors', 'id');
