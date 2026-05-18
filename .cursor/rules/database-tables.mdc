@@ -1,0 +1,46 @@
+---
+description: Table DDL patterns using master usp_CreateTable and column procedures
+globs: "**/tables/**/*.sql"
+alwaysApply: false
+---
+
+# Table DDL
+
+## File structure per table
+
+```
+src/tables/tblEntity/
+  columns.sql      # usp_CreateColumns_* then CALL usp_CreateTable
+  constraints.sql  # checks, unique keys
+  foreignkeys.sql
+  triggers/
+    before_insert.sql
+    before_update.sql
+  data.sql         # optional seed
+```
+
+## columns.sql pattern
+
+```sql
+DROP PROCEDURE IF EXISTS usp_CreateColumns_tblEntity;
+DELIMITER $$
+CREATE PROCEDURE usp_CreateColumns_tblEntity()
+BEGIN
+    CALL usp_AddColumn('tblEntity', 'name', 'VARCHAR(128)', NULL, TRUE);
+END$$
+DELIMITER ;
+CALL usp_CreateColumns_tblEntity();
+DROP PROCEDURE usp_CreateColumns_tblEntity;
+```
+
+## Rules
+
+- Register new table in `src/tables/objects.sql` **after** dependencies exist
+- Use `BIGINT UNSIGNED` for FKs and IDs
+- Add CHECK constraints via `usp_AddCheck` in `constraints.sql`
+- Triggers: keep idempotent; set `updated_at` on change
+- Never skip `internal_id` or `void` without architect approval
+
+## Vendor/compliance tables
+
+Follow `tblVendors` patterns: tax, compliance, contract fields are required for B2B — validate in `ufn_*` where complex.

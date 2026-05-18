@@ -1,0 +1,37 @@
+---
+description: WarrantyBee.Database procedural schema system and migration workflow
+alwaysApply: true
+---
+
+# WarrantyBee.Database — Core
+
+MySQL schema-as-code. **No Flyway** — use `Run-Migration.ps1` + `dependencies.json`.
+
+## Workflow
+
+1. Edit SQL under `src/tables`, `src/functions`, `src/procs`
+2. Update `dependencies.json` when adding cross-dependencies
+3. Run migration script → `output.sql`
+4. Execute against dev DB; verify procs
+5. Update `resources.dbml` + wiki
+
+## Naming
+
+| Object | Pattern | Example |
+|--------|---------|---------|
+| Table | `tbl{Name}` | `tblUsers` |
+| Function | `ufn_{Name}` | `ufn_DoesUserExist` |
+| Procedure | `usp_{Name}` | `usp_RegisterUser` |
+| Column | snake_case | `internal_id`, `created_at` |
+
+## Standard table columns
+
+`id`, `internal_id BINARY(16)`, business columns, `void`, `created_at`, `updated_at` (+ audit FKs if needed).
+
+## API contract
+
+Parameter names in procs **must match** what `WarrantyBee.API` repositories register. Coordinate changes in paired PRs.
+
+## Seeds
+
+Reference data only in `data.sql`. Order: currencies → timezones → countries → states → languages → cultures → roles → permissions → role_permissions.
