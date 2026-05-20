@@ -4,3 +4,4 @@ EXEC dbo.usp_AddCheck N'tblUsers', N'lastname', N'LTRIM(RTRIM(lastname)) <> ''''
 EXEC dbo.usp_DropConstraint N'tblUsers', N'chk_tblUsers.password';
 
 
+

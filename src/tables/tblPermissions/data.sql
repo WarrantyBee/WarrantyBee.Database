@@ -23,3 +23,4 @@ GO
 
 PRINT N'tblPermissions data merged successfully.';
 GO
+

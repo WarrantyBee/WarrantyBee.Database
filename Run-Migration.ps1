@@ -7,16 +7,26 @@ $scriptPath = $PSScriptRoot
 $srcPath = Join-Path -Path $scriptPath -ChildPath "src"
 $outputFile = Join-Path -Path $scriptPath -ChildPath "output.sql"
 
+# Use UTF8 without BOM for compatibility with sqlcmd
+$Utf8NoBomEncoding = New-Object System.Text.UTF8Encoding($false)
+
 if (Test-Path $outputFile) {
-    Clear-Content $outputFile
+    Remove-Item $outputFile
+}
+
+function Write-OutputContent {
+    param([string]$content)
+    [System.IO.File]::AppendAllLines($outputFile, [string[]]$content, $Utf8NoBomEncoding)
 }
 
 if (-not [string]::IsNullOrEmpty($db)) {
-    $useDbStatement = "IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = '$db')`nBEGIN`n    CREATE DATABASE [$db];`nEND`nGO`nUSE [$db];`nGO`n"
-    Add-Content -Path $outputFile -Value $useDbStatement
+    $useDbStatement = "IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = '$db')`nBEGIN`n    CREATE DATABASE [$db];`nEND`nGO`nUSE [$db];`nGO"
+    Write-OutputContent -content $useDbStatement
 }
 
-Add-Content -Path $outputFile -Value "SET NOCOUNT ON;`nSET QUOTED_IDENTIFIER ON;`nGO`n`n"
+Write-OutputContent -content "SET NOCOUNT ON;"
+Write-OutputContent -content "SET QUOTED_IDENTIFIER ON;"
+Write-OutputContent -content "GO`n"
 
 function Add-ScriptContent {
     param (
@@ -24,24 +34,23 @@ function Add-ScriptContent {
     )
     Write-Host "Merging: $filePath"
     $fileName = Split-Path -Path $filePath -Leaf
-    $header = "-- Script: $fileName"
-    Add-Content -Path $outputFile -Value "$header`r`n"
-    $content = Get-Content -Path $filePath -Raw
+    Write-OutputContent -content "-- Script: $fileName"
     
-    # Standardize line endings
+    $content = [System.IO.File]::ReadAllText($filePath)
+    
+    # Standardize line endings to CRLF
     $content = $content -replace "\r?\n", "`r`n"
     
     # Remove MySQL DELIMITER
     $content = $content -replace "(?i)DELIMITER\s+[\S]+", ""
     
-    # Ensure GO is on its own line
+    # Ensure GO is handled
     $content = $content -replace "\$\$", "`r`nGO`r`n"
-    $content = $content -replace ";\s*GO", ";`r`nGO"
     
-    Add-Content -Path $outputFile -Value $content
+    Write-OutputContent -content $content
     
-    # Always append a newline and GO at the end of every merged file to ensure batch separation
-    Add-Content -Path $outputFile -Value "`r`nGO`r`n`n"
+    # Ensure a trailing GO
+    Write-OutputContent -content "`r`nGO`r`n"
 }
 
 $dependenciesPath = Join-Path -Path $srcPath -ChildPath "dependencies.json"
@@ -130,7 +139,7 @@ if ($dependencies.procedures.master) {
     }
 }
 
-# 3. Table Structure (Objects creation first)
+# 3. Table Structure
 Write-Host "Processing tables..."
 $objectsFile = Join-Path -Path $srcPath -ChildPath "tables\objects.sql"
 if (Test-Path $objectsFile) {
@@ -163,15 +172,13 @@ foreach ($tableName in $sortedTables) {
 
 # 4. Business logic
 Write-Host "Processing business logic..."
-# Business Functions
-if ($dependencies.functions. business) {
+if ($dependencies.functions.business) {
     $dependencies.functions.business.PSObject.Properties | ForEach-Object {
         $filePath = Join-Path -Path $srcPath -ChildPath "functions\$($_.Name).sql"
         if (-not (Test-Path $filePath)) { $filePath = Join-Path -Path $srcPath -ChildPath "functions\business\$($_.Name).sql" }
         if (Test-Path $filePath) { Add-ScriptContent -filePath $filePath }
     }
 }
-# Business Procedures
 if ($dependencies.procedures.business) {
     $dependencies.procedures.business.PSObject.Properties | ForEach-Object {
         $filePath = Join-Path -Path $srcPath -ChildPath "procs\$($_.Name).sql"

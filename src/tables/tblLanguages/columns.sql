@@ -1,4 +1,5 @@
-IF OBJECT_ID('dbo.usp_CreateColumns_tblLanguages', 'P') IS NOT NULL DROP PROCEDURE dbo.usp_CreateColumns_tblLanguages; GO
+IF OBJECT_ID('dbo.usp_CreateColumns_tblLanguages', 'P') IS NOT NULL DROP PROCEDURE dbo.usp_CreateColumns_tblLanguages;
+GO
 
 CREATE PROCEDURE dbo.usp_CreateColumns_tblLanguages AS
 BEGIN
@@ -15,5 +16,7 @@ END
 GO
 
 EXEC dbo.usp_CreateColumns_tblLanguages;
-IF OBJECT_ID('dbo.usp_CreateColumns_tblLanguages', 'P') IS NOT NULL DROP PROCEDURE dbo.usp_CreateColumns_tblLanguages; GO
+IF OBJECT_ID('dbo.usp_CreateColumns_tblLanguages', 'P') IS NOT NULL DROP PROCEDURE dbo.usp_CreateColumns_tblLanguages;
+GO
+
 

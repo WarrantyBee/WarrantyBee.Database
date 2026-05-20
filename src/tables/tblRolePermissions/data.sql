@@ -30,3 +30,4 @@ GO
 
 PRINT N'tblRolePermissions data merged successfully.';
 GO
+

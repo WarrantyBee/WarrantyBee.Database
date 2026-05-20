@@ -62,3 +62,4 @@ GO
 
 PRINT N'tblStates data merged successfully.';
 GO
+

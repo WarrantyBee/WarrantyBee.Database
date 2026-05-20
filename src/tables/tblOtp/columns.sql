@@ -1,4 +1,5 @@
-IF OBJECT_ID('dbo.usp_CreateColumns_tblOtp', 'P') IS NOT NULL DROP PROCEDURE dbo.usp_CreateColumns_tblOtp; GO
+IF OBJECT_ID('dbo.usp_CreateColumns_tblOtp', 'P') IS NOT NULL DROP PROCEDURE dbo.usp_CreateColumns_tblOtp;
+GO
 
 CREATE PROCEDURE dbo.usp_CreateColumns_tblOtp AS
 BEGIN
@@ -15,5 +16,7 @@ END
 GO
 
 EXEC dbo.usp_CreateColumns_tblOtp;
-IF OBJECT_ID('dbo.usp_CreateColumns_tblOtp', 'P') IS NOT NULL DROP PROCEDURE dbo.usp_CreateColumns_tblOtp; GO
+IF OBJECT_ID('dbo.usp_CreateColumns_tblOtp', 'P') IS NOT NULL DROP PROCEDURE dbo.usp_CreateColumns_tblOtp;
+GO
+
 

@@ -1,4 +1,5 @@
-IF OBJECT_ID('dbo.usp_CreateColumns_tblRolePermissions', 'P') IS NOT NULL DROP PROCEDURE dbo.usp_CreateColumns_tblRolePermissions; GO
+IF OBJECT_ID('dbo.usp_CreateColumns_tblRolePermissions', 'P') IS NOT NULL DROP PROCEDURE dbo.usp_CreateColumns_tblRolePermissions;
+GO
 
 CREATE PROCEDURE dbo.usp_CreateColumns_tblRolePermissions AS
 BEGIN
@@ -14,5 +15,7 @@ END
 GO
 
 EXEC dbo.usp_CreateColumns_tblRolePermissions;
-IF OBJECT_ID('dbo.usp_CreateColumns_tblRolePermissions', 'P') IS NOT NULL DROP PROCEDURE dbo.usp_CreateColumns_tblRolePermissions; GO
+IF OBJECT_ID('dbo.usp_CreateColumns_tblRolePermissions', 'P') IS NOT NULL DROP PROCEDURE dbo.usp_CreateColumns_tblRolePermissions;
+GO
+
 

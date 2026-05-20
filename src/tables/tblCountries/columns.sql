@@ -1,4 +1,5 @@
-IF OBJECT_ID('dbo.usp_CreateColumns_tblCountries', 'P') IS NOT NULL DROP PROCEDURE dbo.usp_CreateColumns_tblCountries; GO
+IF OBJECT_ID('dbo.usp_CreateColumns_tblCountries', 'P') IS NOT NULL DROP PROCEDURE dbo.usp_CreateColumns_tblCountries;
+GO
 
 CREATE PROCEDURE dbo.usp_CreateColumns_tblCountries AS
 BEGIN
@@ -19,5 +20,7 @@ END
 GO
 
 EXEC dbo.usp_CreateColumns_tblCountries;
-IF OBJECT_ID('dbo.usp_CreateColumns_tblCountries', 'P') IS NOT NULL DROP PROCEDURE dbo.usp_CreateColumns_tblCountries; GO
+IF OBJECT_ID('dbo.usp_CreateColumns_tblCountries', 'P') IS NOT NULL DROP PROCEDURE dbo.usp_CreateColumns_tblCountries;
+GO
+
 

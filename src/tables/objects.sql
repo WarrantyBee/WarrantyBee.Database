@@ -13,3 +13,4 @@ EXEC dbo.usp_CreateTable N'tblPermissions';
 EXEC dbo.usp_CreateTable N'tblRolePermissions';
 GO
 
+

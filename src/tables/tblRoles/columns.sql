@@ -1,4 +1,5 @@
-IF OBJECT_ID('dbo.usp_CreateColumns_tblRoles', 'P') IS NOT NULL DROP PROCEDURE dbo.usp_CreateColumns_tblRoles; GO
+IF OBJECT_ID('dbo.usp_CreateColumns_tblRoles', 'P') IS NOT NULL DROP PROCEDURE dbo.usp_CreateColumns_tblRoles;
+GO
 
 CREATE PROCEDURE dbo.usp_CreateColumns_tblRoles AS
 BEGIN
@@ -14,5 +15,7 @@ END
 GO
 
 EXEC dbo.usp_CreateColumns_tblRoles;
-IF OBJECT_ID('dbo.usp_CreateColumns_tblRoles', 'P') IS NOT NULL DROP PROCEDURE dbo.usp_CreateColumns_tblRoles; GO
+IF OBJECT_ID('dbo.usp_CreateColumns_tblRoles', 'P') IS NOT NULL DROP PROCEDURE dbo.usp_CreateColumns_tblRoles;
+GO
+
 

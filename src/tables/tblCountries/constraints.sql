@@ -8,3 +8,4 @@ EXEC dbo.usp_AddCheck N'tblCountries', N'official_name', N'official_name IS NULL
 EXEC dbo.usp_AddCheck N'tblCountries', N'capital', N'capital IS NULL OR LEN(capital) > 0';
 
 
+

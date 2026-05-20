@@ -25,3 +25,4 @@ GO
 PRINT 'usp_GetCurrencies created successfully.';
 
 
+

@@ -1,4 +1,5 @@
-IF OBJECT_ID('dbo.usp_CreateColumns_tblUserProfiles', 'P') IS NOT NULL DROP PROCEDURE dbo.usp_CreateColumns_tblUserProfiles; GO
+IF OBJECT_ID('dbo.usp_CreateColumns_tblUserProfiles', 'P') IS NOT NULL DROP PROCEDURE dbo.usp_CreateColumns_tblUserProfiles;
+GO
 
 CREATE PROCEDURE dbo.usp_CreateColumns_tblUserProfiles AS
 BEGIN
@@ -22,5 +23,7 @@ END
 GO
 
 EXEC dbo.usp_CreateColumns_tblUserProfiles;
-IF OBJECT_ID('dbo.usp_CreateColumns_tblUserProfiles', 'P') IS NOT NULL DROP PROCEDURE dbo.usp_CreateColumns_tblUserProfiles; GO
+IF OBJECT_ID('dbo.usp_CreateColumns_tblUserProfiles', 'P') IS NOT NULL DROP PROCEDURE dbo.usp_CreateColumns_tblUserProfiles;
+GO
+
 

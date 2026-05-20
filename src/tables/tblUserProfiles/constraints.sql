@@ -7,3 +7,4 @@ EXEC dbo.usp_AddCheck N'tblUserProfiles', N'city', N'LTRIM(RTRIM(city)) <> '''''
 EXEC dbo.usp_AddCheck N'tblUserProfiles', N'postal_code', N'LTRIM(RTRIM(postal_code)) <> ''''';
 
 
+

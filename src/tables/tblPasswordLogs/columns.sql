@@ -1,4 +1,5 @@
-IF OBJECT_ID('dbo.usp_CreateColumns_tblPasswordLogs', 'P') IS NOT NULL DROP PROCEDURE dbo.usp_CreateColumns_tblPasswordLogs; GO
+IF OBJECT_ID('dbo.usp_CreateColumns_tblPasswordLogs', 'P') IS NOT NULL DROP PROCEDURE dbo.usp_CreateColumns_tblPasswordLogs;
+GO
 
 CREATE PROCEDURE dbo.usp_CreateColumns_tblPasswordLogs AS
 BEGIN
@@ -14,5 +15,7 @@ END
 GO
 
 EXEC dbo.usp_CreateColumns_tblPasswordLogs;
-IF OBJECT_ID('dbo.usp_CreateColumns_tblPasswordLogs', 'P') IS NOT NULL DROP PROCEDURE dbo.usp_CreateColumns_tblPasswordLogs; GO
+IF OBJECT_ID('dbo.usp_CreateColumns_tblPasswordLogs', 'P') IS NOT NULL DROP PROCEDURE dbo.usp_CreateColumns_tblPasswordLogs;
+GO
+
 

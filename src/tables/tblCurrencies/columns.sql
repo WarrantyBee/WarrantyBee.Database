@@ -1,4 +1,5 @@
-IF OBJECT_ID('dbo.usp_CreateColumns_tblCurrencies', 'P') IS NOT NULL DROP PROCEDURE dbo.usp_CreateColumns_tblCurrencies; GO
+IF OBJECT_ID('dbo.usp_CreateColumns_tblCurrencies', 'P') IS NOT NULL DROP PROCEDURE dbo.usp_CreateColumns_tblCurrencies;
+GO
 
 CREATE PROCEDURE dbo.usp_CreateColumns_tblCurrencies AS
 BEGIN
@@ -7,8 +8,11 @@ BEGIN
 
     EXEC dbo.usp_AddColumn N'tblCurrencies', 'iso_code', 'CHAR(3)', NULL, @v_required;
     EXEC dbo.usp_AddColumn N'tblCurrencies', 'numeric_code', 'CHAR(3)', NULL, @v_optional;
-    EXEC dbo.usp_AddColumn N'tblCurrencies', 'name', 'VARCHAR(100)', NULL, @v_required;
-    EXEC dbo.usp_AddColumn N'tblCurrencies', 'symbol', 'VARCHAR(10)', NULL, @v_required;
+    
+    -- Ensure these are NVARCHAR and large enough
+    EXEC dbo.usp_AlterColumn N'tblCurrencies', 'name', 'NVARCHAR(100)', @v_required;
+    EXEC dbo.usp_AlterColumn N'tblCurrencies', 'symbol', 'NVARCHAR(50)', @v_required;
+    
     EXEC dbo.usp_AddColumn N'tblCurrencies', 'minor_unit', N'TINYINT', '2', @v_required;
     EXEC dbo.usp_DropColumn N'tblCurrencies', 'created_by';
     EXEC dbo.usp_DropColumn N'tblCurrencies', 'updated_by';
@@ -16,5 +20,6 @@ END
 GO
 
 EXEC dbo.usp_CreateColumns_tblCurrencies;
-IF OBJECT_ID('dbo.usp_CreateColumns_tblCurrencies', 'P') IS NOT NULL DROP PROCEDURE dbo.usp_CreateColumns_tblCurrencies; GO
+IF OBJECT_ID('dbo.usp_CreateColumns_tblCurrencies', 'P') IS NOT NULL DROP PROCEDURE dbo.usp_CreateColumns_tblCurrencies;
+GO
 

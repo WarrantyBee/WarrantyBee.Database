@@ -30,3 +30,4 @@ GO
 
 PRINT N'tblLanguages data merged successfully.';
 GO
+

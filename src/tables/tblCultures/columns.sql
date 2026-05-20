@@ -1,4 +1,5 @@
-IF OBJECT_ID('dbo.usp_CreateColumns_tblCultures', 'P') IS NOT NULL DROP PROCEDURE dbo.usp_CreateColumns_tblCultures; GO
+IF OBJECT_ID('dbo.usp_CreateColumns_tblCultures', 'P') IS NOT NULL DROP PROCEDURE dbo.usp_CreateColumns_tblCultures;
+GO
 
 CREATE PROCEDURE dbo.usp_CreateColumns_tblCultures AS
 BEGIN
@@ -16,5 +17,7 @@ END
 GO
 
 EXEC dbo.usp_CreateColumns_tblCultures;
-IF OBJECT_ID('dbo.usp_CreateColumns_tblCultures', 'P') IS NOT NULL DROP PROCEDURE dbo.usp_CreateColumns_tblCultures; GO
+IF OBJECT_ID('dbo.usp_CreateColumns_tblCultures', 'P') IS NOT NULL DROP PROCEDURE dbo.usp_CreateColumns_tblCultures;
+GO
+
 
