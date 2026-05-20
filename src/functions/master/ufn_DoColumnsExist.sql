@@ -30,12 +30,12 @@ BEGIN
         SET @comma_pos = CHARINDEX(',', @remaining_cols);
         IF @comma_pos > 0
         BEGIN
-            SET @col_name = LTRIM(RTRIM(SUBSTRING(@remaining_cols, 1, @comma_pos - 1)));
-            SET @remaining_cols = LTRIM(RTRIM(SUBSTRING(@remaining_cols, @comma_pos + 1, LEN(@remaining_cols))));
+            SET @col_name = LTRIM(RTRIM(RTRIM(SUBSTRING(@remaining_cols, 1, @comma_pos - 1))));
+            SET @remaining_cols = LTRIM(RTRIM(RTRIM(SUBSTRING(@remaining_cols, @comma_pos + 1, LEN(@remaining_cols)))));
         END
         ELSE
         BEGIN
-            SET @col_name = LTRIM(RTRIM(@remaining_cols));
+            SET @col_name = LTRIM(RTRIM(RTRIM(@remaining_cols)));
             SET @remaining_cols = '';
         END
 
@@ -48,4 +48,5 @@ BEGIN
     RETURN 1;
 END
 GO
+
 

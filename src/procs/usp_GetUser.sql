@@ -9,7 +9,7 @@ BEGIN
     DECLARE @v_user_exists INT = 0;
 
     BEGIN TRY
-        IF @in_id IS NULL AND (@in_email IS NULL OR TRIM(@in_email) = '')
+        IF @in_id IS NULL AND (@in_email IS NULL OR LTRIM(RTRIM(@in_email)) = '')
         BEGIN
             THROW 50000, 'Either a user ID or an email must be provided.', 1;
         END;
@@ -94,4 +94,5 @@ BEGIN
         SELECT 1 AS [status], ERROR_MESSAGE() AS [message];
     END CATCH
 END;
+
 

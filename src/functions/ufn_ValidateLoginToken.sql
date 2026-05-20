@@ -22,7 +22,7 @@ AS
 BEGIN
     DECLARE @v_stored_token VARCHAR(255);
 
-    IF @in_user_id IS NULL OR @in_token IS NULL OR TRIM(@in_token) = ''
+    IF @in_user_id IS NULL OR @in_token IS NULL OR LTRIM(RTRIM(@in_token)) = ''
     BEGIN
         RETURN 0;
     END
@@ -39,4 +39,5 @@ BEGIN
     RETURN 0;
 END
 GO
+
 

@@ -3,3 +3,4 @@ EXEC dbo.usp_CreateForeignKey N'tblUserProfiles', N'country_id', N'tblCountries'
 EXEC dbo.usp_CreateForeignKey N'tblUserProfiles', N'region_id', N'tblStates', N'id';
 EXEC dbo.usp_CreateForeignKey N'tblUserProfiles', N'culture_id', N'tblCultures', N'id';
 
+

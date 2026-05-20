@@ -9,12 +9,12 @@ BEGIN
     SET NOCOUNT ON;
 
     BEGIN TRY
-        IF @in_value IS NULL OR TRIM(@in_value) = ''
+        IF @in_value IS NULL OR LTRIM(RTRIM(@in_value)) = ''
         BEGIN
             THROW 50000, 'Value is required.', 1;
         END;
 
-        IF @in_recipient IS NULL OR TRIM(@in_recipient) = ''
+        IF @in_recipient IS NULL OR LTRIM(RTRIM(@in_recipient)) = ''
         BEGIN
             THROW 50000, 'Recipient is required.', 1;
         END;
@@ -44,4 +44,5 @@ BEGIN
         SELECT NULL AS id, ERROR_MESSAGE() AS message;
     END CATCH
 END;
+
 

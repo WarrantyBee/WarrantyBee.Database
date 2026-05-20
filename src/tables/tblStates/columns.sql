@@ -19,3 +19,4 @@ GO
 
 EXEC dbo.usp_CreateColumns_tblStates;
 IF OBJECT_ID('dbo.usp_CreateColumns_tblStates', 'P') IS NOT NULL DROP PROCEDURE dbo.usp_CreateColumns_tblStates; GO
+

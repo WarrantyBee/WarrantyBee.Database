@@ -35,6 +35,7 @@ BEGIN
             RETURN;
         END
 
+        -- Execute directly - assuming condition is already T-SQL compatible
         DECLARE @sql NVARCHAR(MAX) = N'ALTER TABLE dbo.' + QUOTENAME(@in_table_name) + 
                                      N' ADD CONSTRAINT ' + QUOTENAME(@in_constraint_name) + 
                                      N' CHECK (' + @in_condition + N')';
@@ -47,4 +48,3 @@ BEGIN
     END CATCH
 END
 GO
-

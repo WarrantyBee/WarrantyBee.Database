@@ -59,16 +59,16 @@ BEGIN
 
         UPDATE tblUserProfiles
         SET
-            address_line1 = ISNULL(TRIM(@in_address_line1), address_line1),
-            address_line2 = CASE WHEN @in_address_line2 IS NULL THEN address_line2 ELSE TRIM(@in_address_line2) END,
-            phone_code = ISNULL(TRIM(@in_phone_code), phone_code),
-            phone_number = ISNULL(TRIM(@in_phone_number), phone_number),
+            address_line1 = ISNULL(LTRIM(RTRIM(@in_address_line1)), address_line1),
+            address_line2 = CASE WHEN @in_address_line2 IS NULL THEN address_line2 ELSE LTRIM(RTRIM(@in_address_line2)) END,
+            phone_code = ISNULL(LTRIM(RTRIM(@in_phone_code)), phone_code),
+            phone_number = ISNULL(LTRIM(RTRIM(@in_phone_number)), phone_number),
             country_id = ISNULL(@in_country_id, country_id),
             region_id = ISNULL(@in_region_id, region_id),
             culture_id = ISNULL(@in_culture_id, culture_id),
-            city = ISNULL(TRIM(@in_city), city),
-            postal_code = ISNULL(TRIM(@in_postal_code), postal_code),
-            avatar_url = CASE WHEN @in_avatar_url IS NULL THEN avatar_url ELSE TRIM(@in_avatar_url) END
+            city = ISNULL(LTRIM(RTRIM(@in_city)), city),
+            postal_code = ISNULL(LTRIM(RTRIM(@in_postal_code)), postal_code),
+            avatar_url = CASE WHEN @in_avatar_url IS NULL THEN avatar_url ELSE LTRIM(RTRIM(@in_avatar_url)) END
         WHERE
             user_id = @in_user_id;
 
@@ -83,4 +83,5 @@ BEGIN
         SELECT 0 AS success, ERROR_MESSAGE() AS message;
     END CATCH
 END;
+
 

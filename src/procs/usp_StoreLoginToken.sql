@@ -12,7 +12,7 @@ BEGIN
             THROW 50000, 'User identifier must be provided.', 1;
         END;
 
-        IF @in_token IS NULL OR TRIM(@in_token) = ''
+        IF @in_token IS NULL OR LTRIM(RTRIM(@in_token)) = ''
         BEGIN
             THROW 50000, 'Token must be provided.', 1;
         END;
@@ -27,4 +27,5 @@ BEGIN
         SELECT 1 AS [status], ERROR_MESSAGE() AS [message];
     END CATCH
 END;
+
 

@@ -1,7 +1,7 @@
 -- =============================================
 -- usp_CreateTable
--- Creates a table with columns 'id', 'created_by', 'updated_by', 'created_at', 'updated_at', and 'void'
--- if it does not already exist, and adds a primary key constraint.
+-- Creates a table with columns 'id', 'internal_id', 'created_by', 'updated_by', 'created_at', 'updated_at', and 'void'
+-- if it does not already exist, and adds primary and unique keys.
 --
 -- Parameters:
 --   @in_table_name - The name of the table to create.
@@ -25,7 +25,7 @@ BEGIN
             RETURN;
         END
 
-        -- Create table with 'id' as identity column immediately (SQL Server best practice)
+        -- Create table with 'id' as identity column immediately
         DECLARE @sql NVARCHAR(MAX) = N'CREATE TABLE dbo.' + QUOTENAME(@in_table_name) + N' (id BIGINT IDENTITY(1,1) NOT NULL)';
         EXEC sp_executesql @sql;
 
@@ -34,12 +34,13 @@ BEGIN
         EXEC dbo.usp_CreatePrimaryKey @in_table_name, N'id', @pk_name;
 
         -- Add standard columns using usp_AddColumn
-        EXEC dbo.usp_AddColumn @in_table_name, N'internal_id', N'BINARY(16)', NULL, 1;
-        EXEC dbo.usp_AddColumn @in_table_name, N'created_by', N'BIGINT', NULL, 1;
+        -- Using UNIQUEIDENTIFIER with DEFAULT NEWID() for internal_id
+        EXEC dbo.usp_AddColumn @in_table_name, N'internal_id', N'UNIQUEIDENTIFIER', N'NEWID()', 1;
+        EXEC dbo.usp_AddColumn @in_table_name, N'created_by', N'BIGINT', NULL, 0;
         EXEC dbo.usp_AddColumn @in_table_name, N'updated_by', N'BIGINT', NULL, 0;
         EXEC dbo.usp_AddColumn @in_table_name, N'created_at', N'DATETIME2', N'GETUTCDATE()', 1;
         EXEC dbo.usp_AddColumn @in_table_name, N'updated_at', N'DATETIME2', NULL, 0;
-        EXEC dbo.usp_AddColumn @in_table_name, N'void', N'BIT', N'0', 0;
+        EXEC dbo.usp_AddColumn @in_table_name, N'void', N'BIT', N'0', 1;
 
         -- Add unique key constraint on 'internal_id'
         EXEC dbo.usp_CreateUniqueKey @in_table_name, N'internal_id';

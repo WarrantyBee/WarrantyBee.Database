@@ -18,7 +18,7 @@ BEGIN
             THROW 50000, @v_error_message, 1;
         END;
 
-        IF @in_new_password IS NULL OR TRIM(@in_new_password) = ''
+        IF @in_new_password IS NULL OR LTRIM(RTRIM(@in_new_password)) = ''
         BEGIN
             SET @v_error_message = 'New password must be provided.';
             THROW 50000, @v_error_message, 1;
@@ -74,4 +74,5 @@ BEGIN
         SELECT 1 AS [status], ERROR_MESSAGE() AS [message];
     END CATCH
 END;
+
 

@@ -16,8 +16,7 @@ if (-not [string]::IsNullOrEmpty($db)) {
     Add-Content -Path $outputFile -Value $useDbStatement
 }
 
-# No global time_zone SET needed for SQL Server as we'll use GETUTCDATE() or SYSDATETIMEOFFSET()
-Add-Content -Path $outputFile -Value "SET NOCOUNT ON;`nGO`n`n"
+Add-Content -Path $outputFile -Value "SET NOCOUNT ON;`nSET QUOTED_IDENTIFIER ON;`nGO`n`n"
 
 function Add-ScriptContent {
     param (
@@ -29,11 +28,20 @@ function Add-ScriptContent {
     Add-Content -Path $outputFile -Value "$header`r`n"
     $content = Get-Content -Path $filePath -Raw
     
-    # Remove DELIMITER statements and replace $$ with GO or nothing
-    $content = $content -replace "(?i)DELIMITER\s+[\S]+", ""
-    $content = $content -replace "\$\$", "GO"
+    # Standardize line endings
+    $content = $content -replace "\r?\n", "`r`n"
     
-    Add-Content -Path $outputFile -Value "$content`r`nGO`r`n"
+    # Remove MySQL DELIMITER
+    $content = $content -replace "(?i)DELIMITER\s+[\S]+", ""
+    
+    # Ensure GO is on its own line
+    $content = $content -replace "\$\$", "`r`nGO`r`n"
+    $content = $content -replace ";\s*GO", ";`r`nGO"
+    
+    Add-Content -Path $outputFile -Value $content
+    
+    # Always append a newline and GO at the end of every merged file to ensure batch separation
+    Add-Content -Path $outputFile -Value "`r`nGO`r`n`n"
 }
 
 $dependenciesPath = Join-Path -Path $srcPath -ChildPath "dependencies.json"
@@ -48,7 +56,6 @@ function Get-TopologicalSort {
     $inDegree = @{}
     $graph = @{}
 
-    # Initialize graph and in-degree
     $itemNames = $itemsWithDependencies.Keys
     foreach ($item in $itemNames) {
         $inDegree[$item] = 0
@@ -91,49 +98,45 @@ function Get-TopologicalSort {
     }
 
     if ($sorted.Count -ne $itemsWithDependencies.Count) {
-        $unsortedItems = $itemsWithDependencies.Keys | Where-Object { -not ($sorted -contains $_) }
-        throw "Cyclic dependency detected or missing dependency. Unsorted items: $($unsortedItems -join ', ')"
+        throw "Cyclic dependency detected"
     }
 
     return $sorted
 }
 
-
+# 1. Master Functions
 Write-Host "Processing master functions..."
 $masterFunctions = @{}
 if ($dependencies.functions.master) {
     $dependencies.functions.master.PSObject.Properties | ForEach-Object {
-        $functionName = $_.Name
-        $deps = $_.Value.dependencies.functions
-        $masterFunctions[$functionName] = $deps
+        $masterFunctions[$_.Name] = $_.Value.dependencies.functions
     }
     $sortedMasterFunctions = Get-TopologicalSort -itemsWithDependencies $masterFunctions
-    foreach ($functionName in $sortedMasterFunctions) {
-        $filePath = Join-Path -Path $srcPath -ChildPath "functions\master\$functionName.sql"
-        if (Test-Path $filePath) {
-            Add-ScriptContent -filePath $filePath
-        }
+    foreach ($name in $sortedMasterFunctions) {
+        Add-ScriptContent -filePath (Join-Path -Path $srcPath -ChildPath "functions\master\$name.sql")
     }
 }
 
-Write-Host "`nProcessing master procedures..."
+# 2. Master Procedures
+Write-Host "Processing master procedures..."
 $masterProcedures = @{}
 if ($dependencies.procedures.master) {
     $dependencies.procedures.master.PSObject.Properties | ForEach-Object {
-        $procName = $_.Name
-        $deps = $_.Value.dependencies.procs
-        $masterProcedures[$procName] = $deps
+        $masterProcedures[$_.Name] = $_.Value.dependencies.procs
     }
     $sortedMasterProcedures = Get-TopologicalSort -itemsWithDependencies $masterProcedures
-    foreach ($procName in $sortedMasterProcedures) {
-        $filePath = Join-Path -Path $srcPath -ChildPath "procs\master\$procName.sql"
-        if (Test-Path $filePath) {
-            Add-ScriptContent -filePath $filePath
-        }
+    foreach ($name in $sortedMasterProcedures) {
+        Add-ScriptContent -filePath (Join-Path -Path $srcPath -ChildPath "procs\master\$name.sql")
     }
 }
 
-Write-Host "`nProcessing tables..."
+# 3. Table Structure (Objects creation first)
+Write-Host "Processing tables..."
+$objectsFile = Join-Path -Path $srcPath -ChildPath "tables\objects.sql"
+if (Test-Path $objectsFile) {
+    Add-ScriptContent -filePath $objectsFile
+}
+
 $mergedTableDependencies = @{}
 $dependencies.tables.PSObject.Properties | ForEach-Object {
     $mergedTableDependencies[$_.Name] = $_.Value
@@ -142,75 +145,37 @@ $sortedTables = Get-TopologicalSort -itemsWithDependencies $mergedTableDependenc
 
 $tableFileOrder = @("columns.sql", "constraints.sql", "indexes.sql", "foreignkeys.sql")
 
-$objectsFile = Join-Path -Path $srcPath -ChildPath "tables\objects.sql"
-if (Test-Path $objectsFile) {
-    Add-ScriptContent -filePath $objectsFile
-}
-
 foreach ($tableName in $sortedTables) {
     $tablePath = Join-Path -Path $srcPath -ChildPath "tables\$tableName"
-    if (Test-Path $tablePath) {
-        foreach ($fileName in $tableFileOrder) {
-            $filePath = Join-Path -Path $tablePath -ChildPath $fileName
-            if (Test-Path $filePath) {
-                Add-ScriptContent -filePath $filePath
-            }
-        }
-
-        $triggersPath = Join-Path -Path $tablePath -ChildPath "triggers"
-        if (Test-Path $triggersPath) {
-            $triggerFiles = @("before_insert.sql", "before_update.sql")
-            foreach ($triggerFile in $triggerFiles) {
-                $triggerPath = Join-Path -Path $triggersPath -ChildPath $triggerFile
-                if (Test-Path $triggerPath) {
-                    Add-ScriptContent -filePath $triggerPath
-                }
-            }
-        }
-
-        if (-not $skipdata) {
-            $dataFilePath = Join-Path -Path $tablePath -ChildPath "data.sql"
-            if (Test-Path $dataFilePath) {
-                Add-ScriptContent -filePath $dataFilePath
-            }
-        }
-    }
-}
-
-Write-Host "`nProcessing business functions..."
-$businessFunctions = @{}
-if ($dependencies.functions.business) {
-    $dependencies.functions.business.PSObject.Properties | ForEach-Object {
-        $functionName = $_.Name
-        $deps = $_.Value.dependencies.functions
-        $businessFunctions[$functionName] = $deps
-    }
-    $sortedBusinessFunctions = Get-TopologicalSort -itemsWithDependencies $businessFunctions
-    foreach ($functionName in $sortedBusinessFunctions) {
-        $filePath = Join-Path -Path $srcPath -ChildPath "functions\$functionName.sql"
-        if (-not (Test-Path $filePath)) {
-            $filePath = Join-Path -Path $srcPath -ChildPath "functions\business\$functionName.sql"
-        }
+    foreach ($fileName in $tableFileOrder) {
+        $filePath = Join-Path -Path $tablePath -ChildPath $fileName
         if (Test-Path $filePath) {
             Add-ScriptContent -filePath $filePath
         }
     }
+    if (-not $skipdata) {
+        $dataFilePath = Join-Path -Path $tablePath -ChildPath "data.sql"
+        if (Test-Path $dataFilePath) {
+            Add-ScriptContent -filePath $dataFilePath
+        }
+    }
 }
 
-Write-Host "`nProcessing business procedures..."
-$businessProcedures = @{}
+# 4. Business logic
+Write-Host "Processing business logic..."
+# Business Functions
+if ($dependencies.functions. business) {
+    $dependencies.functions.business.PSObject.Properties | ForEach-Object {
+        $filePath = Join-Path -Path $srcPath -ChildPath "functions\$($_.Name).sql"
+        if (-not (Test-Path $filePath)) { $filePath = Join-Path -Path $srcPath -ChildPath "functions\business\$($_.Name).sql" }
+        if (Test-Path $filePath) { Add-ScriptContent -filePath $filePath }
+    }
+}
+# Business Procedures
 if ($dependencies.procedures.business) {
     $dependencies.procedures.business.PSObject.Properties | ForEach-Object {
-        $procName = $_.Name
-        $deps = $_.Value.dependencies.procs
-        $businessProcedures[$procName] = $deps
-    }
-    $sortedBusinessProcedures = Get-TopologicalSort -itemsWithDependencies $businessProcedures
-    foreach ($procName in $sortedBusinessProcedures) {
-        $filePath = Join-Path -Path $srcPath -ChildPath "procs\$procName.sql"
-        if (Test-Path $filePath) {
-            Add-ScriptContent -filePath $filePath
-        }
+        $filePath = Join-Path -Path $srcPath -ChildPath "procs\$($_.Name).sql"
+        if (Test-Path $filePath) { Add-ScriptContent -filePath $filePath }
     }
 }
 

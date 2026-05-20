@@ -1,23 +1,32 @@
-EXEC dbo.usp_ResetAutoIncrement N'tblLanguages';
+SET IDENTITY_INSERT tblLanguages ON;
 GO
 
-INSERT INTO tblLanguages
-(
-    name,
-    iso_code,
-    native_name
-)
-VALUES
-(N'English', N'en', N'English'),
-(N'Spanish', N'es', N'Español'),
-(N'French', N'fr', N'Français'),
-(N'German', N'de', N'Deutsch'),
-(N'Portuguese', N'pt', N'Português'),
-(N'Arabic', N'ar', N'العربية'),
-(N'Chinese', N'zh', N'中文'),
-(N'Japanese', N'ja', N'日本語'),
-(N'Korean', N'ko', N'한국어'),
-(N'Hindi', N'hi', N'हिन्दी');
+MERGE INTO tblLanguages AS target
+USING (VALUES
+    (1, N'English', N'en', N'English'),
+    (2, N'Spanish', N'es', N'Español'),
+    (3, N'French', N'fr', N'Français'),
+    (4, N'German', N'de', N'Deutsch'),
+    (5, N'Portuguese', N'pt', N'Português'),
+    (6, N'Arabic', N'ar', N'العربية'),
+    (7, N'Chinese', N'zh', N'中文'),
+    (8, N'Japanese', N'ja', N'日本語'),
+    (9, N'Korean', N'ko', N'한국어'),
+    (10, N'Hindi', N'hi', N'हिन्दी')
+) AS source (id, name, iso_code, native_name)
+ON target.id = source.id
+WHEN MATCHED THEN
+    UPDATE SET name = source.name, iso_code = source.iso_code, native_name = source.native_name
+WHEN NOT MATCHED THEN
+    INSERT (id, name, iso_code, native_name)
+    VALUES (source.id, source.name, source.iso_code, source.native_name);
+GO
 
-PRINT N'tblLanguages data inserted successfully.';
+SET IDENTITY_INSERT tblLanguages OFF;
+GO
+
+DBCC CHECKIDENT ('tblLanguages', RESEED, 10);
+GO
+
+PRINT N'tblLanguages data merged successfully.';
 GO

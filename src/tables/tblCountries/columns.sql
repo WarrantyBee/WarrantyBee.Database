@@ -20,3 +20,4 @@ GO
 
 EXEC dbo.usp_CreateColumns_tblCountries;
 IF OBJECT_ID('dbo.usp_CreateColumns_tblCountries', 'P') IS NOT NULL DROP PROCEDURE dbo.usp_CreateColumns_tblCountries; GO
+

@@ -1,20 +1,9 @@
-EXEC dbo.usp_ResetAutoIncrement N'tblCountries';
+SET IDENTITY_INSERT tblCountries ON;
 GO
 
-INSERT INTO tblCountries
-(
-    id,
-    iso2_code,
-    iso3_code, 
-    numeric_code,
-    name,
-    official_name,
-    capital,
-    phone_code,
-    currency_id
-)
-VALUES
-(1, N'AF', N'AFG', N'004', N'Afghanistan', N'Islamic Republic of Afghanistan', N'Kabul', N'+93', 2),
+MERGE INTO tblCountries AS target
+USING (VALUES
+    (1, N'AF', N'AFG', N'004', N'Afghanistan', N'Islamic Republic of Afghanistan', N'Kabul', N'+93', 2),
 (2, N'AL', N'ALB', N'008', N'Albania', N'Republic of Albania', N'Tirana', N'+355', 3),
 (3, N'DZ', N'DZA', N'012', N'Algeria', N'People''s Democratic Republic of Algeria', N'Algiers', N'+213', 39),
 (4, N'AD', N'AND', N'020', N'Andorra', N'Principality of Andorra', N'Andorra la Vella', N'+376', 43),
@@ -32,8 +21,8 @@ VALUES
 (16, N'BY', N'BLR', N'112', N'Belarus', N'Republic of Belarus', N'Minsk', N'+375', 23),
 (17, N'BE', N'BEL', N'056', N'Belgium', N'Kingdom of Belgium', N'Brussels', N'+32', 43),
 (18, N'BZ', N'BLZ', N'084', N'Belize', N'Belize', N'Belmopan', N'+501', 24),
-(19, N'BJ', N'BEN', N'204', N'Benin', N'Republic of Benin', N'Porto-Novo', N'+229', 151),
-(20, N'BT', N'BTN', N'064', N'Bhutan', N'Kingdom of Bhutan', N'Thimphu', N'+975', 21),
+(19, N'BJ', N'BE', N'204', N'Benin', N'Republic of Benin', N'Porto-Novo', N'+229', 151),
+(20, N'BT', N'BT', N'064', N'Bhutan', N'Kingdom of Bhutan', N'Thimphu', N'+975', 21),
 (21, N'BO', N'BOL', N'068', N'Bolivia', N'Plurinational State of Bolivia', N'Sucre', N'+591', 18),
 (22, N'BA', N'BIH', N'070', N'Bosnia and Herzegovina', N'Bosnia and Herzegovina', N'Sarajevo', N'+387', 10),
 (23, N'BW', N'BWA', N'072', N'Botswana', N'Republic of Botswana', N'Gaborone', N'+267', 22),
@@ -44,7 +33,7 @@ VALUES
 (28, N'BI', N'BDI', N'108', N'Burundi', N'Republic of Burundi', N'Gitega', N'+257', 15),
 (29, N'KH', N'KHM', N'116', N'Cambodia', N'Kingdom of Cambodia', N'Phnom Penh', N'+855', 70),
 (30, N'CM', N'CMR', N'120', N'Cameroon', N'Republic of Cameroon', N'Yaoundé', N'+237', 149),
-(31, N'CA', N'CAN', N'124', N'Canada', N'Canada', N'Ottawa', N'+1', 25),
+(31, N'CA', N'CA', N'124', N'Canada', N'Canada', N'Ottawa', N'+1', 25),
 (32, N'CV', N'CPV', N'132', N'Cape Verde', N'Republic of Cabo Verde', N'Praia', N'+238', 34),
 (33, N'CF', N'CAF', N'140', N'Central African Republic', N'Central African Republic', N'Bangui', N'+236', 149),
 (34, N'TD', N'TCD', N'148', N'Chad', N'Republic of Chad', N'N''Djamena', N'+235', 149),
@@ -72,7 +61,7 @@ VALUES
 (56, N'SZ', N'SWZ', N'748', N'Eswatini', N'Kingdom of Eswatini', N'Mbabane', N'+268', 130),
 (57, N'ET', N'ETH', N'231', N'Ethiopia', N'Federal Democratic Republic of Ethiopia', N'Addis Ababa', N'+251', 42),
 (58, N'FJ', N'FJI', N'242', N'Fiji', N'Republic of Fiji', N'Suva', N'+679', 44),
-(59, N'FI', N'FIN', N'246', N'Finland', N'Republic of Finland', N'Helsinki', N'+358', 43),
+(59, N'FI', N'FI', N'246', N'Finland', N'Republic of Finland', N'Helsinki', N'+358', 43),
 (60, N'FR', N'FRA', N'250', N'France', N'French Republic', N'Paris', N'+33', 43),
 (61, N'GA', N'GAB', N'266', N'Gabon', N'Gabonese Republic', N'Libreville', N'+241', 149),
 (62, N'GM', N'GMB', N'270', N'Gambia', N'Republic of the Gambia', N'Banjul', N'+220', 50),
@@ -87,26 +76,26 @@ VALUES
 (71, N'GY', N'GUY', N'328', N'Guyana', N'Co-operative Republic of Guyana', N'Georgetown', N'+592', 53),
 (72, N'HT', N'HTI', N'332', N'Haiti', N'Republic of Haiti', N'Port-au-Prince', N'+509', 57),
 (73, N'HN', N'HND', N'340', N'Honduras', N'Republic of Honduras', N'Tegucigalpa', N'+504', 55),
-(74, N'HU', N'HUN', N'348', N'Hungary', N'Hungary', N'Budapest', N'+36', 58),
+(74, N'HU', N'HU', N'348', N'Hungary', N'Hungary', N'Budapest', N'+36', 58),
 (75, N'IS', N'ISL', N'352', N'Iceland', N'Iceland', N'Reykjavík', N'+354', 64),
 (76, N'IN', N'IND', N'356', N'India', N'Republic of India', N'New Delhi', N'+91', 61),
-(77, N'ID', N'IDN', N'360', N'Indonesia', N'Republic of Indonesia', N'Jakarta', N'+62', 59),
-(78, N'IR', N'IRN', N'364', N'Iran', N'Islamic Republic of Iran', N'Tehran', N'+98', 63),
+(77, N'ID', N'ID', N'360', N'Indonesia', N'Republic of Indonesia', N'Jakarta', N'+62', 59),
+(78, N'IR', N'IR', N'364', N'Iran', N'Islamic Republic of Iran', N'Tehran', N'+98', 63),
 (79, N'IQ', N'IRQ', N'368', N'Iraq', N'Republic of Iraq', N'Baghdad', N'+964', 62),
 (80, N'IE', N'IRL', N'372', N'Ireland', N'Ireland', N'Dublin', N'+353', 43),
 (81, N'IL', N'ISR', N'376', N'Israel', N'State of Israel', N'Jerusalem', N'+972', 60),
 (82, N'IT', N'ITA', N'380', N'Italy', N'Italian Republic', N'Rome', N'+39', 43),
 (83, N'JM', N'JAM', N'388', N'Jamaica', N'Jamaica', N'Kingston', N'+1-876', 65),
-(84, N'JP', N'JPN', N'392', N'Japan', N'Japan', N'Tokyo', N'+81', 67),
+(84, N'JP', N'JP', N'392', N'Japan', N'Japan', N'Tokyo', N'+81', 67),
 (85, N'JO', N'JOR', N'400', N'Jordan', N'Hashemite Kingdom of Jordan', N'Amman', N'+962', 66),
 (86, N'KZ', N'KAZ', N'398', N'Kazakhstan', N'Republic of Kazakhstan', N'Astana', N'+7', 76),
-(87, N'KE', N'KEN', N'404', N'Kenya', N'Republic of Kenya', N'Nairobi', N'+254', 68),
+(87, N'KE', N'KE', N'404', N'Kenya', N'Republic of Kenya', N'Nairobi', N'+254', 68),
 (88, N'KI', N'KIR', N'296', N'Kiribati', N'Republic of Kiribati', N'South Tarawa', N'+686', 7),
 (89, N'KW', N'KWT', N'414', N'Kuwait', N'State of Kuwait', N'Kuwait City', N'+965', 74),
 (90, N'KG', N'KGZ', N'417', N'Kyrgyzstan', N'Kyrgyz Republic', N'Bishkek', N'+996', 69),
 (91, N'LA', N'LAO', N'418', N'Laos', N'Lao People''s Democratic Republic', N'Vientiane', N'+856', 77),
 (92, N'LV', N'LVA', N'428', N'Latvia', N'Republic of Latvia', N'Riga', N'+371', 43),
-(93, N'LB', N'LBN', N'422', N'Lebanon', N'Lebanese Republic', N'Beirut', N'+961', 78),
+(93, N'LB', N'LB', N'422', N'Lebanon', N'Lebanese Republic', N'Beirut', N'+961', 78),
 (94, N'LS', N'LSO', N'426', N'Lesotho', N'Kingdom of Lesotho', N'Maseru', N'+266', 81),
 (95, N'LR', N'LBR', N'430', N'Liberia', N'Republic of Liberia', N'Monrovia', N'+231', 80),
 (96, N'LY', N'LBY', N'434', N'Libya', N'State of Libya', N'Tripoli', N'+218', 82),
@@ -142,10 +131,10 @@ VALUES
 (126, N'KP', N'PRK', N'408', N'North Korea', N'Democratic People''s Republic of Korea', N'Pyongyang', N'+850', 72),
 (127, N'MK', N'MKD', N'807', N'North Macedonia', N'Republic of North Macedonia', N'Skopje', N'+389', 86),
 (128, N'NO', N'NOR', N'578', N'Norway', N'Kingdom of Norway', N'Oslo', N'+47', 100),
-(129, N'OM', N'OMN', N'512', N'Oman', N'Sultanate of Oman', N'Muscat', N'+968', 103),
+(129, N'OM', N'OM', N'512', N'Oman', N'Sultanate of Oman', N'Muscat', N'+968', 103),
 (130, N'PK', N'PAK', N'586', N'Pakistan', N'Islamic Republic of Pakistan', N'Islamabad', N'+92', 108),
 (131, N'PW', N'PLW', N'585', N'Palau', N'Republic of Palau', N'Ngerulmud', N'+680', 142),
-(132, N'PA', N'PAN', N'591', N'Panama', N'Republic of Panama', N'Panama City', N'+507', 104),
+(132, N'PA', N'PA', N'591', N'Panama', N'Republic of Panama', N'Panama City', N'+507', 104),
 (133, N'PG', N'PNG', N'598', N'Papua New Guinea', N'Independent State of Papua New Guinea', N'Port Moresby', N'+675', 106),
 (134, N'PY', N'PRY', N'600', N'Paraguay', N'Republic of Paraguay', N'Asunción', N'+595', 110),
 (135, N'PE', N'PER', N'604', N'Peru', N'Republic of Peru', N'Lima', N'+51', 105),
@@ -169,7 +158,7 @@ VALUES
 (153, N'SL', N'SLE', N'694', N'Sierra Leone', N'Republic of Sierra Leone', N'Freetown', N'+232', 123),
 (154, N'SG', N'SGP', N'702', N'Singapore', N'Republic of Singapore', N'Singapore', N'+65', 121),
 (155, N'SK', N'SVK', N'703', N'Slovakia', N'Slovak Republic', N'Bratislava', N'+421', 43),
-(156, N'SI', N'SVN', N'705', N'Slovenia', N'Republic of Slovenia', N'Ljubljana', N'+386', 43),
+(156, N'SI', N'SV', N'705', N'Slovenia', N'Republic of Slovenia', N'Ljubljana', N'+386', 43),
 (157, N'SB', N'SLB', N'090', N'Solomon Islands', N'Solomon Islands', N'Honiara', N'+677', 117),
 (158, N'SO', N'SOM', N'706', N'Somalia', N'Federal Republic of Somalia', N'Mogadishu', N'+252', 124),
 (159, N'ZA', N'ZAF', N'710', N'South Africa', N'Republic of South Africa', N'Pretoria', N'+27', 154),
@@ -177,17 +166,17 @@ VALUES
 (161, N'SS', N'SSD', N'728', N'South Sudan', N'Republic of South Sudan', N'Juba', N'+211', 126),
 (162, N'ES', N'ESP', N'724', N'Spain', N'Kingdom of Spain', N'Madrid', N'+34', 43),
 (163, N'LK', N'LKA', N'144', N'Sri Lanka', N'Democratic Socialist Republic of Sri Lanka', N'Sri Jayawardenepura Kotte', N'+94', 79),
-(164, N'SD', N'SDN', N'729', N'Sudan', N'Republic of the Sudan', N'Khartoum', N'+249', 119),
+(164, N'SD', N'SD', N'729', N'Sudan', N'Republic of the Sudan', N'Khartoum', N'+249', 119),
 (165, N'SR', N'SUR', N'740', N'Suriname', N'Republic of Suriname', N'Paramaribo', N'+597', 125),
 (166, N'SE', N'SWE', N'752', N'Sweden', N'Kingdom of Sweden', N'Stockholm', N'+46', 120),
 (167, N'CH', N'CHE', N'756', N'Switzerland', N'Swiss Confederation', N'Bern', N'+41', 27),
 (168, N'SY', N'SYR', N'760', N'Syria', N'Syrian Arab Republic', N'Damascus', N'+963', 129),
-(169, N'TW', N'TWN', N'158', N'Taiwan', N'Republic of China', N'Taipei', N'+886', 138),
+(169, N'TW', N'TW', N'158', N'Taiwan', N'Republic of China', N'Taipei', N'+886', 138),
 (170, N'TJ', N'TJK', N'762', N'Tajikistan', N'Republic of Tajikistan', N'Dushanbe', N'+992', 132),
 (171, N'TZ', N'TZA', N'834', N'Tanzania', N'United Republic of Tanzania', N'Dodoma', N'+255', 139),
 (172, N'TH', N'THA', N'764', N'Thailand', N'Kingdom of Thailand', N'Bangkok', N'+66', 131),
 (173, N'TG', N'TGO', N'768', N'Togo', N'Togolese Republic', N'Lomé', N'+228', 151),
-(174, N'TO', N'TON', N'776', N'Tonga', N'Kingdom of Tonga', N'Nukuʻalofa', N'+676', 135),
+(174, N'TO', N'TO', N'776', N'Tonga', N'Kingdom of Tonga', N'Nukuʻalofa', N'+676', 135),
 (175, N'TT', N'TTO', N'780', N'Trinidad and Tobago', N'Republic of Trinidad and Tobago', N'Port of Spain', N'+1-868', 137),
 (176, N'TN', N'TUN', N'788', N'Tunisia', N'Republic of Tunisia', N'Tunis', N'+216', 134),
 (177, N'TR', N'TUR', N'792', N'Turkey', N'Republic of Türkiye', N'Ankara', N'+90', 136),
@@ -202,11 +191,33 @@ VALUES
 (186, N'UZ', N'UZB', N'860', N'Uzbekistan', N'Republic of Uzbekistan', N'Tashkent', N'+998', 144),
 (187, N'VU', N'VUT', N'548', N'Vanuatu', N'Republic of Vanuatu', N'Port Vila', N'+678', 147),
 (188, N'VA', N'VAT', N'336', N'Vatican City', N'Vatican City State', N'Vatican City', N'+379', 43),
-(189, N'VE', N'VEN', N'862', N'Venezuela', N'Bolivarian Republic of Venezuela', N'Caracas', N'+58', 145),
+(189, N'VE', N'VE', N'862', N'Venezuela', N'Bolivarian Republic of Venezuela', N'Caracas', N'+58', 145),
 (190, N'VN', N'VNM', N'704', N'Vietnam', N'Socialist Republic of Vietnam', N'Hanoi', N'+84', 146),
 (191, N'YE', N'YEM', N'887', N'Yemen', N'Republic of Yemen', N'Sana''a', N'+967', 153),
 (192, N'ZM', N'ZMB', N'894', N'Zambia', N'Republic of Zambia', N'Lusaka', N'+260', 155),
-(193, N'ZW', N'ZWE', N'716', N'Zimbabwe', N'Republic of Zimbabwe', N'Harare', N'+263', 156);
+(193, N'ZW', N'ZWE', N'716', N'Zimbabwe', N'Republic of Zimbabwe', N'Harare', N'+263', 156)
+) AS source (id, iso2_code, iso3_code, numeric_code, name, official_name, capital, phone_code, currency_id)
+ON target.id = source.id
+WHEN MATCHED THEN
+    UPDATE SET 
+        iso2_code = source.iso2_code,
+        iso3_code = source.iso3_code,
+        numeric_code = source.numeric_code,
+        name = source.name,
+        official_name = source.official_name,
+        capital = source.capital,
+        phone_code = source.phone_code,
+        currency_id = source.currency_id
+WHEN NOT MATCHED THEN
+    INSERT (id, iso2_code, iso3_code, numeric_code, name, official_name, capital, phone_code, currency_id)
+    VALUES (source.id, source.iso2_code, source.iso3_code, source.numeric_code, source.name, source.official_name, source.capital, source.phone_code, source.currency_id);
+GO
 
-PRINT N'tblCountries data inserted successfully.';
+SET IDENTITY_INSERT tblCountries OFF;
+GO
+
+DBCC CHECKIDENT ('tblCountries', RESEED, 193);
+GO
+
+PRINT N'tblCountries data merged successfully.';
 GO

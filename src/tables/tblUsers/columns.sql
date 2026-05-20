@@ -25,3 +25,4 @@ GO
 
 EXEC dbo.usp_CreateColumns_tblUsers;
 IF OBJECT_ID('dbo.usp_CreateColumns_tblUsers', 'P') IS NOT NULL DROP PROCEDURE dbo.usp_CreateColumns_tblUsers; GO
+

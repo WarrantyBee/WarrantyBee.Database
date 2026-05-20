@@ -17,3 +17,4 @@ GO
 
 EXEC dbo.usp_CreateColumns_tblCurrencies;
 IF OBJECT_ID('dbo.usp_CreateColumns_tblCurrencies', 'P') IS NOT NULL DROP PROCEDURE dbo.usp_CreateColumns_tblCurrencies; GO
+

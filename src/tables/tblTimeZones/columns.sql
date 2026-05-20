@@ -17,3 +17,4 @@ GO
 
 EXEC dbo.usp_CreateColumns_tblTimeZones;
 IF OBJECT_ID('dbo.usp_CreateColumns_tblTimeZones', 'P') IS NOT NULL DROP PROCEDURE dbo.usp_CreateColumns_tblTimeZones; GO
+

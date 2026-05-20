@@ -48,37 +48,37 @@ BEGIN
             THROW 50000, 'Privacy Policy must be accepted.', 1;
         END;
         
-        IF @in_firstname IS NULL OR TRIM(@in_firstname) = ''
+        IF @in_firstname IS NULL OR LTRIM(RTRIM(@in_firstname)) = ''
         BEGIN
             THROW 50000, 'First name is required.', 1;
         END;
         
-        IF @in_lastname IS NULL OR TRIM(@in_lastname) = ''
+        IF @in_lastname IS NULL OR LTRIM(RTRIM(@in_lastname)) = ''
         BEGIN
             THROW 50000, 'Last name is required.', 1;
         END;
         
-        IF @in_phone_code IS NULL OR TRIM(@in_phone_code) = ''
+        IF @in_phone_code IS NULL OR LTRIM(RTRIM(@in_phone_code)) = ''
         BEGIN
             THROW 50000, 'Phone code is required.', 1;
         END;
         
-        IF @in_phone_number IS NULL OR TRIM(@in_phone_number) = ''
+        IF @in_phone_number IS NULL OR LTRIM(RTRIM(@in_phone_number)) = ''
         BEGIN
             THROW 50000, 'Phone number is required.', 1;
         END;
         
-        IF @in_address_line1 IS NULL OR TRIM(@in_address_line1) = ''
+        IF @in_address_line1 IS NULL OR LTRIM(RTRIM(@in_address_line1)) = ''
         BEGIN
             THROW 50000, 'Address line 1 is required.', 1;
         END;
         
-        IF @in_city IS NULL OR TRIM(@in_city) = ''
+        IF @in_city IS NULL OR LTRIM(RTRIM(@in_city)) = ''
         BEGIN
             THROW 50000, 'City is required.', 1;
         END;
         
-        IF @in_postal_code IS NULL OR TRIM(@in_postal_code) = ''
+        IF @in_postal_code IS NULL OR LTRIM(RTRIM(@in_postal_code)) = ''
         BEGIN
             THROW 50000, 'Postal code is required.', 1;
         END;
@@ -128,7 +128,7 @@ BEGIN
         END;
 
         IF @in_auth_provider <> @v_auth_provider_internal AND
-            (@in_auth_provider_user_id IS NULL OR TRIM(@in_auth_provider_user_id) = '')
+            (@in_auth_provider_user_id IS NULL OR LTRIM(RTRIM(@in_auth_provider_user_id)) = '')
         BEGIN
             THROW 50000, 'The auth provider user identifier is required.', 1;
         END;
@@ -152,9 +152,9 @@ BEGIN
             role_id
         )
         VALUES (
-            TRIM(@in_firstname),
-            TRIM(@in_lastname),
-            TRIM(@in_email),
+            LTRIM(RTRIM(@in_firstname)),
+            LTRIM(RTRIM(@in_lastname)),
+            LTRIM(RTRIM(@in_email)),
             CASE WHEN @in_auth_provider = @v_auth_provider_internal THEN @in_password ELSE NULL END,
             @v_disabled,
             @in_accepted_tnc,
@@ -181,17 +181,17 @@ BEGIN
             culture_id
         ) VALUES (
             @v_user_id,
-            TRIM(@in_phone_code),
-            TRIM(@in_phone_number),
+            LTRIM(RTRIM(@in_phone_code)),
+            LTRIM(RTRIM(@in_phone_number)),
             @in_gender,
             @in_date_of_birth,
-            TRIM(@in_address_line1),
-            CASE WHEN @in_address_line2 IS NULL OR TRIM(@in_address_line2) = '' THEN NULL ELSE TRIM(@in_address_line2) END,
+            LTRIM(RTRIM(@in_address_line1)),
+            CASE WHEN @in_address_line2 IS NULL OR LTRIM(RTRIM(@in_address_line2)) = '' THEN NULL ELSE LTRIM(RTRIM(@in_address_line2)) END,
             @in_country_id,
             @in_region_id,
-            TRIM(@in_city),
-            TRIM(@in_postal_code),
-            CASE WHEN @in_avatar_url IS NULL OR TRIM(@in_avatar_url) = '' THEN NULL ELSE TRIM(@in_avatar_url) END,
+            LTRIM(RTRIM(@in_city)),
+            LTRIM(RTRIM(@in_postal_code)),
+            CASE WHEN @in_avatar_url IS NULL OR LTRIM(RTRIM(@in_avatar_url)) = '' THEN NULL ELSE LTRIM(RTRIM(@in_avatar_url)) END,
             @in_culture_id
         );
 
@@ -206,4 +206,5 @@ BEGIN
         SELECT NULL AS inserted_id, ERROR_MESSAGE() AS message;
     END CATCH
 END;
+
 

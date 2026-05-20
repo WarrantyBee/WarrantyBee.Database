@@ -11,7 +11,7 @@ BEGIN
     DECLARE @v_expired BIT = 1;
 
     BEGIN TRY
-        IF @in_recipient IS NULL OR TRIM(@in_recipient) = ''
+        IF @in_recipient IS NULL OR LTRIM(RTRIM(@in_recipient)) = ''
         BEGIN
             THROW 50000, 'Recipient must be provided.', 1;
         END;
@@ -49,4 +49,5 @@ BEGIN
         SELECT 1 AS [status], ERROR_MESSAGE() AS [message];
     END CATCH
 END;
+
 
