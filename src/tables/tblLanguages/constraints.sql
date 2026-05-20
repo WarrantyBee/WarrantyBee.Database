@@ -1,3 +1,4 @@
-CALL usp_CreateUniqueKey('tblLanguages', 'name');
-CALL usp_CreateUniqueKey('tblLanguages', 'native_name');
-CALL usp_CreateUniqueKey('tblLanguages', 'iso_code');
+EXEC dbo.usp_CreateUniqueKey N'tblLanguages', N'name';
+EXEC dbo.usp_CreateUniqueKey N'tblLanguages', N'native_name';
+EXEC dbo.usp_CreateUniqueKey N'tblLanguages', N'iso_code';
+

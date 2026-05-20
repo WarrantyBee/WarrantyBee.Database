@@ -1,4 +1,5 @@
-CALL usp_ResetAutoIncrement('tblRolePermissions');
+EXEC dbo.usp_ResetAutoIncrement N'tblRolePermissions';
+GO
 
 INSERT INTO tblRolePermissions (
     role_id,
@@ -9,4 +10,5 @@ VALUES
 (7, 2),
 (7, 3);
 
-SELECT 'tblRolePermissions data inserted successfully.' AS message;
+PRINT N'tblRolePermissions data inserted successfully.';
+GO

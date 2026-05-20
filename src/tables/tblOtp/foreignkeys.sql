@@ -1,1 +1,2 @@
-CALL usp_CreateForeignKey('tblOtp', 'recipient_id', 'tblUsers', 'id');
+EXEC dbo.usp_CreateForeignKey N'tblOtp', N'recipient_id', N'tblUsers', N'id';
+

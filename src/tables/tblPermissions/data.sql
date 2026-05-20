@@ -1,12 +1,14 @@
-CALL usp_ResetAutoIncrement('tblPermissions');
+EXEC dbo.usp_ResetAutoIncrement N'tblPermissions';
+GO
 
 INSERT INTO tblPermissions (
     name,
     description
 )
 VALUES
-('EDIT_PROFILE', 'Allows an user to edit their personal profile details.'),
-('CHANGE_AVATAR', 'Allows a user to change their profile avatar.'),
-('ACCESS_PROFILE', 'Allows users to access their profile.');
+(N'EDIT_PROFILE', N'Allows an user to edit their personal profile details.'),
+(N'CHANGE_AVATAR', N'Allows a user to change their profile avatar.'),
+(N'ACCESS_PROFILE', N'Allows users to access their profile.');
 
-SELECT 'tblPermissions data inserted successfully.' AS message;
+PRINT N'tblPermissions data inserted successfully.';
+GO

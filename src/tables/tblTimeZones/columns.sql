@@ -1,21 +1,19 @@
-DROP PROCEDURE IF EXISTS usp_CreateColumns_tblTimeZones;
-DELIMITER $$
+IF OBJECT_ID('dbo.usp_CreateColumns_tblTimeZones', 'P') IS NOT NULL DROP PROCEDURE dbo.usp_CreateColumns_tblTimeZones; GO
 
-CREATE PROCEDURE usp_CreateColumns_tblTimeZones()
+CREATE PROCEDURE dbo.usp_CreateColumns_tblTimeZones AS
 BEGIN
-    DECLARE v_required BOOLEAN DEFAULT TRUE;
-    DECLARE v_optional BOOLEAN DEFAULT FALSE;
+    DECLARE @v_required BIT = 1;
+    DECLARE @v_optional BIT = 0;
 
-    CALL usp_AddColumn('tblTimeZones', 'name', 'VARCHAR(100)', NULL, v_required);
-    CALL usp_AddColumn('tblTimeZones', 'abbreviation', 'VARCHAR(10)', NULL, v_optional);
-    CALL usp_AddColumn('tblTimeZones', 'utc_offset_minutes', 'SMALLINT', NULL, v_required);
-    CALL usp_AddColumn('tblTimeZones', 'observes_dst', 'BOOLEAN', '0', v_required);
-    CALL usp_AddColumn('tblTimeZones', 'current_offset_minutes', 'SMALLINT', NULL, v_required);
-    CALL usp_DropColumn('tblTimeZones', 'created_by');
-    CALL usp_DropColumn('tblTimeZones', 'updated_by');
-END$$
+    EXEC dbo.usp_AddColumn N'tblTimeZones', 'name', 'VARCHAR(100)', NULL, @v_required;
+    EXEC dbo.usp_AddColumn N'tblTimeZones', 'abbreviation', 'VARCHAR(10)', NULL, @v_optional;
+    EXEC dbo.usp_AddColumn N'tblTimeZones', 'utc_offset_minutes', 'SMALLINT', NULL, @v_required;
+    EXEC dbo.usp_AddColumn N'tblTimeZones', 'observes_dst', N'BIT', '0', @v_required;
+    EXEC dbo.usp_AddColumn N'tblTimeZones', 'current_offset_minutes', 'SMALLINT', NULL, @v_required;
+    EXEC dbo.usp_DropColumn N'tblTimeZones', 'created_by';
+    EXEC dbo.usp_DropColumn N'tblTimeZones', 'updated_by';
+END
+GO
 
-DELIMITER ;
-
-CALL usp_CreateColumns_tblTimeZones();
-DROP PROCEDURE usp_CreateColumns_tblTimeZones;
+EXEC dbo.usp_CreateColumns_tblTimeZones;
+IF OBJECT_ID('dbo.usp_CreateColumns_tblTimeZones', 'P') IS NOT NULL DROP PROCEDURE dbo.usp_CreateColumns_tblTimeZones; GO

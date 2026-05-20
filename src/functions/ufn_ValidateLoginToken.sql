@@ -1,41 +1,42 @@
-DELIMITER $$
-
-DROP FUNCTION IF EXISTS ufn_ValidateLoginToken$$
+IF OBJECT_ID('dbo.ufn_ValidateLoginToken', 'FN') IS NOT NULL
+    DROP FUNCTION dbo.ufn_ValidateLoginToken;
+GO
 
 -- =============================================
 -- ufn_ValidateLoginToken
 -- Validates the login token for a user.
 --
 -- Parameters:
---   in_user_id   - The user's identifier.
---   in_token     - The login token to validate.
+--   @in_user_id   - The user's identifier.
+--   @in_token     - The login token to validate.
 --
 -- Returns:
---   TRUE if the token is valid, FALSE otherwise.
+--   1 if the token is valid, 0 otherwise.
 -- =============================================
-CREATE FUNCTION ufn_ValidateLoginToken(
-    in_user_id BIGINT,
-    in_token VARCHAR(255)
+CREATE FUNCTION dbo.ufn_ValidateLoginToken(
+    @in_user_id BIGINT,
+    @in_token VARCHAR(255)
 )
-RETURNS BOOLEAN
-DETERMINISTIC
+RETURNS BIT
+AS
 BEGIN
-    DECLARE v_stored_token VARCHAR(255);
+    DECLARE @v_stored_token VARCHAR(255);
 
-    IF in_user_id IS NULL OR in_token IS NULL OR TRIM(in_token) = '' THEN
-        RETURN FALSE;
-    END IF;
+    IF @in_user_id IS NULL OR @in_token IS NULL OR TRIM(@in_token) = ''
+    BEGIN
+        RETURN 0;
+    END
 
-    SELECT login_token INTO v_stored_token
+    SELECT @v_stored_token = login_token
     FROM tblUsers
-    WHERE id = in_user_id;
+    WHERE id = @in_user_id;
 
-    IF v_stored_token IS NOT NULL AND v_stored_token = in_token THEN
-        RETURN TRUE;
-    ELSE
-        RETURN FALSE;
-    END IF;
-END$$
+    IF @v_stored_token IS NOT NULL AND @v_stored_token = @in_token
+    BEGIN
+        RETURN 1;
+    END
 
-DELIMITER ;
-SELECT 'ufn_ValidateLoginToken created successfully.' AS message;
+    RETURN 0;
+END
+GO
+

@@ -1,1 +1,2 @@
-CALL usp_CreateForeignKey('tblPasswordLogs', 'user_id', 'tblUsers', 'id');
+EXEC dbo.usp_CreateForeignKey N'tblPasswordLogs', N'user_id', N'tblUsers', N'id';
+

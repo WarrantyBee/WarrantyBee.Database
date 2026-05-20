@@ -1,101 +1,86 @@
-/*
--- ===============================================================================================================================================
--- usp_UpdateUserProfile
--- Updates a user's profile information. This procedure functions like a PATCH operation,
--- only updating the fields for which non-NULL values are provided.
---
--- Parameters:
---   in_user_id:        The ID of the user whose profile is to be updated.
---   in_address_line1:  The user's primary address line.
---   in_address_line2:  The user's secondary address line (optional).
---   in_phone_code:     The user's country phone code.
---   in_phone_number:   The user's phone number.
---   in_country_id:     The ID of the user's country.
---   in_region_id:      The ID of the user's state or region.
---   in_culture_id:    The ID of the user's culture or locale.
---   in_city:           The user's city.
---   in_postal_code:    The user's postal code.
---   in_avatar_url:     The URL of the user's avatar image (optional).
---
--- Returns:     A result set with a 'success' status (1 for success, 0 for failure) and a 'message'.
--- ===============================================================================================================================================
-*/
-DELIMITER $$
-DROP PROCEDURE IF EXISTS usp_UpdateUserProfile$$
-
-CREATE PROCEDURE usp_UpdateUserProfile(
-    IN in_user_id BIGINT UNSIGNED,
-    IN in_address_line1 VARCHAR(255),
-    IN in_address_line2 VARCHAR(255),
-    IN in_phone_code VARCHAR(8),
-    IN in_phone_number VARCHAR(15),
-    IN in_country_id BIGINT UNSIGNED,
-    IN in_region_id BIGINT UNSIGNED,
-    IN in_culture_id BIGINT UNSIGNED,
-    IN in_city VARCHAR(255),
-    IN in_postal_code VARCHAR(20),
-    IN in_avatar_url VARCHAR(512)
+CREATE OR ALTER PROCEDURE usp_UpdateUserProfile(
+    @in_user_id BIGINT,
+    @in_address_line1 VARCHAR(255),
+    @in_address_line2 VARCHAR(255),
+    @in_phone_code VARCHAR(8),
+    @in_phone_number VARCHAR(15),
+    @in_country_id BIGINT,
+    @in_region_id BIGINT,
+    @in_culture_id BIGINT,
+    @in_city VARCHAR(255),
+    @in_postal_code VARCHAR(20),
+    @in_avatar_url VARCHAR(512)
 )
-proc_label:BEGIN
-    DECLARE v_record_exists INT DEFAULT 0;
+AS
+BEGIN
+    SET NOCOUNT ON;
 
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        DECLARE v_error_message VARCHAR(255);
-        GET DIAGNOSTICS CONDITION 1 v_error_message = MESSAGE_TEXT;
-        ROLLBACK;
-        SELECT 0 AS success, v_error_message AS message;
-    END;
+    DECLARE @v_record_exists INT = 0;
 
-    SELECT COUNT(1) INTO v_record_exists FROM tblUsers WHERE id = in_user_id;
-    IF v_record_exists = 0 THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'The specified user does not exist.';
-    END IF;
+    BEGIN TRY
+        SELECT @v_record_exists = COUNT(1) FROM tblUsers WHERE id = @in_user_id;
+        IF @v_record_exists = 0
+        BEGIN
+            THROW 50000, 'The specified user does not exist.', 1;
+        END;
 
-    IF in_country_id IS NOT NULL THEN
-        SELECT COUNT(1) INTO v_record_exists FROM tblCountries WHERE id = in_country_id;
-        IF v_record_exists = 0 THEN
-            SIGNAL SQLSTATE '45000' SET MESSAGE_text = 'The specified country does not exist.';
-        END IF;
-    END IF;
+        IF @in_country_id IS NOT NULL
+        BEGIN
+            SELECT @v_record_exists = COUNT(1) FROM tblCountries WHERE id = @in_country_id;
+            IF @v_record_exists = 0
+            BEGIN
+                THROW 50000, 'The specified country does not exist.', 1;
+            END;
+        END;
 
-    IF in_region_id IS NOT NULL THEN
-        SELECT COUNT(1) INTO v_record_exists FROM tblStates WHERE id = in_region_id AND country_id = IFNULL(in_country_id, (SELECT country_id from tblUserProfiles WHERE user_id = in_user_id));
-        IF v_record_exists = 0 THEN
-            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'The specified region is not valid for the selected country.';
-        END IF;
-    END IF;
+        IF @in_region_id IS NOT NULL
+        BEGIN
+            SELECT @v_record_exists = COUNT(1) 
+            FROM tblStates 
+            WHERE id = @in_region_id 
+            AND country_id = ISNULL(@in_country_id, (SELECT country_id FROM tblUserProfiles WHERE user_id = @in_user_id));
+            
+            IF @v_record_exists = 0
+            BEGIN
+                THROW 50000, 'The specified region is not valid for the selected country.', 1;
+            END;
+        END;
 
-    IF in_culture_id IS NOT NULL THEN
-        SELECT COUNT(1) INTO v_record_exists FROM tblCultures WHERE id = in_culture_id;
-        IF v_record_exists = 0 THEN
-            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'The specified culture does not exist.';
-        END IF;
-    END IF;
+        IF @in_culture_id IS NOT NULL
+        BEGIN
+            SELECT @v_record_exists = COUNT(1) FROM tblCultures WHERE id = @in_culture_id;
+            IF @v_record_exists = 0
+            BEGIN
+                THROW 50000, 'The specified culture does not exist.', 1;
+            END;
+        END;
 
-    START TRANSACTION;
+        BEGIN TRANSACTION;
 
-    UPDATE tblUserProfiles
-    SET
-        address_line1 = IFNULL(TRIM(in_address_line1), address_line1),
-        address_line2 = IF(in_address_line2 IS NULL, address_line2, TRIM(in_address_line2)),
-        phone_code = IFNULL(TRIM(in_phone_code), phone_code),
-        phone_number = IFNULL(TRIM(in_phone_number), phone_number),
-        country_id = IFNULL(in_country_id, country_id),
-        region_id = IFNULL(in_region_id, region_id),
-        culture_id = IFNULL(in_culture_id, culture_id),
-        city = IFNULL(TRIM(in_city), city),
-        postal_code = IFNULL(TRIM(in_postal_code), postal_code),
-        avatar_url = IF(in_avatar_url IS NULL, avatar_url, TRIM(in_avatar_url))
-    WHERE
-        user_id = in_user_id;
+        UPDATE tblUserProfiles
+        SET
+            address_line1 = ISNULL(TRIM(@in_address_line1), address_line1),
+            address_line2 = CASE WHEN @in_address_line2 IS NULL THEN address_line2 ELSE TRIM(@in_address_line2) END,
+            phone_code = ISNULL(TRIM(@in_phone_code), phone_code),
+            phone_number = ISNULL(TRIM(@in_phone_number), phone_number),
+            country_id = ISNULL(@in_country_id, country_id),
+            region_id = ISNULL(@in_region_id, region_id),
+            culture_id = ISNULL(@in_culture_id, culture_id),
+            city = ISNULL(TRIM(@in_city), city),
+            postal_code = ISNULL(TRIM(@in_postal_code), postal_code),
+            avatar_url = CASE WHEN @in_avatar_url IS NULL THEN avatar_url ELSE TRIM(@in_avatar_url) END
+        WHERE
+            user_id = @in_user_id;
 
-    COMMIT;
+        COMMIT;
 
-    SELECT 1 AS success, 'User profile updated successfully.' AS message;
+        SELECT 1 AS success, 'User profile updated successfully.' AS message;
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0
+            ROLLBACK TRANSACTION;
+        
+        SELECT 0 AS success, ERROR_MESSAGE() AS message;
+    END CATCH
+END;
 
-END$$
-
-DELIMITER ;
-
-SELECT 'usp_UpdateUserProfile created successfully.' AS message;

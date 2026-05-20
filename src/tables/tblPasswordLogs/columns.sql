@@ -1,17 +1,12 @@
-DROP PROCEDURE IF EXISTS usp_CreateColumns_tblPasswordLogs;
-DELIMITER $$
+IF OBJECT_ID('dbo.usp_CreateColumns_tblPasswordLogs', 'P') IS NOT NULL DROP PROCEDURE dbo.usp_CreateColumns_tblPasswordLogs; GO
 
-CREATE PROCEDURE usp_CreateColumns_tblPasswordLogs()
+CREATE PROCEDURE dbo.usp_CreateColumns_tblPasswordLogs AS
 BEGIN
-    DECLARE v_table_name VARCHAR(50) DEFAULT 'tblPasswordLogs';
-    DECLARE v_required BOOLEAN DEFAULT TRUE;
-    DECLARE v_optional BOOLEAN DEFAULT FALSE;
+    DECLARE @v_required BIT = 1;
+    DECLARE @v_optional BIT = 0;
 
-    CALL usp_AddColumn(v_table_name, 'password', 'VARCHAR(255)', NULL, v_required);
-    CALL usp_AddColumn(v_table_name, 'user_id', 'BIGINT UNSIGNED', NULL, v_required);
-END$$
+END
+GO
 
-DELIMITER ;
-
-CALL usp_CreateColumns_tblPasswordLogs();
-DROP PROCEDURE usp_CreateColumns_tblPasswordLogs;
+EXEC dbo.usp_CreateColumns_tblPasswordLogs;
+IF OBJECT_ID('dbo.usp_CreateColumns_tblPasswordLogs', 'P') IS NOT NULL DROP PROCEDURE dbo.usp_CreateColumns_tblPasswordLogs; GO

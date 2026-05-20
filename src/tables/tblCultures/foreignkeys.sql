@@ -1,2 +1,3 @@
-CALL usp_CreateForeignKey('tblCultures', 'language_id', 'tblLanguages', 'id');
-CALL usp_CreateForeignKey('tblCultures', 'country_id', 'tblCountries', 'id');
+EXEC dbo.usp_CreateForeignKey N'tblCultures', N'language_id', N'tblLanguages', N'id';
+EXEC dbo.usp_CreateForeignKey N'tblCultures', N'country_id', N'tblCountries', N'id';
+

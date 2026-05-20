@@ -1,23 +1,21 @@
-DROP PROCEDURE IF EXISTS usp_CreateColumns_tblStates;
-DELIMITER $$
+IF OBJECT_ID('dbo.usp_CreateColumns_tblStates', 'P') IS NOT NULL DROP PROCEDURE dbo.usp_CreateColumns_tblStates; GO
 
-CREATE PROCEDURE usp_CreateColumns_tblStates()
+CREATE PROCEDURE dbo.usp_CreateColumns_tblStates AS
 BEGIN
-    DECLARE v_required BOOLEAN DEFAULT TRUE;
-    DECLARE v_optional BOOLEAN DEFAULT FALSE;
+    DECLARE @v_required BIT = 1;
+    DECLARE @v_optional BIT = 0;
 
-    CALL usp_AddColumn('tblStates', 'name', 'VARCHAR(255)', NULL, v_required);
-    CALL usp_AddColumn('tblStates', 'official_name', 'VARCHAR(150)', NULL, v_optional);
-    CALL usp_AddColumn('tblStates', 'iso_code', 'VARCHAR(10)', NULL, v_required);
-    CALL usp_AddColumn('tblStates', 'capital', 'VARCHAR(100)', NULL, v_optional);
-    CALL usp_AddColumn('tblStates', 'timezone_id', 'BIGINT UNSIGNED', NULL, v_required);
-    CALL usp_AddColumn('tblStates', 'phone_code', 'VARCHAR(10)', NULL, v_optional);
-    CALL usp_AddColumn('tblStates', 'country_id', 'BIGINT UNSIGNED', NULL, v_required);
-    CALL usp_DropColumn('tblStates', 'created_by');
-    CALL usp_DropColumn('tblStates', 'updated_by');
-END$$
+    EXEC dbo.usp_AddColumn N'tblStates', 'name', 'VARCHAR(255)', NULL, @v_required;
+    EXEC dbo.usp_AddColumn N'tblStates', 'official_name', 'VARCHAR(150)', NULL, @v_optional;
+    EXEC dbo.usp_AddColumn N'tblStates', 'iso_code', 'VARCHAR(10)', NULL, @v_required;
+    EXEC dbo.usp_AddColumn N'tblStates', 'capital', 'VARCHAR(100)', NULL, @v_optional;
+    EXEC dbo.usp_AddColumn N'tblStates', 'timezone_id', N'BIGINT', NULL, @v_required;
+    EXEC dbo.usp_AddColumn N'tblStates', 'phone_code', 'VARCHAR(10)', NULL, @v_optional;
+    EXEC dbo.usp_AddColumn N'tblStates', 'country_id', N'BIGINT', NULL, @v_required;
+    EXEC dbo.usp_DropColumn N'tblStates', 'created_by';
+    EXEC dbo.usp_DropColumn N'tblStates', 'updated_by';
+END
+GO
 
-DELIMITER ;
-
-CALL usp_CreateColumns_tblStates();
-DROP PROCEDURE usp_CreateColumns_tblStates;
+EXEC dbo.usp_CreateColumns_tblStates;
+IF OBJECT_ID('dbo.usp_CreateColumns_tblStates', 'P') IS NOT NULL DROP PROCEDURE dbo.usp_CreateColumns_tblStates; GO

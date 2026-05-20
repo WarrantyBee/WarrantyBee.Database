@@ -1,44 +1,30 @@
-DELIMITER $$
-DROP FUNCTION IF EXISTS ufn_DoesTableExist$$
-
 -- =============================================
 -- ufn_DoesTableExist
 -- Checks if a specific table exists within the current database.
 --
 -- Parameters:
---   in_table_name - The name of the table to check for existence.
+--   @in_table_name - The name of the table to check for existence.
 --
 -- Returns:
---   TRUE if the table exists in the current database, otherwise FALSE.
---
--- Notes:
---   - Returns FALSE if an error occurs during execution.
---   - The function is deterministic and only checks in the current database.
+--   1 (TRUE) if the table exists in the current database, otherwise 0 (FALSE).
 -- =============================================
 
-CREATE FUNCTION ufn_DoesTableExist(in_table_name VARCHAR(64))
-RETURNS BOOLEAN
-DETERMINISTIC
+IF OBJECT_ID('dbo.ufn_DoesTableExist', 'FN') IS NOT NULL
+    DROP FUNCTION dbo.ufn_DoesTableExist;
+GO
+
+CREATE FUNCTION dbo.ufn_DoesTableExist(@in_table_name NVARCHAR(128))
+RETURNS BIT
+AS
 BEGIN
-    -- Variable to store existence result
-    DECLARE v_exists BOOLEAN DEFAULT FALSE;
+    DECLARE @exists BIT = 0;
 
-    -- If any SQL exception occurs, set result to FALSE
-    DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
-        SET v_exists = FALSE;
+    IF EXISTS (SELECT 1 FROM sys.tables WHERE name = @in_table_name AND schema_id = SCHEMA_ID('dbo'))
+    BEGIN
+        SET @exists = 1;
+    END
 
-    -- Check for the table in information_schema.tables
-    SELECT TRUE
-    INTO v_exists
-    FROM information_schema.tables
-    WHERE table_schema = DATABASE()
-      AND table_name = in_table_name
-    LIMIT 1;
+    RETURN @exists;
+END
+GO
 
-    -- Return TRUE if found, otherwise FALSE
-    RETURN v_exists;
-END$$
-
-DELIMITER ;
-
-SELECT 'ufn_DoesTableExist created successfully.' AS message;

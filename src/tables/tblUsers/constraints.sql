@@ -1,4 +1,5 @@
-CALL usp_CreateUniqueKey('tblUsers', 'email');
-CALL usp_AddCheck('tblUsers', 'firstname', 'TRIM(firstname) <> ''''');
-CALL usp_AddCheck('tblUsers', 'lastname', 'TRIM(lastname) <> ''''');
-CALL usp_DropConstraint('tblUsers', 'chk_tblUsers.password');
+EXEC dbo.usp_CreateUniqueKey N'tblUsers', N'email';
+EXEC dbo.usp_AddCheck N'tblUsers', N'firstname', N'TRIM(firstname) <> ''''';
+EXEC dbo.usp_AddCheck N'tblUsers', N'lastname', N'TRIM(lastname) <> ''''';
+EXEC dbo.usp_DropConstraint N'tblUsers', N'chk_tblUsers.password';
+

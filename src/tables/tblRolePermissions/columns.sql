@@ -1,19 +1,12 @@
-DROP PROCEDURE IF EXISTS usp_CreateColumns_tblRolePermissions;
-DELIMITER $$
+IF OBJECT_ID('dbo.usp_CreateColumns_tblRolePermissions', 'P') IS NOT NULL DROP PROCEDURE dbo.usp_CreateColumns_tblRolePermissions; GO
 
-CREATE PROCEDURE usp_CreateColumns_tblRolePermissions()
+CREATE PROCEDURE dbo.usp_CreateColumns_tblRolePermissions AS
 BEGIN
-    DECLARE v_table_name VARCHAR(100) DEFAULT 'tblRolePermissions';
-    DECLARE v_required BOOLEAN DEFAULT TRUE;
-    DECLARE v_optional BOOLEAN DEFAULT FALSE;
+    DECLARE @v_required BIT = 1;
+    DECLARE @v_optional BIT = 0;
 
-    CALL usp_AddColumn(v_table_name, 'role_id', 'BIGINT UNSIGNED', NULL, v_required);
-    CALL usp_AddColumn(v_table_name, 'permission_id', 'BIGINT UNSIGNED', NULL, v_required);
-    CALL usp_DropColumn(v_table_name, 'created_by');
-    CALL usp_DropColumn(v_table_name, 'updated_by');
-END$$
+END
+GO
 
-DELIMITER ;
-
-CALL usp_CreateColumns_tblRolePermissions();
-DROP PROCEDURE usp_CreateColumns_tblRolePermissions;
+EXEC dbo.usp_CreateColumns_tblRolePermissions;
+IF OBJECT_ID('dbo.usp_CreateColumns_tblRolePermissions', 'P') IS NOT NULL DROP PROCEDURE dbo.usp_CreateColumns_tblRolePermissions; GO

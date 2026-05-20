@@ -1,11 +1,11 @@
-DELIMITER $
-DROP PROCEDURE IF EXISTS usp_GetStates$
-
-CREATE PROCEDURE usp_GetStates(
-    IN in_id BIGINT UNSIGNED,
-    IN in_country_id BIGINT UNSIGNED
+CREATE OR ALTER PROCEDURE usp_GetStates(
+    @in_id BIGINT,
+    @in_country_id BIGINT
 )
+AS
 BEGIN
+    SET NOCOUNT ON;
+
     SELECT
         s.id,
         s.name,
@@ -22,11 +22,9 @@ BEGIN
         tz.current_offset_minutes AS timezone_current_offset_minutes
     FROM tblStates s
     LEFT JOIN tblTimeZones tz ON s.timezone_id = tz.id
-    WHERE s.void = 0 AND (in_id IS NULL OR s.id = in_id)
-    AND (in_country_id IS NULL OR s.country_id = in_country_id)
+    WHERE s.void = 0 
+    AND (@in_id IS NULL OR s.id = @in_id)
+    AND (@in_country_id IS NULL OR s.country_id = @in_country_id)
     ORDER BY s.name;
-END$
+END;
 
-DELIMITER ;
-
-SELECT 'usp_GetStates created successfully.' AS message;

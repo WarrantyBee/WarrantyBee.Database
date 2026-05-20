@@ -1,1 +1,2 @@
-CALL usp_CreateIndex('tblUsers', 'email');
+EXEC dbo.usp_CreateIndex N'tblUsers', N'email';
+

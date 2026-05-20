@@ -1,10 +1,10 @@
-DELIMITER $$
-DROP PROCEDURE IF EXISTS usp_GetTimeZones$$
-
-CREATE PROCEDURE usp_GetTimeZones(
-    IN in_id BIGINT UNSIGNED
+CREATE OR ALTER PROCEDURE usp_GetTimeZones(
+    @in_id BIGINT
 )
+AS
 BEGIN
+    SET NOCOUNT ON;
+
     SELECT
         id,
         name,
@@ -13,10 +13,7 @@ BEGIN
         observes_dst,
         current_offset_minutes
     FROM tblTimeZones
-    WHERE (in_id IS NULL OR id = in_id)
+    WHERE (@in_id IS NULL OR id = @in_id)
     ORDER BY utc_offset_minutes, name;
-END$$
+END;
 
-DELIMITER ;
-
-SELECT 'usp_GetTimeZones created successfully.' AS message;

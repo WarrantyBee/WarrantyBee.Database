@@ -1,195 +1,209 @@
-DELIMITER $$
-DROP PROCEDURE IF EXISTS usp_RegisterUser$$
-
-CREATE PROCEDURE usp_RegisterUser(
-    IN in_firstname VARCHAR(128),
-    IN in_lastname VARCHAR(128),
-    IN in_email VARCHAR(255),
-    IN in_password VARCHAR(1024),
-    IN in_accepted_tnc BOOLEAN,
-    IN in_accepted_pp BOOLEAN,
-    IN in_phone_code VARCHAR(8),
-    IN in_phone_number VARCHAR(15),
-    IN in_gender TINYINT,
-    IN in_date_of_birth DATE,
-    IN in_address_line1 VARCHAR(255),
-    IN in_address_line2 VARCHAR(255),
-    IN in_country_id BIGINT UNSIGNED,
-    IN in_region_id BIGINT UNSIGNED,
-    IN in_city VARCHAR(255),
-    IN in_postal_code VARCHAR(20),
-    IN in_avatar_url VARCHAR(512),
-    IN in_culture_id BIGINT UNSIGNED,
-    IN in_auth_provider TINYINT,
-    IN in_auth_provider_user_id VARCHAR(1024)
+CREATE OR ALTER PROCEDURE usp_RegisterUser(
+    @in_firstname VARCHAR(128),
+    @in_lastname VARCHAR(128),
+    @in_email VARCHAR(255),
+    @in_password VARCHAR(1024),
+    @in_accepted_tnc BIT,
+    @in_accepted_pp BIT,
+    @in_phone_code VARCHAR(8),
+    @in_phone_number VARCHAR(15),
+    @in_gender TINYINT,
+    @in_date_of_birth DATE,
+    @in_address_line1 VARCHAR(255),
+    @in_address_line2 VARCHAR(255),
+    @in_country_id BIGINT,
+    @in_region_id BIGINT,
+    @in_city VARCHAR(255),
+    @in_postal_code VARCHAR(20),
+    @in_avatar_url VARCHAR(512),
+    @in_culture_id BIGINT,
+    @in_auth_provider TINYINT,
+    @in_auth_provider_user_id VARCHAR(1024)
 )
-proc_label:BEGIN
-    DECLARE v_user_id BIGINT UNSIGNED;
-    DECLARE v_record_exists INT DEFAULT 0;
-    DECLARE v_not_accepted BOOLEAN DEFAULT FALSE;
-    DECLARE v_disabled BOOLEAN DEFAULT FALSE;
-    DECLARE v_gender_male TINYINT DEFAULT 1;
-    DECLARE v_gender_female TINYINT DEFAULT 2;
-    DECLARE v_gender_not_specified TINYINT DEFAULT 3;
-    DECLARE v_auth_provider_internal TINYINT DEFAULT 1;
-    DECLARE v_auth_provider_facebook TINYINT DEFAULT 2;
-    DECLARE v_auth_provider_google TINYINT DEFAULT 3;
-    DECLARE v_auth_provider_linkedin TINYINT DEFAULT 4;
-    DECLARE v_customer_role BIGINT UNSIGNED DEFAULT NULL;
+AS
+BEGIN
+    SET NOCOUNT ON;
 
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        DECLARE v_error_message VARCHAR(255);
-        GET DIAGNOSTICS CONDITION 1 v_error_message = MESSAGE_TEXT;
-        ROLLBACK;
-        SELECT NULL AS inserted_id, v_error_message AS message;
-    END;
+    DECLARE @v_user_id BIGINT;
+    DECLARE @v_record_exists INT = 0;
+    DECLARE @v_not_accepted BIT = 0;
+    DECLARE @v_disabled BIT = 0;
+    DECLARE @v_gender_male TINYINT = 1;
+    DECLARE @v_gender_female TINYINT = 2;
+    DECLARE @v_gender_not_specified TINYINT = 3;
+    DECLARE @v_auth_provider_internal TINYINT = 1;
+    DECLARE @v_auth_provider_facebook TINYINT = 2;
+    DECLARE @v_auth_provider_google TINYINT = 3;
+    DECLARE @v_auth_provider_linkedin TINYINT = 4;
+    DECLARE @v_customer_role BIGINT = NULL;
 
-    IF in_accepted_tnc = v_not_accepted THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Terms and Conditions must be accepted.';
-    END IF;
-    
-    IF in_accepted_pp = v_not_accepted THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Privacy Policy must be accepted.';
-    END IF;
-    
-    IF in_firstname IS NULL OR TRIM(in_firstname) = '' THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'First name is required.';
-    END IF;
-    
-    IF in_lastname IS NULL OR TRIM(in_lastname) = '' THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Last name is required.';
-    END IF;
-    
-    IF in_phone_code IS NULL OR TRIM(in_phone_code) = '' THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Phone code is required.';
-    END IF;
-    
-    IF in_phone_number IS NULL OR TRIM(in_phone_number) = '' THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Phone number is required.';
-    END IF;
-    
-    IF in_address_line1 IS NULL OR TRIM(in_address_line1) = '' THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Address line 1 is required.';
-    END IF;
-    
-    IF in_city IS NULL OR TRIM(in_city) = '' THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'City is required.';
-    END IF;
-    
-    IF in_postal_code IS NULL OR TRIM(in_postal_code) = '' THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Postal code is required.';
-    END IF;
+    BEGIN TRY
+        IF @in_accepted_tnc = @v_not_accepted
+        BEGIN
+            THROW 50000, 'Terms and Conditions must be accepted.', 1;
+        END;
+        
+        IF @in_accepted_pp = @v_not_accepted
+        BEGIN
+            THROW 50000, 'Privacy Policy must be accepted.', 1;
+        END;
+        
+        IF @in_firstname IS NULL OR TRIM(@in_firstname) = ''
+        BEGIN
+            THROW 50000, 'First name is required.', 1;
+        END;
+        
+        IF @in_lastname IS NULL OR TRIM(@in_lastname) = ''
+        BEGIN
+            THROW 50000, 'Last name is required.', 1;
+        END;
+        
+        IF @in_phone_code IS NULL OR TRIM(@in_phone_code) = ''
+        BEGIN
+            THROW 50000, 'Phone code is required.', 1;
+        END;
+        
+        IF @in_phone_number IS NULL OR TRIM(@in_phone_number) = ''
+        BEGIN
+            THROW 50000, 'Phone number is required.', 1;
+        END;
+        
+        IF @in_address_line1 IS NULL OR TRIM(@in_address_line1) = ''
+        BEGIN
+            THROW 50000, 'Address line 1 is required.', 1;
+        END;
+        
+        IF @in_city IS NULL OR TRIM(@in_city) = ''
+        BEGIN
+            THROW 50000, 'City is required.', 1;
+        END;
+        
+        IF @in_postal_code IS NULL OR TRIM(@in_postal_code) = ''
+        BEGIN
+            THROW 50000, 'Postal code is required.', 1;
+        END;
 
-    IF in_email IS NULL OR NOT in_email REGEXP '^[a-zA-Z0-9][a-zA-Z0-9._-]*@[a-zA-Z0-9][a-zA-Z0-9._-]*\\.[a-zA-Z]{2,4}$' THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'A valid email address is required.';
-    END IF;
+        IF @in_email IS NULL OR @in_email NOT LIKE '%_@__%.__%'
+        BEGIN
+            THROW 50000, 'A valid email address is required.', 1;
+        END;
 
-    SELECT COUNT(1) INTO v_record_exists FROM tblUsers WHERE email = in_email;
-    IF v_record_exists > 0 THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'This email address is already registered.';
-    END IF;
+        SELECT @v_record_exists = COUNT(1) FROM tblUsers WHERE email = @in_email;
+        IF @v_record_exists > 0
+        BEGIN
+            THROW 50000, 'This email address is already registered.', 1;
+        END;
 
-    IF in_gender NOT IN (v_gender_male, v_gender_female, v_gender_not_specified) THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Invalid gender specified. Allowed values are 1, 2, 3.';
-    END IF;
+        IF @in_gender NOT IN (@v_gender_male, @v_gender_female, @v_gender_not_specified)
+        BEGIN
+            THROW 50000, 'Invalid gender specified. Allowed values are 1, 2, 3.', 1;
+        END;
 
-    IF in_date_of_birth IS NULL OR in_date_of_birth > CURDATE() THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Date of birth cannot be in the future.';
-    END IF;
+        IF @in_date_of_birth IS NULL OR @in_date_of_birth > CAST(GETUTCDATE() AS DATE)
+        BEGIN
+            THROW 50000, 'Date of birth cannot be in the future.', 1;
+        END;
 
-    SELECT COUNT(1) INTO v_record_exists FROM tblCountries WHERE id = in_country_id;
-    IF v_record_exists = 0 THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_text = 'The specified country does not exist.';
-    END IF;
+        SELECT @v_record_exists = COUNT(1) FROM tblCountries WHERE id = @in_country_id;
+        IF @v_record_exists = 0
+        BEGIN
+            THROW 50000, 'The specified country does not exist.', 1;
+        END;
 
-    SELECT COUNT(1) INTO v_record_exists FROM tblStates WHERE id = in_region_id AND country_id = in_country_id;
-    IF v_record_exists = 0 THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'The specified region is not valid for the selected country.';
-    END IF;
+        SELECT @v_record_exists = COUNT(1) FROM tblStates WHERE id = @in_region_id AND country_id = @in_country_id;
+        IF @v_record_exists = 0
+        BEGIN
+            THROW 50000, 'The specified region is not valid for the selected country.', 1;
+        END;
 
-    SELECT COUNT(1) INTO v_record_exists FROM tblCultures WHERE id = in_culture_id;
-    IF v_record_exists = 0 THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'The specified culture does not exist.';
-    END IF;
+        SELECT @v_record_exists = COUNT(1) FROM tblCultures WHERE id = @in_culture_id;
+        IF @v_record_exists = 0
+        BEGIN
+            THROW 50000, 'The specified culture does not exist.', 1;
+        END;
 
-    IF in_auth_provider NOT IN (v_auth_provider_internal, v_auth_provider_facebook, v_auth_provider_google, v_auth_provider_linkedin) THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'The specified auth provider is not supported.';
-    END IF;
+        IF @in_auth_provider NOT IN (@v_auth_provider_internal, @v_auth_provider_facebook, @v_auth_provider_google, @v_auth_provider_linkedin)
+        BEGIN
+            THROW 50000, 'The specified auth provider is not supported.', 1;
+        END;
 
-    IF in_auth_provider = v_auth_provider_internal AND
-        (in_auth_provider_user_id IS NULL OR TRIM(in_auth_provider_user_id) = '') THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'The auth provider user identifier is required.';
-    END IF;
+        IF @in_auth_provider <> @v_auth_provider_internal AND
+            (@in_auth_provider_user_id IS NULL OR TRIM(@in_auth_provider_user_id) = '')
+        BEGIN
+            THROW 50000, 'The auth provider user identifier is required.', 1;
+        END;
 
-    SELECT id INTO v_customer_role
-    FROM tblRoles
-    WHERE name = 'customer';
+        SELECT @v_customer_role = id
+        FROM tblRoles
+        WHERE name = 'customer';
 
-    START TRANSACTION;
+        BEGIN TRANSACTION;
 
-    INSERT INTO tblUsers (
-        firstname,
-        lastname,
-        email,
-        `password`,
-        is_2fa_enabled,
-        accepted_tnc,
-        accepted_pp,
-        auth_provider,
-        auth_provider_user_id,
-        role_id
-    )
-    VALUES (
-        TRIM(in_firstname),
-        TRIM(in_lastname),
-        TRIM(in_email),
-        IF(in_auth_provider = v_auth_provider_internal, in_password, NULL),
-        v_disabled,
-        in_accepted_tnc,
-        in_accepted_pp,
-        in_auth_provider,
-        in_auth_provider_user_id,
-        v_customer_role
-    );
-    SET v_user_id = LAST_INSERT_ID();
+        INSERT INTO tblUsers (
+            firstname,
+            lastname,
+            email,
+            [password],
+            is_2fa_enabled,
+            accepted_tnc,
+            accepted_pp,
+            auth_provider,
+            auth_provider_user_id,
+            role_id
+        )
+        VALUES (
+            TRIM(@in_firstname),
+            TRIM(@in_lastname),
+            TRIM(@in_email),
+            CASE WHEN @in_auth_provider = @v_auth_provider_internal THEN @in_password ELSE NULL END,
+            @v_disabled,
+            @in_accepted_tnc,
+            @in_accepted_pp,
+            @in_auth_provider,
+            @in_auth_provider_user_id,
+            @v_customer_role
+        );
+        SET @v_user_id = SCOPE_IDENTITY();
 
-    INSERT INTO tblUserProfiles (
-        user_id,
-        phone_code,
-        phone_number,
-        gender,
-        date_of_birth,
-        address_line1,
-        address_line2,
-        country_id,
-        region_id,
-        city,
-        postal_code,
-        avatar_url,
-        culture_id
-    ) VALUES (
-        v_user_id,
-        TRIM(in_phone_code),
-        TRIM(in_phone_number),
-        in_gender,
-        in_date_of_birth,
-        TRIM(in_address_line1),
-        IF(in_address_line2 IS NULL OR TRIM(in_address_line2) = '', NULL, TRIM(in_address_line2)),
-        in_country_id,
-        in_region_id,
-        TRIM(in_city),
-        TRIM(in_postal_code),
-        IF(in_avatar_url IS NULL OR TRIM(in_avatar_url) = '', NULL, TRIM(in_avatar_url)),
-        in_culture_id
-    );
+        INSERT INTO tblUserProfiles (
+            user_id,
+            phone_code,
+            phone_number,
+            gender,
+            date_of_birth,
+            address_line1,
+            address_line2,
+            country_id,
+            region_id,
+            city,
+            postal_code,
+            avatar_url,
+            culture_id
+        ) VALUES (
+            @v_user_id,
+            TRIM(@in_phone_code),
+            TRIM(@in_phone_number),
+            @in_gender,
+            @in_date_of_birth,
+            TRIM(@in_address_line1),
+            CASE WHEN @in_address_line2 IS NULL OR TRIM(@in_address_line2) = '' THEN NULL ELSE TRIM(@in_address_line2) END,
+            @in_country_id,
+            @in_region_id,
+            TRIM(@in_city),
+            TRIM(@in_postal_code),
+            CASE WHEN @in_avatar_url IS NULL OR TRIM(@in_avatar_url) = '' THEN NULL ELSE TRIM(@in_avatar_url) END,
+            @in_culture_id
+        );
 
-    COMMIT;
+        COMMIT;
 
-    SELECT v_user_id AS inserted_id, 'Success' AS message;
+        SELECT @v_user_id AS inserted_id, 'Success' AS message;
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0
+            ROLLBACK TRANSACTION;
+        
+        SELECT NULL AS inserted_id, ERROR_MESSAGE() AS message;
+    END CATCH
+END;
 
-END$$
-
-DELIMITER ;
-
-SELECT 'usp_RegisterUser created successfully.' AS message;

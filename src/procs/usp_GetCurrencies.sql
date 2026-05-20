@@ -1,10 +1,14 @@
-DELIMITER $$
-DROP PROCEDURE IF EXISTS usp_GetCurrencies$$
+IF OBJECT_ID('dbo.usp_GetCurrencies', 'P') IS NOT NULL
+    DROP PROCEDURE dbo.usp_GetCurrencies;
+GO
 
-CREATE PROCEDURE usp_GetCurrencies(
-    IN in_id BIGINT UNSIGNED
+CREATE PROCEDURE dbo.usp_GetCurrencies(
+    @in_id BIGINT = NULL
 )
+AS
 BEGIN
+    SET NOCOUNT ON;
+
     SELECT
         id,
         iso_code,
@@ -13,10 +17,10 @@ BEGIN
         symbol,
         minor_unit
     FROM tblCurrencies
-    WHERE void = 0 AND (in_id IS NULL OR id = in_id)
+    WHERE void = 0 AND (@in_id IS NULL OR id = @in_id)
     ORDER BY name;
-END$$
+END
+GO
 
-DELIMITER ;
+PRINT 'usp_GetCurrencies created successfully.';
 
-SELECT 'usp_GetCurrencies created successfully.' AS message;

@@ -1,1 +1,2 @@
-CALL usp_CreateUniqueKey('tblRolePermissions', 'role_id,permission_id');
+EXEC dbo.usp_CreateUniqueKey N'tblRolePermissions', N'role_id,permission_id';
+

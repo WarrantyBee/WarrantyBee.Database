@@ -1,1 +1,2 @@
-CALL usp_CreateUniqueKey('tblCultures', 'iso_code');
+EXEC dbo.usp_CreateUniqueKey N'tblCultures', N'iso_code';
+

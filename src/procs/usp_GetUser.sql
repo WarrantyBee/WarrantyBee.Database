@@ -1,102 +1,97 @@
-DELIMITER $$
-DROP PROCEDURE IF EXISTS usp_GetUser$$
-
-CREATE PROCEDURE usp_GetUser(
-    IN in_id BIGINT UNSIGNED,
-    IN in_email VARCHAR(255)
+CREATE OR ALTER PROCEDURE usp_GetUser(
+    @in_id BIGINT,
+    @in_email VARCHAR(255)
 )
-proc_label:BEGIN
-    DECLARE v_user_exists INT DEFAULT 0;
+AS
+BEGIN
+    SET NOCOUNT ON;
 
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        DECLARE v_error_message VARCHAR(255);
-        GET DIAGNOSTICS CONDITION 1 v_error_message = MESSAGE_TEXT;
-        SELECT 1 AS status, v_error_message AS message;
-    END;
+    DECLARE @v_user_exists INT = 0;
 
-    IF in_id IS NULL AND (in_email IS NULL OR TRIM(in_email) = '') THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Either a user ID or an email must be provided.';
-    END IF;
+    BEGIN TRY
+        IF @in_id IS NULL AND (@in_email IS NULL OR TRIM(@in_email) = '')
+        BEGIN
+            THROW 50000, 'Either a user ID or an email must be provided.', 1;
+        END;
 
-    SELECT COUNT(1) INTO v_user_exists
-    FROM tblUsers u
-    WHERE (in_id IS NOT NULL AND u.id = in_id) OR (in_email IS NOT NULL AND u.email = in_email);
+        SELECT @v_user_exists = COUNT(1)
+        FROM tblUsers u
+        WHERE (@in_id IS NOT NULL AND u.id = @in_id) OR (@in_email IS NOT NULL AND u.email = @in_email);
 
-    IF v_user_exists = 0 THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'User not found.';
-    END IF;
+        IF @v_user_exists = 0
+        BEGIN
+            THROW 50000, 'User not found.', 1;
+        END;
 
-    SELECT 0 AS status, 'Success' AS message;
+        SELECT 0 AS [status], 'Success' AS [message];
 
-    SELECT
-        u.id,
-        BIN_TO_UUID(u.internal_id) AS internal_id,
-        u.firstname,
-        u.lastname,
-        u.email,
-        u.created_at,
-        u.updated_at,
-        up.phone_number,
-        up.gender,
-        up.date_of_birth,
-        up.address_line1,
-        up.address_line2,
-        up.city,
-        up.postal_code,
-        up.avatar_url,
-        c.id AS country_id,
-        c.name AS country_name,
-        c.iso3_code AS country_iso3,
-        s.id AS region_id,
-        s.name AS region_name,
-        s.iso_code AS region_iso,
-        tz.id AS timezone_id,
-        tz.name AS timezone_name,
-        tz.abbreviation AS timezone_abbreviation,
-        tz.utc_offset_minutes AS timezone_utc_offset_minutes,
-        tz.observes_dst AS timezone_observes_dst,
-        tz.current_offset_minutes AS timezone_current_offset_minutes,
-        cur.id AS currency_id,
-        cur.name AS currency_name,
-        cur.numeric_code AS currency_code,
-        cur.iso_code AS currency_iso_code,
-        cur.symbol AS currency_symbol,
-        cur.minor_unit AS currency_minor_unit,
-        u.is_2fa_enabled,
-        u.password,
-        u.password_updated_at,
-        cu.id AS culture_id,
-        cu.iso_code AS culture_iso_code,
-        cu.rtl AS culture_rtl,
-        lang.id AS language_id,
-        lang.name AS language_name,
-        lang.iso_code AS language_iso_code,
-        lang.native_name AS language_native_name,
-        up.phone_code,
-        trl.name AS role,
-        GROUP_CONCAT(tperm.name) AS permissions,
-        u.auth_provider,
-        u.auth_provider_user_id
-    FROM
-        tblUsers u
-    LEFT JOIN tblUserProfiles up ON u.id = up.user_id
-    LEFT JOIN tblCountries c ON up.country_id = c.id
-    LEFT JOIN tblStates s ON up.region_id = s.id
-    LEFT JOIN tblTimeZones tz on tz.id = s.timezone_id
-    LEFT JOIN tblCurrencies cur on cur.id = c.currency_id
-    LEFT JOIN tblCultures cu ON cu.id = up.culture_id
-    LEFT JOIN tblLanguages lang ON lang.id = cu.language_id
-    LEFT JOIN tblRoles trl ON trl.id = u.role_id
-    LEFT JOIN tblRolePermissions trp ON trp.role_id = u.role_id
-    LEFT JOIN tblPermissions tperm ON tperm.id = trp.permission_id
-    WHERE (in_id IS NOT NULL AND u.id = in_id)
-    OR (in_email IS NOT NULL AND u.email = in_email)
-    GROUP BY u.id
-    LIMIT 1;
+        SELECT TOP 1
+            u.id,
+            u.internal_id,
+            u.firstname,
+            u.lastname,
+            u.email,
+            u.created_at,
+            u.updated_at,
+            up.phone_number,
+            up.gender,
+            up.date_of_birth,
+            up.address_line1,
+            up.address_line2,
+            up.city,
+            up.postal_code,
+            up.avatar_url,
+            c.id AS country_id,
+            c.name AS country_name,
+            c.iso3_code AS country_iso3,
+            s.id AS region_id,
+            s.name AS region_name,
+            s.iso_code AS region_iso,
+            tz.id AS timezone_id,
+            tz.name AS timezone_name,
+            tz.abbreviation AS timezone_abbreviation,
+            tz.utc_offset_minutes AS timezone_utc_offset_minutes,
+            tz.observes_dst AS timezone_observes_dst,
+            tz.current_offset_minutes AS timezone_current_offset_minutes,
+            cur.id AS currency_id,
+            cur.name AS currency_name,
+            cur.numeric_code AS currency_code,
+            cur.iso_code AS currency_iso_code,
+            cur.symbol AS currency_symbol,
+            cur.minor_unit AS currency_minor_unit,
+            u.is_2fa_enabled,
+            u.[password],
+            u.password_updated_at,
+            cu.id AS culture_id,
+            cu.iso_code AS culture_iso_code,
+            cu.rtl AS culture_rtl,
+            lang.id AS language_id,
+            lang.name AS language_name,
+            lang.iso_code AS language_iso_code,
+            lang.native_name AS language_native_name,
+            up.phone_code,
+            trl.name AS [role],
+            (SELECT STRING_AGG(tperm.name, ',') 
+             FROM tblRolePermissions trp 
+             JOIN tblPermissions tperm ON tperm.id = trp.permission_id 
+             WHERE trp.role_id = u.role_id) AS [permissions],
+            u.auth_provider,
+            u.auth_provider_user_id
+        FROM
+            tblUsers u
+        LEFT JOIN tblUserProfiles up ON u.id = up.user_id
+        LEFT JOIN tblCountries c ON up.country_id = c.id
+        LEFT JOIN tblStates s ON up.region_id = s.id
+        LEFT JOIN tblTimeZones tz on tz.id = s.timezone_id
+        LEFT JOIN tblCurrencies cur on cur.id = c.currency_id
+        LEFT JOIN tblCultures cu ON cu.id = up.culture_id
+        LEFT JOIN tblLanguages lang ON lang.id = cu.language_id
+        LEFT JOIN tblRoles trl ON trl.id = u.role_id
+        WHERE (@in_id IS NOT NULL AND u.id = @in_id)
+        OR (@in_email IS NOT NULL AND u.email = @in_email);
+    END TRY
+    BEGIN CATCH
+        SELECT 1 AS [status], ERROR_MESSAGE() AS [message];
+    END CATCH
+END;
 
-END$$
-
-DELIMITER ;
-
-SELECT 'usp_GetUser created successfully.' AS message;

@@ -1,1 +1,2 @@
-CALL usp_CreateForeignKey('tblUsers', 'role_id', 'tblRoles', 'id');
+EXEC dbo.usp_CreateForeignKey N'tblUsers', N'role_id', N'tblRoles', N'id';
+

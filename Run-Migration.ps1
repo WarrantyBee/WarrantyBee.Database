@@ -12,12 +12,12 @@ if (Test-Path $outputFile) {
 }
 
 if (-not [string]::IsNullOrEmpty($db)) {
-    $useDbStatement = "CREATE DATABASE IF NOT EXISTS $db;`nUSE $db;`n"
+    $useDbStatement = "IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = '$db')`nBEGIN`n    CREATE DATABASE [$db];`nEND`nGO`nUSE [$db];`nGO`n"
     Add-Content -Path $outputFile -Value $useDbStatement
 }
 
-$setUTCTimezone = "SET time_zone = '+00:00';`nSET sql_require_primary_key = OFF;`n`n"
-Add-Content -Path $outputFile -Value $setUTCTimezone
+# No global time_zone SET needed for SQL Server as we'll use GETUTCDATE() or SYSDATETIMEOFFSET()
+Add-Content -Path $outputFile -Value "SET NOCOUNT ON;`nGO`n`n"
 
 function Add-ScriptContent {
     param (
@@ -28,7 +28,12 @@ function Add-ScriptContent {
     $header = "-- Script: $fileName"
     Add-Content -Path $outputFile -Value "$header`r`n"
     $content = Get-Content -Path $filePath -Raw
-    Add-Content -Path $outputFile -Value "$content`r`n`r`n"
+    
+    # Remove DELIMITER statements and replace $$ with GO or nothing
+    $content = $content -replace "(?i)DELIMITER\s+[\S]+", ""
+    $content = $content -replace "\$\$", "GO"
+    
+    Add-Content -Path $outputFile -Value "$content`r`nGO`r`n"
 }
 
 $dependenciesPath = Join-Path -Path $srcPath -ChildPath "dependencies.json"

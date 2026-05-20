@@ -70,8 +70,15 @@
 						"usp_CreatePrimaryKey",
 						"usp_AutoIncrement",
 						"usp_AddColumn",
-						"usp_CreateUniqueKey"
+						"usp_CreateUniqueKey",
+						"usp_CreateUpdateTrigger"
 					]
+				}
+			},
+			"usp_CreateUpdateTrigger": {
+				"dependencies": {
+					"functions": ["ufn_DoesTableExist"],
+					"procs": []
 				}
 			},
 			"usp_CreateUniqueKey": {

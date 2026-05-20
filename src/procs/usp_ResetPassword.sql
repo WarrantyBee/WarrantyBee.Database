@@ -1,84 +1,77 @@
-
-DELIMITER $$
-
-DROP PROCEDURE IF EXISTS usp_ResetPassword$$
-
--- =============================================
--- usp_ResetPassword
--- Resets the password for a user.
---
--- Parameters:
---   in_user_id       - The user's identifier.
---   in_new_password  - The new password to set.
--- =============================================
-CREATE PROCEDURE usp_ResetPassword(
-    in_user_id INT,
-    in_new_password VARCHAR(255)
+CREATE OR ALTER PROCEDURE usp_ResetPassword(
+    @in_user_id BIGINT,
+    @in_new_password VARCHAR(255)
 )
-proc_label:BEGIN
-    DECLARE v_old_password VARCHAR(255);
-    DECLARE v_password_updated_at TIMESTAMP;
-    DECLARE v_user_found BOOLEAN DEFAULT FALSE;
-    DECLARE v_error_message VARCHAR(255);
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 v_error_message = MESSAGE_TEXT;
-        SELECT 1 AS status, v_error_message AS message;
-        ROLLBACK;
-    END;
+AS
+BEGIN
+    SET NOCOUNT ON;
 
-    IF in_user_id IS NULL THEN
-        SET v_error_message = 'User identifier must be provided.';
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = v_error_message;
-    END IF;
+    DECLARE @v_old_password VARCHAR(255);
+    DECLARE @v_password_updated_at DATETIME2;
+    DECLARE @v_user_found BIT = 0;
+    DECLARE @v_error_message VARCHAR(255);
 
-    IF in_new_password IS NULL OR TRIM(in_new_password) = '' THEN
-        SET v_error_message = 'New password must be provided.';
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = v_error_message;
-    END IF;
+    BEGIN TRY
+        IF @in_user_id IS NULL
+        BEGIN
+            SET @v_error_message = 'User identifier must be provided.';
+            THROW 50000, @v_error_message, 1;
+        END;
 
-    SELECT EXISTS (
-        SELECT 1
+        IF @in_new_password IS NULL OR TRIM(@in_new_password) = ''
+        BEGIN
+            SET @v_error_message = 'New password must be provided.';
+            THROW 50000, @v_error_message, 1;
+        END;
+
+        IF EXISTS (SELECT 1 FROM tblUsers WHERE id = @in_user_id)
+        BEGIN
+            SET @v_user_found = 1;
+        END;
+
+        IF @v_user_found = 0
+        BEGIN
+            SET @v_error_message = 'User not found.';
+            THROW 50000, @v_error_message, 1;
+        END;
+
+        SELECT @v_password_updated_at = password_updated_at
         FROM tblUsers
-        WHERE id = in_user_id
-    ) INTO v_user_found;
+        WHERE id = @in_user_id;
 
-    IF NOT v_user_found THEN
-        SET v_error_message = 'User not found.';
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = v_error_message;
-    END IF;
+        IF @v_password_updated_at IS NOT NULL AND
+        GETUTCDATE() BETWEEN @v_password_updated_at AND DATEADD(MINUTE, 10, @v_password_updated_at)
+        BEGIN
+            SELECT -1 AS [status], 'Password was recently updated. Please wait before resetting again.' AS [message];
+            RETURN;
+        END;
 
-    SELECT password_updated_at INTO v_password_updated_at
-    FROM tblUsers
-    WHERE id = in_user_id;
+        BEGIN TRANSACTION;
 
-    IF v_password_updated_at IS NOT NULL AND
-    UTC_TIMESTAMP() BETWEEN v_password_updated_at AND
-    v_password_updated_at + INTERVAL 10 MINUTE THEN
-        SELECT -1 AS status, 'Password was recently updated. Please wait before resetting again.' AS message;
-        LEAVE proc_label;
-    ELSE
-        START TRANSACTION;
-
-        SELECT `password` INTO v_old_password
+        SELECT @v_old_password = [password]
         FROM tblUsers
-        WHERE id = in_user_id;
+        WHERE id = @in_user_id;
 
         UPDATE tblUsers
-        SET `password` = in_new_password,
-        password_updated_at = UTC_TIMESTAMP()
-        WHERE id = in_user_id;
+        SET [password] = @in_new_password,
+            password_updated_at = GETUTCDATE()
+        WHERE id = @in_user_id;
 
-        IF v_old_password IS NOT NULL THEN
-            INSERT INTO tblPasswordLogs (`user_id`, `password`)
-            VALUES (in_user_id, v_old_password);
-        END IF;
+        IF @v_old_password IS NOT NULL
+        BEGIN
+            INSERT INTO tblPasswordLogs (user_id, [password])
+            VALUES (@in_user_id, @v_old_password);
+        END;
 
         COMMIT;
         
-        SELECT 0 AS status, 'Success' AS message;
-    END IF;
-END$$
+        SELECT 0 AS [status], 'Success' AS [message];
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0
+            ROLLBACK TRANSACTION;
+        
+        SELECT 1 AS [status], ERROR_MESSAGE() AS [message];
+    END CATCH
+END;
 
-DELIMITER ;
-SELECT 'usp_ResetPassword created successfully.' AS message;

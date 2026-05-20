@@ -1,20 +1,18 @@
-DROP PROCEDURE IF EXISTS usp_CreateColumns_tblOtp;
-DELIMITER $$
+IF OBJECT_ID('dbo.usp_CreateColumns_tblOtp', 'P') IS NOT NULL DROP PROCEDURE dbo.usp_CreateColumns_tblOtp; GO
 
-CREATE PROCEDURE usp_CreateColumns_tblOtp()
+CREATE PROCEDURE dbo.usp_CreateColumns_tblOtp AS
 BEGIN
-    DECLARE v_required BOOLEAN DEFAULT TRUE;
-    DECLARE v_optional BOOLEAN DEFAULT FALSE;
+    DECLARE @v_required BIT = 1;
+    DECLARE @v_optional BIT = 0;
 
-    CALL usp_AddColumn('tblOtp', 'recipient_id', 'BIGINT UNSIGNED', NULL, v_optional);
-    CALL usp_AddColumn('tblOtp', 'value', 'VARCHAR(255)', NULL, v_required);
-    CALL usp_AddColumn('tblOtp', 'recipient', 'VARCHAR(255)', NULL, v_required);
-    CALL usp_AddColumn('tblOtp', 'type', 'TINYINT', NULL, v_required);
-    CALL usp_DropColumn('tblOtp', 'created_by');
-    CALL usp_DropColumn('tblOtp', 'updated_by');
-END$$
+    EXEC dbo.usp_AddColumn N'tblOtp', 'recipient_id', N'BIGINT', NULL, @v_optional;
+    EXEC dbo.usp_AddColumn N'tblOtp', 'value', 'VARCHAR(255)', NULL, @v_required;
+    EXEC dbo.usp_AddColumn N'tblOtp', 'recipient', 'VARCHAR(255)', NULL, @v_required;
+    EXEC dbo.usp_AddColumn N'tblOtp', 'type', 'TINYINT', NULL, @v_required;
+    EXEC dbo.usp_DropColumn N'tblOtp', 'created_by';
+    EXEC dbo.usp_DropColumn N'tblOtp', 'updated_by';
+END
+GO
 
-DELIMITER ;
-
-CALL usp_CreateColumns_tblOtp();
-DROP PROCEDURE usp_CreateColumns_tblOtp;
+EXEC dbo.usp_CreateColumns_tblOtp;
+IF OBJECT_ID('dbo.usp_CreateColumns_tblOtp', 'P') IS NOT NULL DROP PROCEDURE dbo.usp_CreateColumns_tblOtp; GO

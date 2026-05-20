@@ -1,2 +1,3 @@
-CALL usp_CreateUniqueKey('tblStates', 'country_id, iso_code');
-CALL usp_CreateUniqueKey('tblStates', 'country_id, name');
+EXEC dbo.usp_CreateUniqueKey N'tblStates', N'country_id, iso_code';
+EXEC dbo.usp_CreateUniqueKey N'tblStates', N'country_id, name';
+

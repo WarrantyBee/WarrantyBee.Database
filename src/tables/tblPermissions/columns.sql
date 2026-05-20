@@ -1,19 +1,12 @@
-DROP PROCEDURE IF EXISTS usp_CreateColumns_tblPermissions;
-DELIMITER $$
+IF OBJECT_ID('dbo.usp_CreateColumns_tblPermissions', 'P') IS NOT NULL DROP PROCEDURE dbo.usp_CreateColumns_tblPermissions; GO
 
-CREATE PROCEDURE usp_CreateColumns_tblPermissions()
+CREATE PROCEDURE dbo.usp_CreateColumns_tblPermissions AS
 BEGIN
-    DECLARE v_table_name VARCHAR(100) DEFAULT 'tblPermissions';
-    DECLARE v_required BOOLEAN DEFAULT TRUE;
-    DECLARE v_optional BOOLEAN DEFAULT FALSE;
+    DECLARE @v_required BIT = 1;
+    DECLARE @v_optional BIT = 0;
 
-    CALL usp_AddColumn(v_table_name, 'name', 'VARCHAR(128)', NULL, v_required);
-    CALL usp_AddColumn(v_table_name, 'description', 'VARCHAR(255)', NULL, v_required);
-    CALL usp_DropColumn(v_table_name, 'created_by');
-    CALL usp_DropColumn(v_table_name, 'updated_by');
-END$$
+END
+GO
 
-DELIMITER ;
-
-CALL usp_CreateColumns_tblPermissions();
-DROP PROCEDURE usp_CreateColumns_tblPermissions;
+EXEC dbo.usp_CreateColumns_tblPermissions;
+IF OBJECT_ID('dbo.usp_CreateColumns_tblPermissions', 'P') IS NOT NULL DROP PROCEDURE dbo.usp_CreateColumns_tblPermissions; GO

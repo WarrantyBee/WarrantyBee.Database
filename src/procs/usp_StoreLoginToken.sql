@@ -1,41 +1,30 @@
-DELIMITER $$
-
-DROP PROCEDURE IF EXISTS usp_StoreLoginToken$$
-
--- =============================================
--- usp_StoreLoginToken
--- Stores the login token for a user.
---
--- Parameters:
---   in_user_id   - The user's identifier.
---   in_token     - The login token to store.
--- =============================================
-CREATE PROCEDURE usp_StoreLoginToken(
-    in_user_id INT,
-    in_token VARCHAR(255)
+CREATE OR ALTER PROCEDURE usp_StoreLoginToken(
+    @in_user_id BIGINT,
+    @in_token VARCHAR(255)
 )
-proc_label:BEGIN
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        DECLARE v_error_message VARCHAR(255);
-        GET DIAGNOSTICS CONDITION 1 v_error_message = MESSAGE_TEXT;
-        SELECT 1 AS status, v_error_message AS message;
-    END;
+AS
+BEGIN
+    SET NOCOUNT ON;
 
-    IF in_user_id IS NULL THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'User identifier must be provided.';
-    END IF;
+    BEGIN TRY
+        IF @in_user_id IS NULL
+        BEGIN
+            THROW 50000, 'User identifier must be provided.', 1;
+        END;
 
-    IF in_token IS NULL OR TRIM(in_token) = '' THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Token must be provided.';
-    END IF;
+        IF @in_token IS NULL OR TRIM(@in_token) = ''
+        BEGIN
+            THROW 50000, 'Token must be provided.', 1;
+        END;
 
-    UPDATE tblUsers
-    SET login_token = in_token
-    WHERE id = in_user_id;
+        UPDATE tblUsers
+        SET login_token = @in_token
+        WHERE id = @in_user_id;
 
-    SELECT 0 AS status, 'Success' AS message;
-END$$
+        SELECT 0 AS [status], 'Success' AS [message];
+    END TRY
+    BEGIN CATCH
+        SELECT 1 AS [status], ERROR_MESSAGE() AS [message];
+    END CATCH
+END;
 
-DELIMITER ;
-SELECT 'usp_StoreLoginToken created successfully.' AS message;

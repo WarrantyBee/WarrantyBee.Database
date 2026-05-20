@@ -1,7 +1,8 @@
-CALL usp_CreateUniqueKey('tblUserProfiles', 'user_id');
-CALL usp_AddCheck('tblUserProfiles', 'gender', 'gender IN (1, 2, 3)');
-CALL usp_AddCheck('tblUserProfiles', 'date_of_birth', 'date_of_birth <= CURDATE()');
-CALL usp_AddCheck('tblUserProfiles', 'phone_number','TRIM(phone_number) <> ''''');
-CALL usp_AddCheck('tblUserProfiles', 'address_line1', 'TRIM(address_line1) <> ''''');
-CALL usp_AddCheck('tblUserProfiles', 'city', 'TRIM(city) <> ''''');
-CALL usp_AddCheck('tblUserProfiles', 'postal_code', 'TRIM(postal_code) <> ''''');
+EXEC dbo.usp_CreateUniqueKey N'tblUserProfiles', N'user_id';
+EXEC dbo.usp_AddCheck N'tblUserProfiles', N'gender', N'gender IN (1, 2, 3)';
+EXEC dbo.usp_AddCheck N'tblUserProfiles', N'date_of_birth', N'date_of_birth <= CURDATE()';
+EXEC dbo.usp_AddCheck N'tblUserProfiles', N'phone_number',N'TRIM(phone_number) <> ''''';
+EXEC dbo.usp_AddCheck N'tblUserProfiles', N'address_line1', N'TRIM(address_line1) <> ''''';
+EXEC dbo.usp_AddCheck N'tblUserProfiles', N'city', N'TRIM(city) <> ''''';
+EXEC dbo.usp_AddCheck N'tblUserProfiles', N'postal_code', N'TRIM(postal_code) <> ''''';
+

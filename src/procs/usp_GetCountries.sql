@@ -1,8 +1,12 @@
-DELIMITER $$
-DROP PROCEDURE IF EXISTS usp_GetCountries$$
+IF OBJECT_ID('dbo.usp_GetCountries', 'P') IS NOT NULL
+    DROP PROCEDURE dbo.usp_GetCountries;
+GO
 
-CREATE PROCEDURE usp_GetCountries()
+CREATE PROCEDURE dbo.usp_GetCountries
+AS
 BEGIN
+    SET NOCOUNT ON;
+
     SELECT
         c.id,
         c.iso2_code,
@@ -12,57 +16,55 @@ BEGIN
         c.official_name,
         c.capital,
         c.phone_code,
-        JSON_OBJECT(
-            'id', cur.id,
-            'iso', cur.iso_code,
-            'code', cur.numeric_code,
-            'name', cur.name,
-            'symbol', cur.symbol,
-            'minorUnit', cur.minor_unit
+        (
+            SELECT 
+                cur.id AS id,
+                cur.iso_code AS iso,
+                cur.numeric_code AS code,
+                cur.name AS name,
+                cur.symbol AS symbol,
+                cur.minor_unit AS minorUnit
+            FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
         ) as currency,
         (
-            SELECT JSON_ARRAYAGG(
-                JSON_OBJECT(
-                    'id', s.id,
-                    'name', s.name,
-                    'iso', s.iso_code,
-                    'capital', s.capital,
-                    'timezoneId', s.timezone_id
-                )
-            )
+            SELECT 
+                s.id AS id,
+                s.name AS name,
+                s.iso_code AS iso,
+                s.capital AS capital,
+                s.timezone_id AS timezoneId
             FROM tblStates s
             WHERE s.country_id = c.id AND s.void = 0
+            FOR JSON PATH
         ) as states,
         (
-            SELECT JSON_ARRAYAGG(
-                JSON_OBJECT(
-                    'id', cul.id,
-                    'iso', cul.iso_code,
-                    'rtl', cul.rtl,
-                    'language', JSON_OBJECT(
-                        'id', l.id,
-                        'name', l.name,
-                        'nativeName', l.native_name,
-                        'iso', l.iso_code
-                    )
-                )
-            )
+            SELECT 
+                cul.id AS id,
+                cul.iso_code AS iso,
+                cul.rtl AS rtl,
+                (
+                    SELECT 
+                        l.id AS id,
+                        l.name AS name,
+                        l.native_name AS nativeName,
+                        l.iso_code AS iso
+                    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
+                ) AS [language]
             FROM tblCultures cul
             JOIN tblLanguages l ON cul.language_id = l.id
             WHERE cul.country_id = c.id AND cul.void = 0
+            FOR JSON PATH
         ) as cultures,
         (
-            SELECT JSON_ARRAYAGG(
-                JSON_OBJECT(
-                    'id', t.id,
-                    'name', t.name,
-                    'abbreviation', t.abbreviation,
-                    'offsetMinutes', t.utc_offset_minutes,
-                    'currentOffsetMinutes', t.current_offset_minutes,
-                    'dst', t.observes_dst
-                )
-            )
+            SELECT 
+                t.id AS id,
+                t.name AS name,
+                t.abbreviation AS abbreviation,
+                t.utc_offset_minutes AS offsetMinutes,
+                t.current_offset_minutes AS currentOffsetMinutes,
+                t.observes_dst AS dst
             FROM (SELECT DISTINCT tz.* FROM tblStates s JOIN tblTimeZones tz ON s.timezone_id = tz.id WHERE s.country_id = c.id AND s.void = 0) t
+            FOR JSON PATH
         ) as timezones
     FROM
         tblCountries c
@@ -70,8 +72,8 @@ BEGIN
         tblCurrencies cur ON c.currency_id = cur.id
     WHERE
         c.void = 0;
-END$$
+END
+GO
 
-DELIMITER ;
+PRINT 'usp_GetCountries created successfully.';
 
-SELECT 'usp_GetCountries created successfully.' AS message;

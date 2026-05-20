@@ -1,40 +1,43 @@
-DROP FUNCTION IF EXISTS ufn_DoesUserExist;
-DELIMITER $$
+IF OBJECT_ID('dbo.ufn_DoesUserExist', 'FN') IS NOT NULL
+    DROP FUNCTION dbo.ufn_DoesUserExist;
+GO
 
 -- =============================================
 -- ufn_DoesUserExist
 -- Checks if a user exists in the tblUsers table based on the user ID or email address.
 --
 -- Parameters:
---   in_id - The ID of the user to check.
---   in_email - The email address of the user to check.
+--   @in_id - The ID of the user to check.
+--   @in_email - The email address of the user to check.
 --
 -- Returns:
---   BOOLEAN - TRUE if the user exists, FALSE otherwise.
+--   BIT - 1 if the user exists, 0 otherwise.
 --
 -- Usage:
---   SELECT ufn_DoesUserExist(1, NULL);
---   SELECT ufn_DoesUserExist(NULL, 'test@example.com');
+--   SELECT dbo.ufn_DoesUserExist(1, NULL);
+--   SELECT dbo.ufn_DoesUserExist(NULL, 'test@example.com');
 -- =============================================
-CREATE FUNCTION ufn_DoesUserExist(
-    in_id BIGINT UNSIGNED,
-    in_email VARCHAR(255)
+CREATE FUNCTION dbo.ufn_DoesUserExist(
+    @in_id BIGINT,
+    @in_email VARCHAR(255)
 )
-RETURNS BOOLEAN
-DETERMINISTIC
-READS SQL DATA
+RETURNS BIT
+AS
 BEGIN
-    DECLARE v_user_exists BOOLEAN;
+    DECLARE @v_user_exists BIT;
 
-    SELECT EXISTS(
+    IF EXISTS (
         SELECT 1
         FROM tblUsers
         WHERE
-            (in_id IS NOT NULL AND id = in_id) OR
-            (in_email IS NOT NULL AND email = in_email)
-    ) INTO v_user_exists;
+            (@in_id IS NOT NULL AND id = @in_id) OR
+            (@in_email IS NOT NULL AND email = @in_email)
+    )
+        SET @v_user_exists = 1;
+    ELSE
+        SET @v_user_exists = 0;
 
-    RETURN v_user_exists;
-END$$
+    RETURN @v_user_exists;
+END
+GO
 
-DELIMITER ;
