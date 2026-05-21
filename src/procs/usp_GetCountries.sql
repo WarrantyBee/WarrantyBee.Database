@@ -9,9 +9,9 @@ BEGIN
 
     SELECT
         c.id,
-        c.iso2_code,
-        c.iso3_code,
-        c.numeric_code,
+        c.iso2_code AS iso2,
+        c.iso3_code AS iso3,
+        c.numeric_code AS code,
         c.name,
         c.official_name,
         c.capital,
@@ -36,20 +36,16 @@ BEGIN
             FROM tblStates s
             WHERE s.country_id = c.id AND s.void = 0
             FOR JSON PATH
-        ) as states,
+        ) as regions,
         (
             SELECT 
                 cul.id AS id,
                 cul.iso_code AS iso,
                 cul.rtl AS rtl,
-                (
-                    SELECT 
-                        l.id AS id,
-                        l.name AS name,
-                        l.native_name AS nativeName,
-                        l.iso_code AS iso
-                    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
-                ) AS [language]
+                l.id AS [language.id],
+                l.name AS [language.name],
+                l.native_name AS [language.nativeName],
+                l.iso_code AS [language.iso]
             FROM tblCultures cul
             JOIN tblLanguages l ON cul.language_id = l.id
             WHERE cul.country_id = c.id AND cul.void = 0
@@ -76,6 +72,3 @@ END
 GO
 
 PRINT 'usp_GetCountries created successfully.';
-
-
-
