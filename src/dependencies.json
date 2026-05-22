@@ -218,6 +218,10 @@
 		"tblPasswordLogs": ["tblUsers"],
 		"tblRoles": [],
 		"tblPermissions": [],
-		"tblRolePermissions": ["tblRoles", "tblPermissions"]
+		"tblRolePermissions": ["tblRoles", "tblPermissions"],
+		"tblEventSubscriptions": ["tblUsers"],
+		"tblEventLogs": [],
+		"tblEventDeliveries": ["tblEventLogs", "tblEventSubscriptions"],
+		"tblNotifications": ["tblUsers"]
 	}
 }

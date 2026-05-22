@@ -135,7 +135,7 @@ BEGIN
 
         SELECT @v_customer_role = id
         FROM tblRoles
-        WHERE name = 'customer';
+        WHERE name = 'CUSTOMER';
 
         BEGIN TRANSACTION;
 

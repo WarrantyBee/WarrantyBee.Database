@@ -11,6 +11,10 @@ EXEC dbo.usp_CreateTable N'tblCultures';
 EXEC dbo.usp_CreateTable N'tblRoles';
 EXEC dbo.usp_CreateTable N'tblPermissions';
 EXEC dbo.usp_CreateTable N'tblRolePermissions';
+EXEC dbo.usp_CreateTable N'tblEventSubscriptions';
+EXEC dbo.usp_CreateTable N'tblEventLogs';
+EXEC dbo.usp_CreateTable N'tblEventDeliveries';
+EXEC dbo.usp_CreateTable N'tblNotifications';
 GO
 
 
