@@ -15,6 +15,7 @@ EXEC dbo.usp_CreateTable N'tblEventSubscriptions';
 EXEC dbo.usp_CreateTable N'tblEventLogs';
 EXEC dbo.usp_CreateTable N'tblEventDeliveries';
 EXEC dbo.usp_CreateTable N'tblNotifications';
+EXEC dbo.usp_CreateTable N'tblNotificationTemplates';
 GO
 
 

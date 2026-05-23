@@ -222,6 +222,7 @@
 		"tblEventSubscriptions": ["tblUsers"],
 		"tblEventLogs": [],
 		"tblEventDeliveries": ["tblEventLogs", "tblEventSubscriptions"],
-		"tblNotifications": ["tblUsers"]
+		"tblNotifications": ["tblUsers"],
+		"tblNotificationTemplates": []
 	}
 }
