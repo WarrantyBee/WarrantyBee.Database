@@ -223,6 +223,7 @@
 		"tblEventLogs": [],
 		"tblEventDeliveries": ["tblEventLogs", "tblEventSubscriptions"],
 		"tblNotifications": ["tblUsers"],
-		"tblNotificationTemplates": []
+		"tblNotificationTemplates": [],
+		"tblSystemMacros": []
 	}
 }
