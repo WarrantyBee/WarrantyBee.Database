@@ -224,6 +224,8 @@
 		"tblEventDeliveries": ["tblEventLogs", "tblEventSubscriptions"],
 		"tblNotifications": ["tblUsers"],
 		"tblNotificationTemplates": [],
-		"tblSystemMacros": []
+		"tblSystemMacros": [],
+		"tblApiClients": [],
+		"tblApiKeys": ["tblApiClients"]
 	}
 }

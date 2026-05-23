@@ -17,6 +17,8 @@ EXEC dbo.usp_CreateTable N'tblEventDeliveries';
 EXEC dbo.usp_CreateTable N'tblNotifications';
 EXEC dbo.usp_CreateTable N'tblNotificationTemplates';
 EXEC dbo.usp_CreateTable N'tblSystemMacros';
+EXEC dbo.usp_CreateTable N'tblApiClients';
+EXEC dbo.usp_CreateTable N'tblApiKeys';
 GO
 
 
