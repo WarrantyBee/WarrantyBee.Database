@@ -3,15 +3,17 @@ GO
 
 MERGE INTO tblRoles AS target
 USING (VALUES
-    (1, N'SUPER_ADMIN', N'Platform-level admin with full system access.'),
-    (2, N'MANUFACTURER', N'Product manufacturer responsible for product data and warranty policies.'),
-    (3, N'VENDOR', N'Authorized vendors or distributors who supply products to retailers.'),
-    (4, N'RETAILER', N'Store owners who sell products directly to customers.'),
-    (5, N'SERVICE_CENTER_MANAGER', N'Manager of an authorized service center handling repairs and claims.'),
-    (6, N'TECHNICIAN', N'Technicians who diagnose and repair electronic products.'),
-    (7, N'CUSTOMER', N'End users who purchase and register products.'),
-    (8, N'SUPPORT_AGENT', N'Customer support personnel handling queries and complaints.'),
-    (9, N'AUDITOR', N'Auditors who review system activities, compliance, and fraud prevention.')
+    (1, N'PLATFORM_ADMIN', N'Ultimate platform administrator with access to all tenants and system configurations.'),
+    (2, N'PLATFORM_SUPPORT', N'System support and technical auditor for the platform.'),
+    (3, N'BUSINESS_OWNER', N'The primary owner of a business tenant.'),
+    (4, N'BUSINESS_ADMIN', N'Administrator for a specific business tenant.'),
+    (5, N'PLANNER', N'Operations manager focusing on logistics and trends for the brand.'),
+    (6, N'BRAND_SUPPORT', N'Frontline support agent for the brand.'),
+    (7, N'DISTRIBUTOR', N'Bulk buyer and stock manager for a brand.'),
+    (8, N'RETAILER', N'Front-facing seller who activates warranties upon purchase.'),
+    (9, N'SERVICE_CENTER_ADMIN', N'Manager of an authorized service center who dispatches technicians.'),
+    (10, N'TECHNICIAN', N'Field agent responsible for performing appliance repairs.'),
+    (11, N'CUSTOMER', N'End-user who owns products and initiates claims.')
 ) AS source (id, name, description)
 ON target.id = source.id
 WHEN MATCHED THEN
@@ -24,9 +26,8 @@ GO
 SET IDENTITY_INSERT tblRoles OFF;
 GO
 
-DBCC CHECKIDENT ('tblRoles', RESEED, 9);
+DBCC CHECKIDENT ('tblRoles', RESEED, 11);
 GO
 
 PRINT N'tblRoles data merged successfully.';
 GO
-
