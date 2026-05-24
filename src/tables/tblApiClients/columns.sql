@@ -12,6 +12,7 @@ BEGIN
     EXEC dbo.usp_AddColumn N'tblApiClients', 'description', 'NVARCHAR(512)', NULL, @v_optional;
     EXEC dbo.usp_AddColumn N'tblApiClients', 'app_secret', 'VARCHAR(1024)', NULL, @v_optional; -- Optional for now to avoid breaking existing data
     EXEC dbo.usp_AddColumn N'tblApiClients', 'owner_user_id', 'BIGINT', NULL, @v_optional;
+    EXEC dbo.usp_AddColumn N'tblApiClients', 'role_id', 'BIGINT', NULL, @v_optional;
     EXEC dbo.usp_AddColumn N'tblApiClients', 'app_type', 'TINYINT', '1', @v_required; -- 1: Microservice, 2: API, 3: External App
 END
 GO

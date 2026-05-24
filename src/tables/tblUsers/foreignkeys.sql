@@ -1,4 +1,2 @@
-EXEC dbo.usp_CreateForeignKey N'tblUsers', N'role_id', N'tblRoles', N'id';
-
-
-
+EXEC dbo.usp_AddForeignKey N'tblUsers', 'business_id', N'tblBusinessProfiles', 'id';
+GO
