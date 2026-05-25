@@ -3,23 +3,23 @@ GO
 
 MERGE INTO tblPermissions AS target
 USING (VALUES
-    (1, N'EDIT_PROFILE', N'Allows a user to edit their personal profile details.'),
-    (2, N'CHANGE_AVATAR', N'Allows a user to change their profile avatar.'),
-    (3, N'ACCESS_PROFILE', N'Allows users to access their profile.'),
-    (10, N'MANAGE_PLATFORM', N'Full management of the platform and tenants.'),
-    (11, N'AUDIT_SYSTEM', N'Technical auditing and log access.'),
-    (12, N'ONBOARD_BUSINESS', N'Generate secure onboarding links for new businesses.'),
-    (20, N'MANAGE_BUSINESS_PROFILE', N'Manage the business''s public profile and branding.'),
-    (21, N'MANAGE_BUSINESS_USERS', N'Manage users within a specific business tenant.'),
-    (22, N'INVITE_STAFF', N'Generate invitation links for internal staff.'),
-    (23, N'MANAGE_PRODUCTS', N'Manage the product catalog and warranty policies.'),
-    (24, N'MANAGE_LOGISTICS', N'Analyze trends and manage spare parts inventory.'),
-    (30, N'APPROVE_CLAIMS', N'Final approval or rejection of high-value warranty claims.'),
-    (31, N'ASSIGN_TICKETS', N'Dispatch tickets to service centers and technicians.'),
-    (32, N'UPDATE_TICKETS', N'Update ticket status and repair progress.'),
-    (33, N'SUBMIT_CLAIMS', N'Initiate a new warranty claim.'),
-    (40, N'ACTIVATE_WARRANTY', N'Activate a product warranty at the point of sale.'),
-    (41, N'MANAGE_INVENTORY', N'Manage batch transfers and stock allocations.')
+    (1, N'EditProfile', N'Allows a user to edit their personal profile details.'),
+    (2, N'ChangeAvatar', N'Allows a user to change their profile avatar.'),
+    (3, N'AccessProfile', N'Allows users to access their profile.'),
+    (10, N'ManagePlatform', N'Full management of the platform and tenants.'),
+    (11, N'AuditSystem', N'Technical auditing and log access.'),
+    (12, N'OnboardBusiness', N'Generate secure onboarding links for new businesses.'),
+    (20, N'ManageBusinessProfile', N'Manage the business''s public profile and branding.'),
+    (21, N'ManageBusinessUsers', N'Manage users within a specific business tenant.'),
+    (22, N'InviteStaff', N'Generate invitation links for internal staff.'),
+    (23, N'ManageProducts', N'Manage the product catalog and warranty policies.'),
+    (24, N'ManageLogistics', N'Analyze trends and manage spare parts inventory.'),
+    (30, N'ApproveClaims', N'Final approval or rejection of high-value warranty claims.'),
+    (31, N'AssignTickets', N'Dispatch tickets to service centers and technicians.'),
+    (32, N'UpdateTickets', N'Update ticket status and repair progress.'),
+    (33, N'SubmitClaims', N'Initiate a new warranty claim.'),
+    (40, N'ActivateWarranty', N'Activate a product warranty at the point of sale.'),
+    (41, N'ManageInventory', N'Manage batch transfers and stock allocations.')
 ) AS source (id, name, description)
 ON target.id = source.id
 WHEN MATCHED THEN

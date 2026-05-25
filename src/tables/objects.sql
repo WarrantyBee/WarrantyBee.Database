@@ -1,3 +1,5 @@
+EXEC dbo.usp_CreateTable N'tblMigrationHistory';
+EXEC dbo.usp_CreateTable N'tblSystemStatus';
 EXEC dbo.usp_CreateTable N'tblTimeZones';
 EXEC dbo.usp_CreateTable N'tblCurrencies';
 EXEC dbo.usp_CreateTable N'tblCountries';

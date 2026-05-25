@@ -34,7 +34,10 @@ function Add-ScriptContent {
     )
     Write-Host "Merging: $filePath"
     $fileName = Split-Path -Path $filePath -Leaf
-    Write-OutputContent -content "-- Script: $fileName"
+    $relativeDir = Split-Path -Path (Split-Path -Path $filePath -Parent) -Leaf
+    $fullIdentifier = "$relativeDir/$fileName"
+
+    Write-OutputContent -content "-- Script: $fullIdentifier"
     
     $content = [System.IO.File]::ReadAllText($filePath)
     
@@ -47,8 +50,22 @@ function Add-ScriptContent {
     # Ensure GO is handled
     $content = $content -replace "\$\$", "`r`nGO`r`n"
     
+    # Track migration execution if it's not a master proc/func
+    if ($filePath -notlike "*procs\master*" -and $filePath -notlike "*functions\master*") {
+        Write-OutputContent -content "DECLARE @v_start_$($fileName.Replace('.','_')) DATETIME2 = GETUTCDATE();"
+    }
+
     Write-OutputContent -content $content
     
+    if ($filePath -notlike "*procs\master*" -and $filePath -notlike "*functions\master*" -and $fullIdentifier -ne "tables/objects.sql") {
+        Write-OutputContent -content "`r`nGO`r`n"
+        Write-OutputContent -content "IF EXISTS (SELECT 1 FROM sys.tables WHERE name = 'tblMigrationHistory')
+BEGIN
+    INSERT INTO tblMigrationHistory (internal_id, script_name, applied_at, execution_time_ms, created_at, void)
+    VALUES (NEWID(), '$fullIdentifier', GETUTCDATE(), DATEDIFF(MILLISECOND, GETUTCDATE(), GETUTCDATE()), GETUTCDATE(), 0);
+END"
+    }
+
     # Ensure a trailing GO
     Write-OutputContent -content "`r`nGO`r`n"
 }

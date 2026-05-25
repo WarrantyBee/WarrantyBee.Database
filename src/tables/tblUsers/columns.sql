@@ -20,7 +20,7 @@ BEGIN
     EXEC dbo.usp_AddColumn N'tblUsers', 'auth_provider_user_id', 'VARCHAR(1024)', NULL, @v_optional;
     EXEC dbo.usp_DropColumn N'tblUsers', 'created_by';
     EXEC dbo.usp_DropColumn N'tblUsers', 'updated_by';
-    usp_AlterColumn N'tblUsers', 'password', 'VARCHAR(1024)', @v_optional, NULL;
+    EXEC dbo.usp_AlterColumn N'tblUsers', 'password', 'VARCHAR(1024)', @v_optional, NULL;
     EXEC dbo.usp_AddColumn N'tblUsers', 'business_id', 'BIGINT', NULL, @v_optional;
     END
 GO
